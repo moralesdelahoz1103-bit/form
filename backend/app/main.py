@@ -10,7 +10,7 @@ from pathlib import Path
 import os
 
 # Añadir el directorio padre al path
-sys.path.append(str(Path(__file__).parent.parent))
+sys.path.append(str(Path(__file__).parent))
 
 from api.endpoints import sesiones, asistentes
 from core.config import settings
