@@ -64,7 +64,8 @@ def crear_sesion(sesion_data: dict) -> dict:
     now = datetime.utcnow().isoformat()
     expiry = (datetime.utcnow() + timedelta(days=settings.TOKEN_EXPIRY_DAYS)).isoformat()
     
-    link = f"{settings.BASE_URL}/registro?token={token}"
+    # URL hardcodeada para producción
+    link = f"https://formulariosfsd.vercel.app/registro?token={token}"
     qr_code = generar_qr(link)
     
     nueva_sesion = {
