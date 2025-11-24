@@ -5,10 +5,16 @@ from dotenv import load_dotenv
 load_dotenv()
 
 class Settings(BaseSettings):
-    # Base
-    BASE_URL: str = os.getenv("BASE_URL", "http://localhost:3000")
+    # Base - Detectar automáticamente el dominio en Vercel
+    BASE_URL: str = os.getenv("VERCEL_URL", os.getenv("BASE_URL", "http://localhost:3000"))
     API_HOST: str = os.getenv("API_HOST", "0.0.0.0")
     API_PORT: int = int(os.getenv("API_PORT", "8000"))
+    
+    # Si estamos en Vercel, usar el dominio con https
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        if os.getenv("VERCEL_URL"):
+            self.BASE_URL = f"https://{os.getenv('VERCEL_URL')}"
     
     # Configuración
     ALLOWED_DOMAIN: str = os.getenv("ALLOWED_DOMAIN", "@fundacionsantodomingo.org")
