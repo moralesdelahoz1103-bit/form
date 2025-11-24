@@ -1,0 +1,146 @@
+.registro-page {
+  min-height: 100vh;
+  background: var(--bg-page);
+}
+
+.registro-container {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 40px 24px;
+}
+
+.registro-card {
+  background: white;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+  overflow: hidden;
+  animation: fadeIn 0.5s ease;
+}
+
+.sesion-info {
+  padding: 32px;
+  background: linear-gradient(135deg, #B5D9C8 0%, #7FB89E 100%);
+  border-bottom: 3px solid var(--primary);
+}
+
+.sesion-titulo {
+  font-size: 28px;
+  font-weight: 800;
+  color: var(--text-dark);
+  margin-bottom: 24px;
+  background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.sesion-detalles {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.sesion-detalle {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.detalle-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-light);
+}
+
+.detalle-value {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-dark);
+}
+
+.sesion-contenido {
+  background: white;
+  padding: 20px;
+  border-radius: var(--radius-md);
+  border-left: 4px solid var(--primary);
+}
+
+.sesion-contenido h3 {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-dark);
+  margin-bottom: 8px;
+}
+
+.sesion-contenido p {
+  font-size: 14px;
+  color: var(--text-light);
+  line-height: 1.6;
+  margin: 0;
+}
+
+.registro-form {
+  padding: 32px;
+}
+
+.form-title {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--text-dark);
+  margin-bottom: 24px;
+  padding-bottom: 16px;
+  border-bottom: 2px solid var(--bg-hover);
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 0 20px;
+}
+
+.error-page {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  text-align: center;
+}
+
+.error-page h1 {
+  font-size: 48px;
+  margin-bottom: 16px;
+}
+
+.error-page p {
+  font-size: 18px;
+  color: var(--text-light);
+}
+
+@media (max-width: 768px) {
+  .registro-container {
+    padding: 24px 16px;
+  }
+
+  .sesion-info {
+    padding: 24px;
+  }
+
+  .sesion-titulo {
+    font-size: 24px;
+  }
+
+  .sesion-detalles {
+    grid-template-columns: 1fr;
+  }
+
+  .registro-form {
+    padding: 24px;
+  }
+
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
+}
