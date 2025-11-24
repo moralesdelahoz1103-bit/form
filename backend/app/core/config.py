@@ -5,8 +5,8 @@ from dotenv import load_dotenv
 load_dotenv()
 
 class Settings(BaseSettings):
-    # Base - Usar dominio de producción si no está en desarrollo
-    BASE_URL: str = os.getenv("BASE_URL", "https://formulariosfsd.vercel.app" if os.getenv("VERCEL") else "http://localhost:3000")
+    # Base
+    BASE_URL: str = "https://formulariosfsd.vercel.app"
     API_HOST: str = os.getenv("API_HOST", "0.0.0.0")
     API_PORT: int = int(os.getenv("API_PORT", "8000"))
     
