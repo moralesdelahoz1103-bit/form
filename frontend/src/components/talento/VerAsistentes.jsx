@@ -5,6 +5,7 @@ import Loading from '../common/Loading';
 import Toast from '../common/Toast';
 import { sesionesService } from '../../services/sesiones';
 import { formatters } from '../../utils/formatters';
+import { config } from '../../utils/constants';
 import './VerAsistentes.css';
 
 const VerAsistentes = () => {
@@ -163,7 +164,7 @@ const VerAsistentes = () => {
         <div className="firma-modal-content">
           {firmaModal && (
             <img 
-              src={`http://localhost:8000/${firmaModal}`} 
+              src={`${config.apiUrl}/${firmaModal}`} 
               alt="Firma" 
               className="firma-imagen"
             />
