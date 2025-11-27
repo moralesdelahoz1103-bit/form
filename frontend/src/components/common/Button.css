@@ -30,19 +30,21 @@
 }
 
 .btn-primary {
-  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+  background: #257137;
   color: white;
 }
 
 .btn-secondary {
   background: transparent;
-  color: var(--primary);
-  border: 2px solid var(--primary);
+  color: white;
+  border: 2px solid white;
   box-shadow: none;
 }
 
 .btn-secondary:hover:not(:disabled) {
-  background: rgba(16, 185, 129, 0.1);
+  background: white;
+  color: #257137;
+  border: 2px solid #26BC58;
 }
 
 .btn-danger {

@@ -46,8 +46,8 @@
 
 .filter-input {
   padding: 10px 14px;
-  border: 2px solid #B5D9C8;
-  border-radius: var(--radius-md);
+  border: 2px solid #26BC58;
+  border-radius: 6px;
   font-size: 14px;
   transition: all 0.3s ease;
 }
@@ -64,8 +64,8 @@
 
 .filter-select {
   padding: 10px 14px;
-  border: 2px solid #B5D9C8;
-  border-radius: var(--radius-md);
+  border: 2px solid #26BC58;
+  border-radius: 6px;
   font-size: 14px;
   background: white;
   cursor: pointer;
@@ -129,8 +129,8 @@
 
 .sesion-card-header {
   padding: 20px;
-  background: linear-gradient(135deg, #B5D9C8 0%, #7FB89E 100%);
-  border-bottom: 2px solid var(--primary);
+  background-color: #257137;
+  border-bottom: 3px solid #26BC58;
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
@@ -140,7 +140,7 @@
 .sesion-card-titulo {
   font-size: 18px;
   font-weight: 700;
-  color: var(--text-dark);
+  color: white;
   margin: 0;
   flex: 1;
 }
@@ -154,7 +154,7 @@
 }
 
 .badge-active {
-  background: rgba(34, 197, 94, 0.1);
+  background: white;
   color: var(--success);
 }
 
@@ -203,14 +203,14 @@
   padding: 8px 12px;
   font-size: 12px;
   background: var(--bg-hover);
-  border: 1px solid #B5D9C8;
-  border-radius: var(--radius-md);
+  border: 1px solid #26BC58;
+  border-radius: 6px;
   color: var(--text-light);
   font-family: monospace;
 }
 
 .btn-copy-mini {
-  background: var(--primary);
+  background: #257137;
   color: white;
   border: none;
   padding: 8px 12px;
@@ -241,7 +241,7 @@
 .qr-image {
   width: 150px;
   height: 150px;
-  border: 3px solid var(--primary);
+  border: 3px solid #257137;
   border-radius: var(--radius-md);
   padding: 8px;
   background: white;

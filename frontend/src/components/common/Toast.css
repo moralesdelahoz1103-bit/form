@@ -15,9 +15,9 @@
 }
 
 .toast-success {
-  background: linear-gradient(135deg, #B5D9C8 0%, #7FB89E 100%);
-  border-left: 4px solid var(--success);
-  color: #1F4335;
+  background: #257137;
+  border-left: 4px solid #26BC58;
+  color: white;
 }
 
 .toast-error {

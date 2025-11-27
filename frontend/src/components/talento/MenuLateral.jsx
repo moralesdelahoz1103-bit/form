@@ -6,7 +6,7 @@ const MenuLateral = ({ activeView, onViewChange }) => {
   const menuItems = [
     { 
       id: 'crear', 
-      label: 'Crear Capacitación', 
+      label: 'Crear sesión', 
       icon: (
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
           <circle cx="12" cy="12" r="10"/>
@@ -17,7 +17,7 @@ const MenuLateral = ({ activeView, onViewChange }) => {
     },
     { 
       id: 'sesiones', 
-      label: 'Sesiones Registradas', 
+      label: 'Sesiones registradas', 
       icon: (
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
           <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
@@ -29,7 +29,7 @@ const MenuLateral = ({ activeView, onViewChange }) => {
     },
     { 
       id: 'asistentes', 
-      label: 'Ver Asistentes', 
+      label: 'Ver asistentes', 
       icon: (
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
           <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>

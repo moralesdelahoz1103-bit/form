@@ -94,7 +94,7 @@ const CrearCapacitacion = () => {
       const response = await sesionesService.crear(formData);
       console.log('Respuesta del servidor:', response);
       setLinkGenerado(response.link);
-      setToast({ message: '¡Capacitación creada exitosamente!', type: 'success' });
+      setToast({ message: '¡Formulario creado exitosamente!', type: 'success' });
       
       // Limpiar formulario
       setFormData({
@@ -129,7 +129,7 @@ const CrearCapacitacion = () => {
   return (
     <div className="crear-capacitacion">
       <div className="page-header">
-        <h1 className="page-title">Crear Nueva Capacitación</h1>
+        <h1 className="page-title">Crear nueva sesión</h1>
         <p className="page-subtitle">Complete el formulario para generar un enlace de registro</p>
       </div>
 
@@ -168,7 +168,7 @@ const CrearCapacitacion = () => {
           </div>
 
           <Input
-            label="Facilitador / Instructor"
+            label="Facilitador"
             name="facilitador"
             value={formData.facilitador}
             onChange={handleChange}
@@ -186,7 +186,7 @@ const CrearCapacitacion = () => {
               value={formData.contenido}
               onChange={handleChange}
               className={`textarea ${errors.contenido ? 'input-error' : ''}`}
-              placeholder="Describe los temas que se tratarán en la capacitación..."
+              placeholder="Describe los temas que se tratarán en la sesión..."
               rows={5}
             />
             {errors.contenido && <span className="error-message">{errors.contenido}</span>}
@@ -215,7 +215,7 @@ const CrearCapacitacion = () => {
           </div>
 
           <Button type="submit" loading={submitting} fullWidth>
-            Crear Capacitación
+            Crear formulario
           </Button>
         </form>
 

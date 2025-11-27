@@ -17,8 +17,8 @@
   font-size: 15px;
   color: var(--text-dark);
   background: white;
-  border: 2px solid #B5D9C8;
-  border-radius: var(--radius-md);
+  border: 2px solid #26BC58;
+  border-radius: 6px;
   transition: all 0.3s ease;
   outline: none;
   cursor: pointer;

@@ -92,15 +92,15 @@ const SesionesRegistradas = () => {
     <div className="sesiones-registradas">
       <div className="page-header">
         <div>
-          <h1 className="page-title">Sesiones Registradas</h1>
-          <p className="page-subtitle">Administra todas las capacitaciones creadas</p>
+          <h1 className="page-title">Sesiones registradas</h1>
+          <p className="page-subtitle">Administra todas las sesiones creadas</p>
         </div>
       </div>
 
       {sesiones.length === 0 ? (
         <div className="empty-state">
           <p>No hay sesiones registradas aún</p>
-          <p className="empty-subtitle">Crea tu primera capacitación desde el menú "Crear Capacitación"</p>
+          <p className="empty-subtitle">Crea tu primera sesión desde el menú "Crear sesión"</p>
         </div>
       ) : (
         <>
@@ -188,23 +188,23 @@ const SesionesRegistradas = () => {
 
               <div className="sesion-card-body">
                 <div className="sesion-info-row">
-                  <span className="info-label">📅 Fecha:</span>
+                  <span className="info-label">Fecha:</span>
                   <span className="info-value">{formatters.fechaCorta(sesion.fecha)}</span>
                 </div>
                 <div className="sesion-info-row">
-                  <span className="info-label">⏰ Horario:</span>
+                  <span className="info-label">Horario:</span>
                   <span className="info-value">{sesion.hora_inicio} - {sesion.hora_fin}</span>
                 </div>
                 <div className="sesion-info-row">
-                  <span className="info-label">📋 Tipo:</span>
+                  <span className="info-label">Tipo:</span>
                   <span className="info-value">{sesion.tipo_actividad}</span>
                 </div>
                 <div className="sesion-info-row">
-                  <span className="info-label">👨‍🏫 Facilitador:</span>
+                  <span className="info-label">👨Facilitador:</span>
                   <span className="info-value">{sesion.facilitador}</span>
                 </div>
                 <div className="sesion-info-row">
-                  <span className="info-label">👥 Asistentes:</span>
+                  <span className="info-label">Asistentes:</span>
                   <span className="info-value badge-count">{sesion.total_asistentes || 0}</span>
                 </div>
 
@@ -262,7 +262,7 @@ const SesionesRegistradas = () => {
         <div className="modal-eliminar-content">
           <p>Esta acción no se puede deshacer. Se eliminarán:</p>
           <ul>
-            <li>La capacitación: <strong>{modalEliminar?.tema}</strong></li>
+            <li>La sesión: <strong>{modalEliminar?.tema}</strong></li>
             <li>Todos los asistentes registrados ({modalEliminar?.total_asistentes || 0})</li>
             <li>Todas las firmas asociadas</li>
           </ul>

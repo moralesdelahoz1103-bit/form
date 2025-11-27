@@ -64,17 +64,17 @@ const VerAsistentes = () => {
   return (
     <div className="ver-asistentes">
       <div className="page-header">
-        <h1 className="page-title">Ver Asistentes</h1>
-        <p className="page-subtitle">Consulta los participantes registrados en cada capacitación</p>
+        <h1 className="page-title">Ver asistentes</h1>
+        <p className="page-subtitle">Consulta los participantes registrados en cada sesión</p>
       </div>
 
       <div className="card">
         <Select
-          label="Seleccionar Capacitación"
+          label="Seleccionar sesión"
           value={sesionSeleccionada}
           onChange={(e) => setSesionSeleccionada(e.target.value)}
           options={sesionOptions}
-          placeholder="Elige una capacitación..."
+          placeholder="Elige una sesión..."
         />
 
         {sesionActual && (
@@ -84,13 +84,18 @@ const VerAsistentes = () => {
             </div>
             <div className="info-grid">
               <div>
-                <span className="label">Fecha:</span> {formatters.fechaCorta(sesionActual.fecha)}
+                <span className="label">Fecha:</span>
+                <span className="valor">{formatters.fechaCorta(sesionActual.fecha)}</span>
               </div>
               <div>
-                <span className="label">Horario:</span> {sesionActual.hora_inicio} - {sesionActual.hora_fin}
+                <span className="label">Horario:</span>
+                <span className="valor">
+                  {sesionActual.hora_inicio} - {sesionActual.hora_fin}
+                </span>
               </div>
               <div>
-                <span className="label">Facilitador:</span> {sesionActual.facilitador}
+                <span className="label">Facilitador:</span>
+                <span className="valor">{sesionActual.facilitador}</span>
               </div>
               <div>
                 <span className="label">Total Asistentes:</span> 

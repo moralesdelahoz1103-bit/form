@@ -19,16 +19,16 @@
 
 .sesion-info {
   padding: 32px;
-  background: linear-gradient(135deg, #B5D9C8 0%, #7FB89E 100%);
-  border-bottom: 3px solid var(--primary);
+  background: #257137;
+  border-bottom: 3px solid #26BC58;
 }
 
 .sesion-titulo {
   font-size: 28px;
   font-weight: 800;
-  color: var(--text-dark);
+  color: white;
   margin-bottom: 24px;
-  background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+  background:white;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -50,20 +50,20 @@
 .detalle-label {
   font-size: 13px;
   font-weight: 600;
-  color: var(--text-light);
+  color: white;
 }
 
 .detalle-value {
   font-size: 15px;
   font-weight: 600;
-  color: var(--text-dark);
+  color: white;
 }
 
 .sesion-contenido {
   background: white;
   padding: 20px;
   border-radius: var(--radius-md);
-  border-left: 4px solid var(--primary);
+  border-left: 4px solid #26BC58;
 }
 
 .sesion-contenido h3 {

@@ -230,7 +230,7 @@ const RegistroAsistencia = () => {
               value={formData.correo}
               onChange={handleChange}
               error={errors.correo}
-              placeholder="correo@fundacionsantodomingo.org"
+              placeholder="correo@dominio.com"
               required
             />
 

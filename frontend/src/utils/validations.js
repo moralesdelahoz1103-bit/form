@@ -33,10 +33,10 @@ export const validations = {
   },
 
   correo: (value) => {
-    const regex = /^[^\s@]+@fundacionsantodomingo\.org$/;
+    const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!value) return 'El correo es obligatorio';
     if (!regex.test(value.toLowerCase())) {
-      return `El correo debe ser del dominio ${config.allowedDomain}`;
+      return 'El correo no es válido';
     }
     return null;
   },

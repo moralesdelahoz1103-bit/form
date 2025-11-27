@@ -3,7 +3,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+  background: #51CB75;
   padding: 24px;
   animation: fadeIn 0.6s ease;
 }
@@ -22,7 +22,7 @@
   width: 100px;
   height: 100px;
   margin: 0 auto 24px;
-  background: linear-gradient(135deg, var(--success) 0%, #10b981 100%);
+  background-color: #257137;
   border-radius: 50%;
   display: flex;
   align-items: center;
