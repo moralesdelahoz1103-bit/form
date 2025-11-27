@@ -2,7 +2,7 @@
   position: sticky;
   top: 0;
   z-index: 1000;
-  background: linear-gradient(135deg, #2D5F4C 0%, #1F4335 100%);
+  background-color: #257137;
   border-bottom: 3px solid #7FB89E;
   box-shadow: var(--shadow-xl);
   height: 70px;
@@ -10,7 +10,6 @@
 
 .header-content {
   max-width: 1400px;
-  margin: 0 auto;
   padding: 0 32px;
   height: 100%;
   display: flex;
@@ -25,11 +24,10 @@
 }
 
 .header-logo {
-  width: 50px;
-  height: 50px;
-  border-radius: 50%;
-  border: 2px solid rgba(255, 255, 255, 0.1);
-  object-fit: cover;
+  height: 48px;
+  width: auto;
+  display: block;
+  background: transparent;
 }
 
 .header-text {
