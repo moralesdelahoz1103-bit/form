@@ -5,9 +5,9 @@
 .sesion-info-box {
   margin: 24px 0;
   padding: 20px;
-  background-color: #257137;
+  background-color: #26BC58;
   border-radius: var(--radius-md);
-  border-left: 4px solid #26BC58;
+  border-left: 4px solid #257137;
 }
 
 .sesion-info-header {
@@ -20,7 +20,7 @@
 }
 
 .sesion-info-header .btn.btn-primary {
-  border: 2px solid #fff !important;
+  border: 0px
 }
 
 .sesion-info-box h3 {
@@ -70,7 +70,7 @@
 
 .badge-total {
   display: inline-block;
-  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+  background: #257137;
   color: white;
   padding: 2px 12px;
   border-radius: var(--radius-full);

@@ -6,7 +6,7 @@ const MenuLateral = ({ activeView, onViewChange }) => {
   const menuItems = [
     { 
       id: 'crear', 
-      label: 'Crear sesión', 
+      label: 'Crear formación o evento', 
       icon: (
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
           <circle cx="12" cy="12" r="10"/>
@@ -17,7 +17,7 @@ const MenuLateral = ({ activeView, onViewChange }) => {
     },
     { 
       id: 'sesiones', 
-      label: 'Sesiones registradas', 
+      label: 'Formaciones o eventos registrados', 
       icon: (
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
           <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>

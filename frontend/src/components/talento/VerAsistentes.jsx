@@ -90,7 +90,7 @@ const VerAsistentes = () => {
       const data = await sesionesService.listar();
       setSesiones(data);
     } catch (error) {
-      setToast({ message: 'Error al cargar sesiones', type: 'error' });
+      setToast({ message: 'Error al cargar formaciones o eventos', type: 'error' });
     } finally {
       setLoading(false);
     }
@@ -123,16 +123,16 @@ const VerAsistentes = () => {
     <div className="ver-asistentes">
       <div className="page-header">
         <h1 className="page-title">Ver asistentes</h1>
-        <p className="page-subtitle">Consulta los participantes registrados en cada sesión</p>
+        <p className="page-subtitle">Consulta los participantes registrados en cada formación o evento</p>
       </div>
 
       <div className="card">
         <Select
-          label="Seleccionar sesión"
+          label="Seleccionar formación o evento"
           value={sesionSeleccionada}
           onChange={(e) => setSesionSeleccionada(e.target.value)}
           options={sesionOptions}
-          placeholder="Elige una sesión..."
+          placeholder="Elige una formación o evento..."
         />
 
         {sesionActual && (
@@ -170,7 +170,7 @@ const VerAsistentes = () => {
           <Loading />
         ) : asistentes.length === 0 && sesionSeleccionada ? (
           <div className="empty-asistentes">
-            <p>Aún no hay asistentes registrados para esta sesión</p>
+            <p>Aún no hay asistentes registrados para esta formación o evento</p>
           </div>
         ) : asistentes.length > 0 ? (
           <div className="tabla-wrapper">

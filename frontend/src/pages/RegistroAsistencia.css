@@ -19,8 +19,8 @@
 
 .sesion-info {
   padding: 32px;
-  background: #257137;
-  border-bottom: 3px solid #26BC58;
+  background: #26BC58;
+  border-bottom: 2px solid #257137;
 }
 
 .sesion-titulo {
@@ -63,7 +63,7 @@
   background: white;
   padding: 20px;
   border-radius: var(--radius-md);
-  border-left: 4px solid #26BC58;
+  border-left: 4px solid #257137;
 }
 
 .sesion-contenido h3 {
@@ -87,7 +87,7 @@
 .form-title {
   font-size: 24px;
   font-weight: 700;
-  color: var(--text-dark);
+  color: #26BC58;
   margin-bottom: 24px;
   padding-bottom: 16px;
   border-bottom: 2px solid var(--bg-hover);

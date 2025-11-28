@@ -31,7 +31,7 @@ const SesionesRegistradas = () => {
       const data = await sesionesService.listar();
       setSesiones(data);
     } catch (error) {
-      setToast({ message: 'Error al cargar sesiones', type: 'error' });
+      setToast({ message: 'Error al cargar formaciones o eventos', type: 'error' });
     } finally {
       setLoading(false);
     }
@@ -43,11 +43,11 @@ const SesionesRegistradas = () => {
     setEliminando(true);
     try {
       await sesionesService.eliminar(modalEliminar.id);
-      setToast({ message: 'Capacitación eliminada exitosamente', type: 'success' });
+      setToast({ message: 'Formación o evento eliminado exitosamente', type: 'success' });
       setModalEliminar(null);
       loadSesiones();
     } catch (error) {
-      setToast({ message: 'Error al eliminar capacitación', type: 'error' });
+      setToast({ message: 'Error al eliminar formación o evento', type: 'error' });
     } finally {
       setEliminando(false);
     }
@@ -110,7 +110,7 @@ const SesionesRegistradas = () => {
       worksheet.getColumn(idx + 1).width = Math.max(h.length + 2, 18);
     });
     const buffer = await workbook.xlsx.writeBuffer();
-    saveAs(new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }), 'sesiones.xlsx');
+    saveAs(new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }), 'Formaciones_o_Eventos.xlsx');
   };
 
   // Obtener opciones únicas para los filtros
@@ -136,8 +136,8 @@ const SesionesRegistradas = () => {
     <div className="sesiones-registradas">
       <div className="page-header">
         <div>
-          <h1 className="page-title">Sesiones registradas</h1>
-          <p className="page-subtitle">Administra todas las sesiones creadas</p>
+          <h1 className="page-title">Formaciones o eventos registrados</h1>
+          <p className="page-subtitle">Administra todas las formaciones o eventos creados</p>
         </div>
         <div className="export-buttons">
           <Button onClick={exportarXLSX} variant="primary">
@@ -148,8 +148,8 @@ const SesionesRegistradas = () => {
 
       {sesiones.length === 0 ? (
         <div className="empty-state">
-          <p>No hay sesiones registradas aún</p>
-          <p className="empty-subtitle">Crea tu primera sesión desde el menú "Crear sesión"</p>
+          <p>No hay formaciones o eventos registrados aún</p>
+          <p className="empty-subtitle">Crea tu primera formación o evento desde el menú "Crear formación o evento"</p>
         </div>
       ) : (
         <>
@@ -249,7 +249,7 @@ const SesionesRegistradas = () => {
                   <span className="info-value">{sesion.tipo_actividad}</span>
                 </div>
                 <div className="sesion-info-row">
-                  <span className="info-label">👨Facilitador:</span>
+                  <span className="info-label">Facilitador:</span>
                   <span className="info-value">{sesion.facilitador}</span>
                 </div>
                 <div className="sesion-info-row">
@@ -311,7 +311,7 @@ const SesionesRegistradas = () => {
         <div className="modal-eliminar-content">
           <p>Esta acción no se puede deshacer. Se eliminarán:</p>
           <ul>
-            <li>La sesión: <strong>{modalEliminar?.tema}</strong></li>
+            <li>La formación o evento: <strong>{modalEliminar?.tema}</strong></li>
             <li>Todos los asistentes registrados ({modalEliminar?.total_asistentes || 0})</li>
             <li>Todas las firmas asociadas</li>
           </ul>

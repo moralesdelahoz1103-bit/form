@@ -3,7 +3,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #51CB75;
+  background: #257137;
   padding: 24px;
   animation: fadeIn 0.6s ease;
 }
@@ -22,7 +22,7 @@
   width: 100px;
   height: 100px;
   margin: 0 auto 24px;
-  background-color: #257137;
+  background-color: #26BC58;
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -35,7 +35,7 @@
 .exito-title {
   font-size: 32px;
   font-weight: 800;
-  background: linear-gradient(135deg, var(--success) 0%, var(--primary) 100%);
+  background: #26BC58;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;

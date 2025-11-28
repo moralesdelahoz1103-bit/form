@@ -129,7 +129,7 @@ const CrearCapacitacion = () => {
   return (
     <div className="crear-capacitacion">
       <div className="page-header">
-        <h1 className="page-title">Crear nueva sesión</h1>
+        <h1 className="page-title">Crear formación o evento</h1>
         <p className="page-subtitle">Complete el formulario para generar un enlace de registro</p>
       </div>
 
@@ -186,7 +186,7 @@ const CrearCapacitacion = () => {
               value={formData.contenido}
               onChange={handleChange}
               className={`textarea ${errors.contenido ? 'input-error' : ''}`}
-              placeholder="Describe los temas que se tratarán en la sesión..."
+              placeholder="Describe los temas que se tratarán en la formación o evento..."
               rows={5}
             />
             {errors.contenido && <span className="error-message">{errors.contenido}</span>}

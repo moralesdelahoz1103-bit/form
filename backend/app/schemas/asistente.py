@@ -8,7 +8,7 @@ class AsistenteCreate(BaseModel):
     nombre: str = Field(..., min_length=2, max_length=100)
     cargo: str = Field(..., min_length=2, max_length=100)
     unidad: str = Field(..., min_length=2, max_length=100)
-    correo: str = Field(..., pattern=r'^[^\s@]+@fundacionsantodomingo\.org$')
+    correo: str = Field(..., pattern=r'^[^\s@]+@[^\s@]+\.[^\s@]+$')
     firma: str = Field(..., min_length=100)  # Base64 string
     
     @validator('nombre', 'cargo', 'unidad')

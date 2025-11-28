@@ -2,8 +2,7 @@
   position: sticky;
   top: 0;
   z-index: 1000;
-  background-color: #257137;
-  border-bottom: 3px solid #7FB89E;
+  background-color: #26bc58;
   box-shadow: var(--shadow-xl);
   height: 70px;
 }

@@ -178,7 +178,7 @@ const RegistroAsistencia = () => {
           </div>
 
           <form onSubmit={handleSubmit} className="registro-form">
-            <h2 className="form-title">Registro de Asistencia</h2>
+            <h2 className="form-title">Registro de asistencia</h2>
             
             <div className="form-grid">
               <Input
