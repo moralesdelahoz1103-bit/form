@@ -141,7 +141,7 @@ const SesionesRegistradas = () => {
         </div>
         <div className="export-buttons">
           <Button onClick={exportarXLSX} variant="primary">
-            Exportar XLSX
+            Exportar Excel
           </Button>
         </div>
       </div>

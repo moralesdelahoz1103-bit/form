@@ -140,7 +140,7 @@ const VerAsistentes = () => {
             <div className="sesion-info-header">
               <h3>{sesionActual.tema}</h3>
               <Button onClick={exportarXLSX} variant="primary">
-                Exportar XLSX
+                Exportar Excel
               </Button>
             </div>
             <div className="info-grid">
