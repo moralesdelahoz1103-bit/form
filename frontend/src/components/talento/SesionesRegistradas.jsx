@@ -73,14 +73,15 @@ const SesionesRegistradas = () => {
 
   // Exportar sesiones filtradas a XLSX como tabla nativa con exceljs
   const exportarXLSX = async () => {
-    const encabezados = ['Tema', 'Fecha', 'Tipo de actividad', 'Facilitador', 'Hora inicio', 'Hora final'];
+    const encabezados = ['Tema', 'Fecha', 'Tipo de actividad', 'Facilitador', 'Hora inicio', 'Hora final', 'Cantidad de asistentes'];
     const datos = sesionesFiltradas.map(sesion => ([
       sesion.tema || '',
       formatters.fechaCorta(sesion.fecha) || '',
       sesion.tipo_actividad || '',
       sesion.facilitador || '',
       sesion.hora_inicio || '',
-      sesion.hora_fin || ''
+      sesion.hora_fin || '',
+      sesion.total_asistentes || 0
     ]));
     const workbook = new ExcelJS.Workbook();
     const worksheet = workbook.addWorksheet('Sesiones');
