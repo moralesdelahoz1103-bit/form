@@ -5,6 +5,7 @@ from datetime import datetime
 import uuid
 import sys
 from pathlib import Path
+from zoneinfo import ZoneInfo
 sys.path.append(str(Path(__file__).parent.parent))
 
 from core.exceptions import DuplicateRegistrationException
@@ -48,7 +49,7 @@ def crear_asistente(asistente_data: dict, firma_path: str, sesion_id: str, ip_ad
         "unidad": asistente_data['unidad'],
         "correo": asistente_data['correo'],
         "firma_path": firma_path,
-        "fecha_registro": datetime.utcnow().isoformat(),
+        "fecha_registro": datetime.now(ZoneInfo("America/Bogota")).isoformat(),
         "ip_address": ip_address
     }
     
