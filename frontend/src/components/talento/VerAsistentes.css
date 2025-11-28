@@ -19,6 +19,10 @@
   margin-bottom: 16px;
 }
 
+.sesion-info-header .btn.btn-primary {
+  border: 2px solid #fff !important;
+}
+
 .sesion-info-box h3 {
   font-size: 20px;
   font-weight: 700;

@@ -1,4 +1,7 @@
 import React, { useState, useEffect } from 'react';
+import ExcelJS from 'exceljs';
+import { saveAs } from 'file-saver';
+import Button from '../common/Button';
 import Select from '../common/Select';
 import Modal from '../common/Modal';
 import Loading from '../common/Loading';
@@ -9,6 +12,61 @@ import { config } from '../../utils/constants';
 import './VerAsistentes.css';
 
 const VerAsistentes = () => {
+
+    // Exportar asistentes y datos de la sesión a XLSX como tabla nativa
+    const exportarXLSX = async () => {
+      if (!sesionActual || asistentes.length === 0) return;
+      const encabezados = ['Cédula', 'Nombre', 'Cargo', 'Unidad', 'Correo', 'Fecha'];
+      const datos = asistentes.map(a => ([
+        a.cedula || '',
+        a.nombre || '',
+        a.cargo || '',
+        a.unidad || '',
+        a.correo || '',
+        formatters.fechaHora(a.fecha_registro) || ''
+      ]));
+      const workbook = new ExcelJS.Workbook();
+      const worksheet = workbook.addWorksheet('Asistentes');
+      // Información de la sesión en filas separadas, cada dato en dos celdas
+      worksheet.addRow(['Tema:', sesionActual.tema || '']);
+      worksheet.addRow(['Fecha:', formatters.fechaCorta(sesionActual.fecha) || '']);
+      worksheet.addRow(['Facilitador:', sesionActual.facilitador || '']);
+      worksheet.addRow(['Tipo de actividad:', sesionActual.tipo_actividad || '']);
+      worksheet.addRow(['Hora inicio:', sesionActual.hora_inicio || '']);
+      worksheet.addRow(['Hora final:', sesionActual.hora_fin || '']);
+      worksheet.addRow([]); // Espacio
+      // Tabla de asistentes
+      worksheet.addTable({
+        name: 'AsistentesTable',
+        ref: 'A8',
+        headerRow: true,
+        style: {
+          theme: 'TableStyleMedium9',
+          showRowStripes: true,
+        },
+        columns: encabezados.map(h => ({ name: h })),
+        rows: datos
+      });
+      // Encabezado verde
+      const headerRow = worksheet.getRow(8);
+      headerRow.eachCell(cell => {
+        cell.fill = {
+          type: 'pattern',
+          pattern: 'solid',
+          fgColor: { argb: 'FF257137' }
+        };
+        cell.font = { color: { argb: 'FFFFFFFF' }, bold: true };
+      });
+      // Ajustar ancho de columnas
+      encabezados.forEach((h, idx) => {
+        worksheet.getColumn(idx + 1).width = Math.max(h.length + 2, 18);
+      });
+      // Ajustar ancho de columnas para info de sesión
+      worksheet.getColumn(1).width = 18;
+      worksheet.getColumn(2).width = 30;
+      const buffer = await workbook.xlsx.writeBuffer();
+      saveAs(new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }), `asistentes_${sesionActual.tema || 'evento'}.xlsx`);
+    };
   const [sesiones, setSesiones] = useState([]);
   const [sesionSeleccionada, setSesionSeleccionada] = useState('');
   const [asistentes, setAsistentes] = useState([]);
@@ -81,6 +139,9 @@ const VerAsistentes = () => {
           <div className="sesion-info-box">
             <div className="sesion-info-header">
               <h3>{sesionActual.tema}</h3>
+              <Button onClick={exportarXLSX} variant="primary">
+                Exportar XLSX
+              </Button>
             </div>
             <div className="info-grid">
               <div>

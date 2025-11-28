@@ -7,15 +7,23 @@ const FirmaCanvas = ({ onChange, error }) => {
   const [isEmpty, setIsEmpty] = useState(true);
 
   useEffect(() => {
-    // Establecer el tamaño del canvas después del montaje con proporción 5:2
-    if (sigCanvas.current) {
-      const wrapper = sigCanvas.current.getCanvas().parentElement;
-      const canvas = sigCanvas.current.getCanvas();
-      const width = wrapper.offsetWidth;
-      const height = width * 0.4; // proporción 5:2
-      canvas.width = width;
-      canvas.height = height;
-    }
+    const setCanvasSize = () => {
+      if (sigCanvas.current) {
+        const wrapper = sigCanvas.current.getCanvas().parentElement;
+        const canvas = sigCanvas.current.getCanvas();
+        const width = wrapper.offsetWidth;
+        const height = width * 0.4; // proporción 5:2
+        // Ajustar tamaño real del canvas
+        canvas.width = width;
+        canvas.height = height;
+        // Ajustar tamaño visual (CSS)
+        canvas.style.width = width + 'px';
+        canvas.style.height = height + 'px';
+      }
+    };
+    setCanvasSize();
+    window.addEventListener('resize', setCanvasSize);
+    return () => window.removeEventListener('resize', setCanvasSize);
   }, []);
 
   const clear = () => {

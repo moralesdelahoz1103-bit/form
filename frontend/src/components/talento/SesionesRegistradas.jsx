@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import ExcelJS from 'exceljs';
+import { saveAs } from 'file-saver';
 import Button from '../common/Button';
 import Modal from '../common/Modal';
 import Loading from '../common/Loading';
@@ -69,6 +71,48 @@ const SesionesRegistradas = () => {
     });
   };
 
+  // Exportar sesiones filtradas a XLSX como tabla nativa con exceljs
+  const exportarXLSX = async () => {
+    const encabezados = ['Tema', 'Fecha', 'Tipo de actividad', 'Facilitador', 'Hora inicio', 'Hora final'];
+    const datos = sesionesFiltradas.map(sesion => ([
+      sesion.tema || '',
+      formatters.fechaCorta(sesion.fecha) || '',
+      sesion.tipo_actividad || '',
+      sesion.facilitador || '',
+      sesion.hora_inicio || '',
+      sesion.hora_fin || ''
+    ]));
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet('Sesiones');
+    worksheet.addTable({
+      name: 'SesionesTable',
+      ref: 'A1',
+      headerRow: true,
+      style: {
+        theme: 'TableStyleMedium9',
+        showRowStripes: true,
+      },
+      columns: encabezados.map(h => ({ name: h })),
+      rows: datos
+    });
+    // Aplicar fondo verde al encabezado
+    const headerRow = worksheet.getRow(1);
+    headerRow.eachCell(cell => {
+      cell.fill = {
+        type: 'pattern',
+        pattern: 'solid',
+        fgColor: { argb: 'FF257137' } // Verde oscuro
+      };
+      cell.font = { color: { argb: 'FFFFFFFF' }, bold: true };
+    });
+    // Ajustar ancho de columnas automáticamente
+    encabezados.forEach((h, idx) => {
+      worksheet.getColumn(idx + 1).width = Math.max(h.length + 2, 18);
+    });
+    const buffer = await workbook.xlsx.writeBuffer();
+    saveAs(new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }), 'sesiones.xlsx');
+  };
+
   // Obtener opciones únicas para los filtros
   const temasUnicos = [...new Set(sesiones.map(s => s.tema).filter(Boolean))];
   const fechasUnicas = [...new Set(sesiones.map(s => s.fecha).filter(Boolean))].sort().reverse();
@@ -94,6 +138,11 @@ const SesionesRegistradas = () => {
         <div>
           <h1 className="page-title">Sesiones registradas</h1>
           <p className="page-subtitle">Administra todas las sesiones creadas</p>
+        </div>
+        <div className="export-buttons">
+          <Button onClick={exportarXLSX} variant="primary">
+            Exportar XLSX
+          </Button>
         </div>
       </div>
 

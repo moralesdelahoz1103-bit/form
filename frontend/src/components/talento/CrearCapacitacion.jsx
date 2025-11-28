@@ -112,7 +112,7 @@ const CrearCapacitacion = () => {
       console.error('Error message:', error.message);
       console.error('Error detail:', error.detail);
       setToast({ 
-        message: error.message || error.detail || 'Error al crear la capacitación', 
+        message: error.message || error.detail || 'Error al crear la formación/evento', 
         type: 'error' 
       });
       setLinkGenerado(''); // Limpiar link previo en caso de error
