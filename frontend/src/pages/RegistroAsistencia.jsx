@@ -224,7 +224,7 @@ const RegistroAsistencia = () => {
             </div>
 
             <Input
-              label="Correo Institucional"
+              label="Correo"
               type="email"
               name="correo"
               value={formData.correo}

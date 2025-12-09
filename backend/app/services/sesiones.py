@@ -13,10 +13,21 @@ sys.path.append(str(Path(__file__).parent.parent))
 from core.config import settings
 from core.exceptions import TokenNotFoundException, TokenExpiredException, TokenInactiveException
 
-DATA_FILE = "data/sesiones.json"
+# Importar cliente CosmosDB
+try:
+    from db.cosmos_client import cosmos_db
+    COSMOS_AVAILABLE = True
+except Exception as e:
+    print(f"⚠️ CosmosDB no disponible: {e}")
+    COSMOS_AVAILABLE = False
+
+# Configuración de archivos JSON (fallback)
+BASE_DIR = Path(__file__).parent.parent
+DATA_DIR = BASE_DIR / "data"
+DATA_FILE = DATA_DIR / "sesiones.json"
 
 def ensure_data_file():
-    os.makedirs("data", exist_ok=True)
+    os.makedirs(DATA_DIR, exist_ok=True)
     if not os.path.exists(DATA_FILE):
         with open(DATA_FILE, 'w', encoding='utf-8') as f:
             json.dump([], f)
@@ -47,25 +58,23 @@ def generar_qr(link: str) -> str:
     
     img = qr.make_image(fill_color="black", back_color="white")
     
-    # Convertir a base64
     buffered = BytesIO()
     img.save(buffered, format="PNG")
     img_str = base64.b64encode(buffered.getvalue()).decode()
     
     return f"data:image/png;base64,{img_str}"
 
+# ========== FUNCIONES PRINCIPALES ==========
+
 def crear_sesion(sesion_data: dict) -> dict:
-    sesiones = load_sesiones()
+    """Crear sesión en CosmosDB o JSON según configuración"""
     
-    # Generar datos
     sesion_id = str(uuid.uuid4())
-    # Token corto de 8 caracteres alfanuméricos
     token = uuid.uuid4().hex[:8].upper()
     now = datetime.utcnow().isoformat()
     expiry = (datetime.utcnow() + timedelta(days=settings.TOKEN_EXPIRY_DAYS)).isoformat()
     
-    # URL hardcodeada para producción
-    link = f"https://formulariosfsd.vercel.app/registro?token={token}"
+    link = f"{settings.FRONTEND_URL}/registro?token={token}"
     qr_code = generar_qr(link)
     
     nueva_sesion = {
@@ -80,59 +89,63 @@ def crear_sesion(sesion_data: dict) -> dict:
         **sesion_data
     }
     
-    sesiones.append(nueva_sesion)
-    save_sesiones(sesiones)
-    
-    return nueva_sesion
+    if settings.STORAGE_MODE == "cosmosdb" and COSMOS_AVAILABLE:
+        return cosmos_db.crear_sesion(nueva_sesion)
+    else:
+        sesiones = load_sesiones()
+        sesiones.append(nueva_sesion)
+        save_sesiones(sesiones)
+        return nueva_sesion
 
 def get_all_sesiones() -> List[dict]:
-    sesiones = load_sesiones()
-    
-    # Generar QR codes para sesiones que no lo tienen
-    updated = False
-    for sesion in sesiones:
-        if 'qr_code' not in sesion:
-            sesion['qr_code'] = generar_qr(sesion['link'])
-            updated = True
-    
-    if updated:
-        save_sesiones(sesiones)
-    
-    return sesiones
+    """Listar todas las sesiones"""
+    if settings.STORAGE_MODE == "cosmosdb" and COSMOS_AVAILABLE:
+        return cosmos_db.listar_sesiones()
+    else:
+        sesiones = load_sesiones()
+        sesiones.sort(key=lambda x: x.get('created_at', ''), reverse=True)
+        return sesiones
 
 def get_sesion_by_id(sesion_id: str) -> Optional[dict]:
-    sesiones = load_sesiones()
-    for s in sesiones:
-        if s['id'] == sesion_id:
-            # Generar QR si no existe
-            if 'qr_code' not in s:
-                s['qr_code'] = generar_qr(s['link'])
-                save_sesiones(sesiones)
-            return s
-    return None
+    """Obtener sesión por ID"""
+    if settings.STORAGE_MODE == "cosmosdb" and COSMOS_AVAILABLE:
+        return cosmos_db.obtener_sesion(sesion_id)
+    else:
+        sesiones = load_sesiones()
+        for sesion in sesiones:
+            if sesion['id'] == sesion_id:
+                return sesion
+        return None
 
 def get_sesion_by_token(token: str) -> dict:
-    sesiones = load_sesiones()
-    for s in sesiones:
-        if s['token'] == token:
-            # Validar token
-            if not s.get('token_active', True):
-                raise TokenInactiveException()
-            
-            expiry = datetime.fromisoformat(s['token_expiry'])
-            if datetime.utcnow() > expiry:
-                raise TokenExpiredException()
-            
-            return s
+    """Obtener sesión por token con validaciones"""
+    if settings.STORAGE_MODE == "cosmosdb" and COSMOS_AVAILABLE:
+        sesion = cosmos_db.obtener_sesion_por_token(token)
+    else:
+        sesiones = load_sesiones()
+        sesion = next((s for s in sesiones if s['token'] == token), None)
     
-    raise TokenNotFoundException()
+    if not sesion:
+        raise TokenNotFoundException()
+    
+    if not sesion.get('token_active', True):
+        raise TokenInactiveException()
+    
+    expiry = datetime.fromisoformat(sesion['token_expiry'])
+    if datetime.utcnow() > expiry:
+        raise TokenExpiredException()
+    
+    return sesion
 
 def delete_sesion(sesion_id: str) -> bool:
-    sesiones = load_sesiones()
-    new_sesiones = [s for s in sesiones if s['id'] != sesion_id]
-    
-    if len(new_sesiones) == len(sesiones):
-        return False
-    
-    save_sesiones(new_sesiones)
-    return True
+    """Eliminar sesión"""
+    if settings.STORAGE_MODE == "cosmosdb" and COSMOS_AVAILABLE:
+        cosmos_db.eliminar_sesion(sesion_id)
+        return True
+    else:
+        sesiones = load_sesiones()
+        new_sesiones = [s for s in sesiones if s['id'] != sesion_id]
+        if len(new_sesiones) == len(sesiones):
+            return False
+        save_sesiones(new_sesiones)
+        return True

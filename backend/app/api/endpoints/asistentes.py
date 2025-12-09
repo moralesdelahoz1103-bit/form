@@ -7,13 +7,11 @@ from schemas.asistente import AsistenteCreate, AsistenteResponse
 from schemas.sesion import SesionPublicResponse
 from services import sesiones as sesion_service
 from services import asistentes as asistente_service
-from services.firmas import save_firma
 from core.exceptions import (
     TokenNotFoundException, 
     TokenExpiredException, 
     TokenInactiveException,
-    DuplicateRegistrationException,
-    InvalidFileException
+    DuplicateRegistrationException
 )
 
 router = APIRouter(prefix="/api", tags=["asistentes"])
@@ -46,21 +44,14 @@ async def registrar_asistencia(asistente: AsistenteCreate, request: Request):
         # Validar token y obtener sesión
         sesion = sesion_service.get_sesion_by_token(asistente.token)
         
-        # Guardar firma
-        firma_path = save_firma(asistente.firma, asistente.cedula)
-        
-        # Obtener IP
-        ip_address = request.client.host if request.client else None
-        
         # Crear registro de asistente
         asistente_data = asistente.dict()
-        del asistente_data['firma']  # Remover firma base64
+        firma_base64 = asistente_data.pop('firma')  # Extraer firma base64
         
         nuevo_asistente = asistente_service.crear_asistente(
             asistente_data,
-            firma_path,
-            sesion['id'],
-            ip_address
+            firma_base64,
+            sesion['id']
         )
         
         return nuevo_asistente
@@ -68,8 +59,6 @@ async def registrar_asistencia(asistente: AsistenteCreate, request: Request):
     except (TokenNotFoundException, TokenExpiredException, TokenInactiveException) as e:
         raise e
     except DuplicateRegistrationException as e:
-        raise e
-    except InvalidFileException as e:
         raise e
     except Exception as e:
         raise HTTPException(

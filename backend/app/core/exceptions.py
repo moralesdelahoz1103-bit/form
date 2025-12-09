@@ -34,10 +34,3 @@ class InvalidEmailDomainException(HTTPException):
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="El correo debe ser del dominio @fundacionsantodomingo.org"
         )
-
-class InvalidFileException(HTTPException):
-    def __init__(self, message: str = "Archivo inválido"):
-        super().__init__(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=message
-        )

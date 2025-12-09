@@ -1,0 +1,1 @@
+# CosmosDB placeholder - será inicializado después

@@ -34,9 +34,8 @@ class AsistenteResponse(BaseModel):
     cargo: str
     unidad: str
     correo: str
-    firma_path: str
+    firma_base64: str
     fecha_registro: str
-    ip_address: Optional[str] = None
     
     class Config:
         from_attributes = True

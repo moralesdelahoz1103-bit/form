@@ -1,7 +1,6 @@
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
-from fastapi.staticfiles import StaticFiles
 from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
@@ -15,15 +14,14 @@ sys.path.append(str(Path(__file__).parent))
 from api.endpoints import sesiones, asistentes
 from core.config import settings
 
-# Crear directorios necesarios
+# Crear directorio de datos
 os.makedirs("data", exist_ok=True)
-os.makedirs(settings.UPLOAD_DIR, exist_ok=True)
 
 # Inicializar FastAPI
 app = FastAPI(
     title="Sistema de Registro de Capacitaciones",
     description="API para gestionar capacitaciones y registrar asistencia",
-    version="1.0.0"
+    version="2.0.0"
 )
 
 # Rate limiting
@@ -37,8 +35,8 @@ app.add_middleware(
     allow_origins=[
         "http://localhost:3000",
         "http://localhost:5173",
-        settings.BASE_URL,
-        "*"  # En producción, especificar dominios exactos
+        settings.FRONTEND_URL,
+        "*"
     ],
     allow_credentials=True,
     allow_methods=["*"],
@@ -49,14 +47,15 @@ app.add_middleware(
 app.include_router(sesiones.router)
 app.include_router(asistentes.router)
 
-# Servir archivos estáticos (firmas) - usar ruta absoluta
-uploads_path = os.path.join(os.path.dirname(__file__), "uploads")
-app.mount("/uploads", StaticFiles(directory=uploads_path), name="uploads")
-
 # Health check
 @app.get("/api/health")
 async def health_check():
-    return {"status": "ok", "version": "1.0.0"}
+    storage_mode = settings.STORAGE_MODE
+    return {
+        "status": "ok", 
+        "version": "2.0.0",
+        "storage": storage_mode
+    }
 
 # Root
 @app.get("/")

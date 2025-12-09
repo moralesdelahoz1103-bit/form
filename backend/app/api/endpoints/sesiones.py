@@ -7,7 +7,6 @@ sys.path.append(str(Path(__file__).parent.parent.parent))
 from schemas.sesion import SesionCreate, SesionResponse, SesionPublicResponse
 from services import sesiones as sesion_service
 from services import asistentes as asistente_service
-from services.firmas import delete_firma
 
 router = APIRouter(prefix="/api/sesiones", tags=["sesiones"])
 
@@ -58,10 +57,6 @@ async def eliminar_sesion(sesion_id: str):
     """
     # Obtener asistentes para eliminar sus firmas
     asistentes = asistente_service.get_asistentes_by_sesion(sesion_id)
-    
-    # Eliminar firmas
-    for asistente in asistentes:
-        delete_firma(asistente['firma_path'])
     
     # Eliminar asistentes
     asistente_service.delete_asistentes_by_sesion(sesion_id)
