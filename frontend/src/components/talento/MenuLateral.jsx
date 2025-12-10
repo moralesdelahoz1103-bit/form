@@ -1,7 +1,27 @@
 import React from 'react';
+import { logout } from '../../auth/msal';
 import './MenuLateral.css';
 
 const MenuLateral = ({ activeView, onViewChange }) => {
+  // Extraer información del usuario del localStorage
+  const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}');
+  const userName = userInfo.name || 'Usuario';
+  const userEmail = userInfo.email || 'usuario@fundacionsantodomingo.org';
+  
+
+
+  const handleLogout = async () => {
+    try {
+      const confirmLogout = window.confirm('¿Estás seguro que deseas cerrar sesión?');
+      if (confirmLogout) {
+        console.log('Cerrando sesión...');
+        await logout();
+      }
+    } catch (error) {
+      console.error('Error al cerrar sesión:', error);
+      alert('Error al cerrar sesión. Inténtalo nuevamente.');
+    }
+  };
 
   const menuItems = [
     { 
@@ -41,6 +61,16 @@ const MenuLateral = ({ activeView, onViewChange }) => {
     }
   ];
 
+  // Obtener iniciales del nombre
+  const getInitials = (name) => {
+    return name
+      .split(' ')
+      .map(word => word[0])
+      .join('')
+      .toUpperCase()
+      .substring(0, 2);
+  };
+
   return (
     <aside className="menu-lateral">
       <nav className="menu-nav">
@@ -55,6 +85,8 @@ const MenuLateral = ({ activeView, onViewChange }) => {
           </button>
         ))}
       </nav>
+
+      {/* Session moved to Header for a cleaner layout */}
     </aside>
   );
 };

@@ -96,6 +96,36 @@
   margin: 0;
 }
 
+.session-box {
+  margin-top: 24px;
+  padding: 16px 18px;
+  border: 2px solid #26bc58;
+  border-radius: var(--radius-md);
+  background: #f6fff9;
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.session-label {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #1e9d4c;
+  font-weight: 700;
+}
+
+.session-name {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-dark);
+}
+
+.session-email {
+  font-size: 14px;
+  color: var(--text-light);
+}
+
 @media (max-width: 768px) {
   .page-title {
     font-size: 28px;

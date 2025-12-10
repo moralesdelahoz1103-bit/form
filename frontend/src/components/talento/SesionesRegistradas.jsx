@@ -6,6 +6,7 @@ import Modal from '../common/Modal';
 import Loading from '../common/Loading';
 import Toast from '../common/Toast';
 import { sesionesService } from '../../services/sesiones';
+import { config } from '../../utils/constants';
 import { formatters } from '../../utils/formatters';
 import './SesionesRegistradas.css';
 
@@ -276,7 +277,7 @@ const SesionesRegistradas = () => {
                 {sesion.qr_code && (
                   <div className="sesion-qr">
                     <p className="qr-label">Código QR de Acceso:</p>
-                    <img src={sesion.qr_code} alt="QR Code" className="qr-image" />
+                    <img src={sesion.qr_code.startsWith('/') ? `${config.apiUrl}${sesion.qr_code}` : sesion.qr_code} alt="QR Code" className="qr-image" />
                   </div>
                 )}
               </div>

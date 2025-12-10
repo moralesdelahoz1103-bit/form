@@ -7,66 +7,11 @@ import Modal from '../common/Modal';
 import Loading from '../common/Loading';
 import Toast from '../common/Toast';
 import { sesionesService } from '../../services/sesiones';
-import { formatters } from '../../utils/formatters';
 import { config } from '../../utils/constants';
+import { formatters } from '../../utils/formatters';
 import './VerAsistentes.css';
 
 const VerAsistentes = () => {
-
-    // Exportar asistentes y datos de la sesión a XLSX como tabla nativa
-    const exportarXLSX = async () => {
-      if (!sesionActual || asistentes.length === 0) return;
-      const encabezados = ['Cédula', 'Nombre', 'Cargo', 'Unidad', 'Correo', 'Fecha'];
-      const datos = asistentes.map(a => ([
-        a.cedula || '',
-        a.nombre || '',
-        a.cargo || '',
-        a.unidad || '',
-        a.correo || '',
-        formatters.fechaHora(a.fecha_registro) || ''
-      ]));
-      const workbook = new ExcelJS.Workbook();
-      const worksheet = workbook.addWorksheet('Asistentes');
-      // Información de la sesión en filas separadas, cada dato en dos celdas
-      worksheet.addRow(['Tema:', sesionActual.tema || '']);
-      worksheet.addRow(['Fecha:', formatters.fechaCorta(sesionActual.fecha) || '']);
-      worksheet.addRow(['Facilitador:', sesionActual.facilitador || '']);
-      worksheet.addRow(['Tipo de actividad:', sesionActual.tipo_actividad || '']);
-      worksheet.addRow(['Hora inicio:', sesionActual.hora_inicio || '']);
-      worksheet.addRow(['Hora final:', sesionActual.hora_fin || '']);
-      worksheet.addRow([]); // Espacio
-      // Tabla de asistentes
-      worksheet.addTable({
-        name: 'AsistentesTable',
-        ref: 'A8',
-        headerRow: true,
-        style: {
-          theme: 'TableStyleMedium9',
-          showRowStripes: true,
-        },
-        columns: encabezados.map(h => ({ name: h })),
-        rows: datos
-      });
-      // Encabezado verde
-      const headerRow = worksheet.getRow(8);
-      headerRow.eachCell(cell => {
-        cell.fill = {
-          type: 'pattern',
-          pattern: 'solid',
-          fgColor: { argb: 'FF257137' }
-        };
-        cell.font = { color: { argb: 'FFFFFFFF' }, bold: true };
-      });
-      // Ajustar ancho de columnas
-      encabezados.forEach((h, idx) => {
-        worksheet.getColumn(idx + 1).width = Math.max(h.length + 2, 18);
-      });
-      // Ajustar ancho de columnas para info de sesión
-      worksheet.getColumn(1).width = 18;
-      worksheet.getColumn(2).width = 30;
-      const buffer = await workbook.xlsx.writeBuffer();
-      saveAs(new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }), `asistentes_${sesionActual.tema || 'evento'}.xlsx`);
-    };
   const [sesiones, setSesiones] = useState([]);
   const [sesionSeleccionada, setSesionSeleccionada] = useState('');
   const [asistentes, setAsistentes] = useState([]);
@@ -74,6 +19,20 @@ const VerAsistentes = () => {
   const [loadingAsistentes, setLoadingAsistentes] = useState(false);
   const [firmaModal, setFirmaModal] = useState(null);
   const [toast, setToast] = useState(null);
+
+  const sesionActual = sesiones.find(s => s.id === sesionSeleccionada);
+
+  const buildFirmaSrc = (firma) => {
+    if (!firma) return null;
+    // Si ya viene con data URL, úsalo
+    if (firma.startsWith('data:')) return firma;
+    // Si es una ruta relativa a uploads, convertir a URL absoluta del backend
+    if (firma.startsWith('/uploads')) return `${config.apiUrl}${firma}`;
+    // Si es una URL absoluta, úsala
+    if (firma.startsWith('http')) return firma;
+    // Si viene sólo como base64 crudo, arma la data URL
+    return `data:image/png;base64,${firma}`;
+  };
 
   useEffect(() => {
     loadSesiones();
@@ -113,7 +72,55 @@ const VerAsistentes = () => {
     label: `${s.tema} — ${formatters.fechaCorta(s.fecha)}`
   }));
 
-  const sesionActual = sesiones.find(s => s.id === sesionSeleccionada);
+  // Exportar asistentes y datos de la sesión a XLSX
+  const exportarXLSX = async () => {
+    if (!sesionActual || asistentes.length === 0) return;
+    const encabezados = ['Cédula', 'Nombre', 'Cargo', 'Unidad', 'Correo', 'Fecha'];
+    const datos = asistentes.map(a => ([
+      a.cedula || '',
+      a.nombre || '',
+      a.cargo || '',
+      a.unidad || '',
+      a.correo || '',
+      formatters.fechaHora(a.fecha_registro) || ''
+    ]));
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet('Asistentes');
+    worksheet.addRow(['Tema:', sesionActual.tema || '']);
+    worksheet.addRow(['Fecha:', formatters.fechaCorta(sesionActual.fecha) || '']);
+    worksheet.addRow(['Facilitador:', sesionActual.facilitador || '']);
+    worksheet.addRow(['Tipo de actividad:', sesionActual.tipo_actividad || '']);
+    worksheet.addRow(['Hora inicio:', sesionActual.hora_inicio || '']);
+    worksheet.addRow(['Hora final:', sesionActual.hora_fin || '']);
+    worksheet.addRow([]);
+    worksheet.addTable({
+      name: 'AsistentesTable',
+      ref: 'A8',
+      headerRow: true,
+      style: {
+        theme: 'TableStyleMedium9',
+        showRowStripes: true,
+      },
+      columns: encabezados.map(h => ({ name: h })),
+      rows: datos
+    });
+    const headerRow = worksheet.getRow(8);
+    headerRow.eachCell(cell => {
+      cell.fill = {
+        type: 'pattern',
+        pattern: 'solid',
+        fgColor: { argb: 'FF257137' }
+      };
+      cell.font = { color: { argb: 'FFFFFFFF' }, bold: true };
+    });
+    encabezados.forEach((h, idx) => {
+      worksheet.getColumn(idx + 1).width = Math.max(h.length + 2, 18);
+    });
+    worksheet.getColumn(1).width = 18;
+    worksheet.getColumn(2).width = 30;
+    const buffer = await workbook.xlsx.writeBuffer();
+    saveAs(new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }), `asistentes_${sesionActual.tema || 'evento'}.xlsx`);
+  };
 
   if (loading) {
     return <Loading />;
@@ -159,7 +166,7 @@ const VerAsistentes = () => {
                 <span className="valor">{sesionActual.facilitador}</span>
               </div>
               <div>
-                <span className="label">Total Asistentes:</span> 
+                <span className="label">Total Asistentes:</span>
                 <span className="badge-total">{asistentes.length}</span>
               </div>
             </div>
@@ -187,7 +194,7 @@ const VerAsistentes = () => {
                 </tr>
               </thead>
               <tbody>
-                {asistentes.map((asistente, index) => (
+                {asistentes.map((asistente) => (
                   <tr key={asistente.id}>
                     <td>{asistente.cedula}</td>
                     <td>{asistente.nombre}</td>
@@ -198,17 +205,18 @@ const VerAsistentes = () => {
                     <td>
                       <button
                         onClick={() => {
-                          // Limpiar la ruta: remover ./ y convertir \ a /
-                          const cleanPath = asistente.firma_path
-                            .replace(/^\.\//, '')
-                            .replace(/\\/g, '/');
-                          setFirmaModal(cleanPath);
+                          const firmaDataUrl = buildFirmaSrc(asistente.firma_url || asistente.firma_base64);
+                          if (!firmaDataUrl) {
+                            setToast({ message: 'La firma no está disponible', type: 'error' });
+                            return;
+                          }
+                          setFirmaModal(firmaDataUrl);
                         }}
                         className="btn-ver-firma"
                       >
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{marginRight: '6px'}}>
-                          <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
-                          <circle cx="12" cy="12" r="3"/>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: '6px' }}>
+                          <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                          <circle cx="12" cy="12" r="3" />
                         </svg>
                         Ver
                       </button>
@@ -229,9 +237,9 @@ const VerAsistentes = () => {
       >
         <div className="firma-modal-content">
           {firmaModal && (
-            <img 
-              src={`${config.apiUrl}/${firmaModal}`} 
-              alt="Firma" 
+            <img
+              src={firmaModal}
+              alt="Firma"
               className="firma-imagen"
             />
           )}

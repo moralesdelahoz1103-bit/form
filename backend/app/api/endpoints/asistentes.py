@@ -35,22 +35,43 @@ async def obtener_info_sesion(token: str):
     except (TokenNotFoundException, TokenExpiredException, TokenInactiveException) as e:
         raise e
 
+from fastapi import Form, File, UploadFile
+
+
 @router.post("/asistencia", response_model=AsistenteResponse, status_code=status.HTTP_201_CREATED)
-async def registrar_asistencia(asistente: AsistenteCreate, request: Request):
+async def registrar_asistencia(
+    cedula: str = Form(...),
+    nombre: str = Form(...),
+    cargo: str = Form(...),
+    unidad: str = Form(...),
+    correo: str = Form(...),
+    token: str = Form(...),
+    firma: UploadFile = File(...),
+    request: Request = None
+):
     """
     Registrar asistencia de un participante
     """
     try:
         # Validar token y obtener sesión
-        sesion = sesion_service.get_sesion_by_token(asistente.token)
-        
+        sesion = sesion_service.get_sesion_by_token(token)
+
+        # Leer bytes de la firma subida
+        firma_bytes = await firma.read()
+
         # Crear registro de asistente
-        asistente_data = asistente.dict()
-        firma_base64 = asistente_data.pop('firma')  # Extraer firma base64
-        
+        asistente_data = {
+            'cedula': cedula,
+            'nombre': nombre,
+            'cargo': cargo,
+            'unidad': unidad,
+            'correo': correo,
+            'token': token
+        }
+
         nuevo_asistente = asistente_service.crear_asistente(
             asistente_data,
-            firma_base64,
+            firma_bytes,
             sesion['id']
         )
         

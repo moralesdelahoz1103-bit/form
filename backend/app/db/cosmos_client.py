@@ -58,14 +58,23 @@ class CosmosDBClient:
             print(f"Error obteniendo sesión: {e}")
             raise
     
-    def listar_sesiones(self) -> List[Dict[str, Any]]:
-        """Listar todas las sesiones"""
+    def listar_sesiones(self, owner_email: Optional[str] = None) -> List[Dict[str, Any]]:
+        """Listar sesiones. Si se pasa owner_email, filtra solo las sesiones creadas por ese email."""
         try:
-            query = "SELECT * FROM c ORDER BY c.created_at DESC"
-            items = list(self.sesiones_container.query_items(
-                query=query,
-                enable_cross_partition_query=True
-            ))
+            if owner_email:
+                query = "SELECT * FROM c WHERE c.created_by = @owner ORDER BY c.created_at DESC"
+                parameters = [{"name": "@owner", "value": owner_email}]
+                items = list(self.sesiones_container.query_items(
+                    query=query,
+                    parameters=parameters,
+                    enable_cross_partition_query=True
+                ))
+            else:
+                query = "SELECT * FROM c ORDER BY c.created_at DESC"
+                items = list(self.sesiones_container.query_items(
+                    query=query,
+                    enable_cross_partition_query=True
+                ))
             return items
         except exceptions.CosmosHttpResponseError as e:
             print(f"Error listando sesiones: {e}")

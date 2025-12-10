@@ -37,8 +37,10 @@ class SesionResponse(BaseModel):
     hora_fin: str
     link: str
     qr_code: str
+    qr_filename: Optional[str] = None
     token_expiry: str
     token_active: bool
+    created_by: Optional[str] = None
     created_at: str
     updated_at: str
     total_asistentes: Optional[int] = 0

@@ -2,6 +2,8 @@ import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import RegistroAsistencia from './pages/RegistroAsistencia';
 import TalentoHumano from './pages/TalentoHumano';
+import Login from './pages/Login';
+import ProtectedRoute from './auth/ProtectedRoute';
 import './assets/styles/global.css';
 
 function App() {
@@ -9,7 +11,16 @@ function App() {
     <BrowserRouter>
       <Routes>
         <Route path="/registro" element={<RegistroAsistencia />} />
-        <Route path="/talento-humano" element={<TalentoHumano />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/auth-success" element={<Login />} />
+        <Route
+          path="/talento-humano"
+          element={
+            <ProtectedRoute>
+              <TalentoHumano />
+            </ProtectedRoute>
+          }
+        />
         <Route path="/talento" element={<Navigate to="/talento-humano" replace />} />
         <Route path="/" element={<Navigate to="/talento-humano" replace />} />
         <Route path="*" element={<NotFound />} />

@@ -12,6 +12,7 @@ sys.path.append(str(Path(__file__).parent.parent))
 
 from core.config import settings
 from core.exceptions import TokenNotFoundException, TokenExpiredException, TokenInactiveException
+from storage import get_storage_adapter
 
 # Importar cliente CosmosDB
 try:
@@ -45,8 +46,11 @@ def save_sesiones(sesiones: List[dict]):
     with open(DATA_FILE, 'w', encoding='utf-8') as f:
         json.dump(sesiones, f, ensure_ascii=False, indent=2)
 
-def generar_qr(link: str) -> str:
-    """Genera un código QR y lo devuelve como base64"""
+def generar_qr(link: str, nombre: str, fecha: str) -> str:
+    """
+    Genera un código QR y lo guarda usando el storage adapter.
+    Retorna el filename del QR guardado.
+    """
     qr = qrcode.QRCode(
         version=1,
         error_correction=qrcode.constants.ERROR_CORRECT_L,
@@ -58,11 +62,16 @@ def generar_qr(link: str) -> str:
     
     img = qr.make_image(fill_color="black", back_color="white")
     
+    # Convert to bytes
     buffered = BytesIO()
     img.save(buffered, format="PNG")
-    img_str = base64.b64encode(buffered.getvalue()).decode()
+    qr_bytes = buffered.getvalue()
     
-    return f"data:image/png;base64,{img_str}"
+    # Save using storage adapter
+    storage = get_storage_adapter()
+    filename = storage.save_qr(qr_bytes, nombre, fecha)
+    
+    return filename
 
 # ========== FUNCIONES PRINCIPALES ==========
 
@@ -75,13 +84,22 @@ def crear_sesion(sesion_data: dict) -> dict:
     expiry = (datetime.utcnow() + timedelta(days=settings.TOKEN_EXPIRY_DAYS)).isoformat()
     
     link = f"{settings.FRONTEND_URL}/registro?token={token}"
-    qr_code = generar_qr(link)
+    
+    # Generate QR and save with storage adapter
+    nombre = sesion_data.get('tema', 'sesion')
+    fecha = sesion_data.get('fecha', datetime.utcnow().strftime('%Y-%m-%d'))
+    qr_filename = generar_qr(link, nombre, fecha)
+    
+    # Get QR URL from storage adapter
+    storage = get_storage_adapter()
+    qr_url = storage.get_qr_url(qr_filename)
     
     nueva_sesion = {
         "id": sesion_id,
         "token": token,
         "link": link,
-        "qr_code": qr_code,
+        "qr_code": qr_url,
+        "qr_filename": qr_filename,
         "token_expiry": expiry,
         "token_active": True,
         "created_at": now,
@@ -97,12 +115,14 @@ def crear_sesion(sesion_data: dict) -> dict:
         save_sesiones(sesiones)
         return nueva_sesion
 
-def get_all_sesiones() -> List[dict]:
-    """Listar todas las sesiones"""
+def get_all_sesiones(owner_email: Optional[str] = None) -> List[dict]:
+    """Listar sesiones. Si se proporciona owner_email, devuelve solo las sesiones de ese propietario."""
     if settings.STORAGE_MODE == "cosmosdb" and COSMOS_AVAILABLE:
-        return cosmos_db.listar_sesiones()
+        return cosmos_db.listar_sesiones(owner_email)
     else:
         sesiones = load_sesiones()
+        if owner_email:
+            sesiones = [s for s in sesiones if s.get('created_by') == owner_email]
         sesiones.sort(key=lambda x: x.get('created_at', ''), reverse=True)
         return sesiones
 

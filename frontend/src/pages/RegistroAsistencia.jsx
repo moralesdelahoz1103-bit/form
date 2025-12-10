@@ -111,14 +111,38 @@ const RegistroAsistencia = () => {
     setSubmitting(true);
 
     try {
-      await asistentesService.registrar({
-        ...formData,
-        token
-      });
+      // Construir FormData y convertir la firma (dataURL) a Blob
+      const fd = new FormData();
+      fd.append('cedula', formData.cedula);
+      fd.append('nombre', formData.nombre);
+      fd.append('cargo', formData.cargo);
+      fd.append('unidad', formData.unidad);
+      fd.append('correo', formData.correo);
+      fd.append('token', token);
+
+      // Convertir dataURL a Blob
+      const dataUrl = formData.firma;
+      const dataURLtoBlob = (dataurl) => {
+        const arr = dataurl.split(',');
+        const mime = arr[0].match(/:(.*?);/)[1];
+        const bstr = atob(arr[1]);
+        let n = bstr.length;
+        const u8arr = new Uint8Array(n);
+        while (n--) {
+          u8arr[n] = bstr.charCodeAt(n);
+        }
+        return new Blob([u8arr], { type: mime });
+      };
+
+      const blob = dataURLtoBlob(dataUrl);
+      const filename = `${formData.cedula || 'firma'}.png`;
+      fd.append('firma', blob, filename);
+
+      await asistentesService.registrar(fd);
       setSuccess(true);
     } catch (error) {
       setToast({ 
-        message: error.message || 'Error al registrar la asistencia', 
+        message: (error.response && error.response.data && error.response.data.detail) || error.message || 'Error al registrar la asistencia', 
         type: 'error' 
       });
     } finally {
@@ -137,7 +161,7 @@ const RegistroAsistencia = () => {
   if (!sesion) {
     return (
       <div className="error-page">
-        <h1>Capacitación no encontrada</h1>
+        <h1>Formación o evento no encontrado</h1>
         <p>El enlace proporcionado no es válido o ha expirado.</p>
       </div>
     );

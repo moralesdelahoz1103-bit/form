@@ -8,7 +8,6 @@
 }
 
 .header-content {
-  max-width: 1400px;
   padding: 0 32px;
   height: 100%;
   display: flex;
@@ -55,9 +54,83 @@
 }
 
 .header-user {
+  display: flex;
+  align-items: center;
+  gap: 12px;
   color: white;
+}
+
+.header-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #ffffff 0%, #f3f4f6 100%);
+  color: #065f46;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
   font-size: 14px;
-  font-weight: 500;
+}
+
+.header-user-info {
+  display: flex;
+  flex-direction: column;
+  text-align: left;
+}
+
+.header-user-name {
+  font-size: 14px;
+  font-weight: 700;
+  color: #ffffff;
+}
+
+.header-user-email {
+  font-size: 12px;
+  color: rgba(255,255,255,0.9);
+  opacity: 0.9;
+}
+
+/* Compact header user layout */
+.header-user.compact {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.header-user-info.compact-info {
+  display: flex;
+  flex-direction: column;
+  text-align: right;
+  margin-right: 6px;
+}
+
+.btn-logout-small {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  border: 1px solid rgba(255,255,255,0.12);
+  background: rgba(255,255,255,0.04);
+  color: #ffffff;
+  cursor: pointer;
+  transition: all 0.12s ease;
+  padding: 0;
+}
+
+.btn-logout-small:hover {
+  background: rgba(255,255,255,0.08);
+  transform: translateY(-1px);
+}
+
+/* Smaller screens: reduce spacing and hide email if necessary */
+@media (max-width: 768px) {
+  .header-user-info.compact-info { display: none; }
+  .header-avatar { width: 36px; height: 36px; font-size: 13px; }
+  .btn-logout-small { width: 32px; height: 32px; }
 }
 
 .btn-logout {

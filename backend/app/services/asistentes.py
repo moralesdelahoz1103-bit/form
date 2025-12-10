@@ -5,11 +5,13 @@ from datetime import datetime
 import uuid
 import sys
 from pathlib import Path
-from zoneinfo import ZoneInfo
+import pytz
+import base64
 sys.path.append(str(Path(__file__).parent.parent))
 
 from core.config import settings
 from core.exceptions import DuplicateRegistrationException
+from storage import get_storage_adapter
 
 # Importar cliente CosmosDB
 try:
@@ -45,8 +47,31 @@ def save_asistentes(asistentes: List[dict]):
 
 # ========== FUNCIONES PRINCIPALES ==========
 
-def crear_asistente(asistente_data: dict, firma_base64: str, sesion_id: str, ip_address: Optional[str] = None) -> dict:
-    """Crear asistente en CosmosDB o JSON según configuración"""
+def crear_asistente(asistente_data: dict, firma_data, sesion_id: str, ip_address: Optional[str] = None) -> dict:
+    """Crear asistente en CosmosDB o JSON según configuración.
+
+    `firma_data` puede ser:
+    - bytes: los bytes del archivo de imagen (cuando viene como upload)
+    - str: un data URL o base64 crudo (cuando viene desde frontend en base64)
+    """
+
+    # Save firma using storage adapter
+    storage = get_storage_adapter()
+
+    # Obtener bytes desde distintos formatos
+    if isinstance(firma_data, (bytes, bytearray)):
+        firma_bytes = bytes(firma_data)
+    elif isinstance(firma_data, str):
+        firma_base64 = firma_data
+        if firma_base64.startswith('data:image'):
+            # Remove data URL prefix if present
+            firma_base64 = firma_base64.split(',')[1]
+        firma_bytes = base64.b64decode(firma_base64)
+    else:
+        raise ValueError('Formato de firma no soportado')
+    cedula = asistente_data['cedula']
+    firma_filename = storage.save_firma(firma_bytes, cedula)
+    firma_url = storage.get_firma_url(firma_filename)
     
     if settings.STORAGE_MODE == "cosmosdb" and COSMOS_AVAILABLE:
         # Verificar duplicados en CosmosDB
@@ -62,8 +87,10 @@ def crear_asistente(asistente_data: dict, firma_base64: str, sesion_id: str, ip_
             "cargo": asistente_data['cargo'],
             "unidad": asistente_data['unidad'],
             "correo": asistente_data['correo'],
-            "firma_base64": firma_base64,
-            "fecha_registro": datetime.now(ZoneInfo("America/Bogota")).isoformat()
+            "firma_url": firma_url,
+            "firma_filename": firma_filename,
+            # Usa pytz para compatibilidad en Windows donde ZoneInfo no tiene America/Bogota
+            "fecha_registro": datetime.now(pytz.timezone("America/Bogota")).isoformat()
         }
         
         return cosmos_db.crear_asistente(nuevo_asistente)
@@ -85,8 +112,10 @@ def crear_asistente(asistente_data: dict, firma_base64: str, sesion_id: str, ip_
             "cargo": asistente_data['cargo'],
             "unidad": asistente_data['unidad'],
             "correo": asistente_data['correo'],
-            "firma_base64": firma_base64,
-            "fecha_registro": datetime.now(ZoneInfo("America/Bogota")).isoformat()
+            "firma_url": firma_url,
+            "firma_filename": firma_filename,
+            # Usa pytz para compatibilidad en Windows donde ZoneInfo no tiene America/Bogota
+            "fecha_registro": datetime.now(pytz.timezone("America/Bogota")).isoformat()
         }
         
         asistentes.append(nuevo_asistente)

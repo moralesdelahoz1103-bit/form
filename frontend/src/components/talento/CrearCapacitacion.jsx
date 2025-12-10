@@ -23,6 +23,10 @@ const CrearCapacitacion = () => {
   const [toast, setToast] = useState(null);
   const [linkGenerado, setLinkGenerado] = useState('');
 
+  const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}');
+  const userName = userInfo.name || 'Usuario autenticado';
+  const userEmail = userInfo.email || 'correo@dominio.com';
+
   const tiposActividad = ['Inducción', 'Formación', 'Evento'];
 
   const handleChange = (e) => {
@@ -125,6 +129,8 @@ const CrearCapacitacion = () => {
     navigator.clipboard.writeText(linkGenerado);
     setToast({ message: '¡Link copiado al portapapeles!', type: 'success' });
   };
+
+
 
   return (
     <div className="crear-capacitacion">
@@ -244,7 +250,7 @@ const CrearCapacitacion = () => {
               </Button>
             </div>
             <p className="link-info">
-              Comparte este enlace con los participantes de la capacitación
+              Comparte este enlace con los participantes de la formacion o evento para que puedan registrar su asistencia
             </p>
           </div>
         )}
