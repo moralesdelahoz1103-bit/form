@@ -5,7 +5,7 @@
 .firma-label {
   display: block;
   font-size: 14px;
-  font-weight: 600;
+  font-weight: normal;
   color: var(--text-dark);
   margin-bottom: 8px;
 }
@@ -59,7 +59,7 @@
   padding: 8px 16px;
   border-radius: var(--radius-md);
   font-size: 14px;
-  font-weight: 600;
+  font-weight: normal;
   cursor: pointer;
   transition: all 0.3s ease;
   display: flex;

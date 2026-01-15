@@ -1,6 +1,9 @@
 from fastapi import APIRouter, HTTPException, Response, Request
 from fastapi.responses import RedirectResponse, JSONResponse
+from slowapi import Limiter
+from slowapi.util import get_remote_address
 from core.config import settings
+from services.usuarios import usuario_service
 import msal
 import secrets
 import jwt
@@ -8,6 +11,7 @@ from datetime import datetime, timedelta
 from typing import Optional
 
 router = APIRouter(prefix="/api/auth", tags=["auth"])
+limiter = Limiter(key_func=get_remote_address)
 
 # Almacenamiento en memoria de estados PKCE (en producción, usar Redis o base de datos)
 pkce_states = {}
@@ -48,10 +52,12 @@ def verify_session_token(token: str) -> Optional[dict]:
 
 
 @router.get("/login")
+@limiter.limit("10/minute")
 async def login(request: Request):
     """
     Inicia el flujo de autenticación con Microsoft Entra ID.
     Redirige al usuario a Microsoft para autenticarse.
+    Rate limit: 10 intentos por minuto por IP.
     """
     try:
         # Generar un state único para CSRF protection
@@ -88,15 +94,24 @@ async def login(request: Request):
         
         return RedirectResponse(url=auth_url)
     
+    except HTTPException:
+        raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error al iniciar autenticación: {str(e)}")
+        # Log interno del error real
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.error(f"Login error: {str(e)}")
+        # Mensaje genérico al usuario
+        raise HTTPException(status_code=500, detail="Error al iniciar sesión. Intenta nuevamente.")
 
 
 @router.get("/callback")
+@limiter.limit("20/minute")
 async def callback(request: Request, code: str, state: str):
     """
     Callback de Microsoft Entra ID después de la autenticación.
     Intercambia el código de autorización por tokens de acceso.
+    Rate limit: 20 intentos por minuto por IP.
     """
     try:
         # Verificar el state para proteger contra CSRF
@@ -117,9 +132,16 @@ async def callback(request: Request, code: str, state: str):
         )
         
         if "error" in result:
+            # No exponer detalles técnicos de Azure al frontend
+            error_msg = result.get('error', 'Error de autenticación')
+            # Log interno para debugging (no visible al usuario)
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.error(f"Azure auth error: {result.get('error_description', error_msg)}")
+            
             raise HTTPException(
                 status_code=400,
-                detail=f"Error en autenticación: {result.get('error_description', result.get('error'))}"
+                detail="Error al autenticar con Microsoft. Verifica tus credenciales e intenta nuevamente."
             )
         
         # Extraer información del usuario
@@ -132,6 +154,13 @@ async def callback(request: Request, code: str, state: str):
                 status_code=403,
                 detail=f"Acceso denegado. Solo se permiten usuarios del dominio {settings.ALLOWED_DOMAIN}"
             )
+        
+        # Registrar usuario automáticamente si es la primera vez
+        user_id = user_info.get("oid")  # Object ID de Azure
+        user_name = user_info.get("name", email.split("@")[0])
+        
+        if user_id:
+            usuario_service.registrar_o_actualizar_usuario(user_id, user_name)
         
         # Crear sesión
         session_token = create_session_token(user_info)
@@ -154,10 +183,12 @@ async def callback(request: Request, code: str, state: str):
 
 
 @router.get("/me")
+@limiter.limit("30/minute")
 async def get_current_user(request: Request):
     """
     Obtiene la información del usuario autenticado actual.
     Requiere el token de sesión en el header Authorization.
+    Rate limit: 30 intentos por minuto por IP.
     """
     auth_header = request.headers.get("Authorization")
     if not auth_header or not auth_header.startswith("Bearer "):
@@ -174,6 +205,7 @@ async def get_current_user(request: Request):
         "email": user_data.get("email"),
         "name": user_data.get("name"),
         "oid": user_data.get("oid"),
+        "rol": usuario_service.obtener_rol_usuario(user_data.get("oid", ""))
     }
 
 
@@ -181,6 +213,7 @@ async def get_current_user(request: Request):
 async def logout(request: Request):
     """
     Cierra la sesión del usuario.
+    Elimina la sesión del backend y devuelve la URL de logout de Microsoft.
     """
     auth_header = request.headers.get("Authorization")
     if auth_header and auth_header.startswith("Bearer "):
@@ -189,7 +222,14 @@ async def logout(request: Request):
         if token in user_sessions:
             del user_sessions[token]
     
-    return {"message": "Sesión cerrada exitosamente"}
+    # Construir URL de logout de Microsoft
+    logout_url = f"https://login.microsoftonline.com/{settings.ENTRA_TENANT_ID}/oauth2/v2.0/logout"
+    post_logout_redirect = f"{settings.FRONTEND_URL}/login"
+    
+    return {
+        "message": "Sesión cerrada exitosamente",
+        "logout_url": f"{logout_url}?post_logout_redirect_uri={post_logout_redirect}"
+    }
 
 
 @router.get("/status")

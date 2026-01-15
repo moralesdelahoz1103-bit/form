@@ -3,6 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import Loading from '../components/common/Loading';
 import logo_fsdverde from '../assets/img/logo_fsdverde.png';
 import { config } from '../utils/constants';
+import { getAuthToken, setAuthToken, setUserInfo, clearAuth } from '../utils/auth';
 import './Login.css';
 
 const Login = () => {
@@ -13,7 +14,7 @@ const Login = () => {
 
   // Verificar si ya está autenticado
   useEffect(() => {
-    const token = localStorage.getItem('authToken');
+    const token = getAuthToken();
     if (token) {
       // Verificar si el token es válido
       verifyToken(token);
@@ -24,7 +25,7 @@ const Login = () => {
   useEffect(() => {
     const token = searchParams.get('token');
     if (token) {
-      localStorage.setItem('authToken', token);
+      setAuthToken(token);
       // Obtener información del usuario
       fetchUserInfo(token);
     }
@@ -43,11 +44,11 @@ const Login = () => {
         navigate('/talento-humano', { replace: true });
       } else {
         // Token inválido, limpiar
-        localStorage.removeItem('authToken');
+        clearAuth();
       }
     } catch (error) {
       console.error('Error verificando token:', error);
-      localStorage.removeItem('authToken');
+      clearAuth();
     }
   };
 
@@ -61,14 +62,17 @@ const Login = () => {
 
       if (response.ok) {
         const userData = await response.json();
-        localStorage.setItem('userInfo', JSON.stringify(userData));
+        
+        // Usuario autenticado por Microsoft y auto-registrado en el backend
+        // El backend ya se encargó del registro en el callback
+        setUserInfo(userData);
         navigate('/talento-humano', { replace: true });
       } else {
         setError({
           message: 'Error al obtener información del usuario',
           help: 'Por favor, intenta iniciar sesión nuevamente.'
         });
-        localStorage.removeItem('authToken');
+        clearAuth();
       }
     } catch (error) {
       console.error('Error obteniendo información del usuario:', error);
@@ -76,7 +80,7 @@ const Login = () => {
         message: 'Error de conexión',
         help: 'No se pudo conectar con el servidor. Verifica tu conexión a internet.'
       });
-      localStorage.removeItem('authToken');
+      clearAuth();
     }
   };
 

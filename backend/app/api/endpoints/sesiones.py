@@ -18,6 +18,10 @@ async def crear_sesion(sesion: SesionCreate, current_user: dict = Depends(get_cu
     """
     try:
         data = sesion.dict()
+        # Si se seleccionó 'Otros' y se especificó un valor personalizado, usarlo
+        if data.get('tipo_actividad') == 'Otros' and data.get('tipo_actividad_custom'):
+            data['tipo_actividad'] = data.pop('tipo_actividad_custom')
+
         data['created_by'] = current_user.get('email')
         nueva_sesion = sesion_service.crear_sesion(data)
         nueva_sesion['total_asistentes'] = 0

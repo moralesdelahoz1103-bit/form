@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import RegistroAsistencia from './pages/RegistroAsistencia';
 import TalentoHumano from './pages/TalentoHumano';
 import Login from './pages/Login';
+import AccesoDenegado from './pages/AccesoDenegado';
 import ProtectedRoute from './auth/ProtectedRoute';
 import './assets/styles/global.css';
 
@@ -13,6 +14,7 @@ function App() {
         <Route path="/registro" element={<RegistroAsistencia />} />
         <Route path="/login" element={<Login />} />
         <Route path="/auth-success" element={<Login />} />
+        <Route path="/acceso-denegado" element={<AccesoDenegado />} />
         <Route
           path="/talento-humano"
           element={

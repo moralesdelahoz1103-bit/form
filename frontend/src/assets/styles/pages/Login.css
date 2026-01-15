@@ -20,7 +20,7 @@
 
 .login-header h1 {
   font-size: 2rem;
-  font-weight: 700;
+  font-weight: normal;
   margin-bottom: 0.5rem;
 }
 
@@ -83,7 +83,7 @@
   border: none;
   border-radius: 8px;
   font-size: 1rem;
-  font-weight: 600;
+  font-weight: normal;
   cursor: pointer;
   transition: all 0.3s ease;
 }
@@ -98,7 +98,7 @@
   border: 2px solid #0078d4;
   border-radius: 8px;
   font-size: 1rem;
-  font-weight: 600;
+  font-weight: normal;
   cursor: pointer;
   transition: all 0.3s ease;
   background: #0078d4;
@@ -154,7 +154,7 @@
   background: #FEF3C7;
   color: #92400E;
   border-radius: 8px;
-  font-weight: 600;
+  font-weight: normal;
   border: 1px solid #FDE68A;
 }
 
@@ -181,7 +181,7 @@
 .login-link {
   color: var(--primary);
   text-decoration: none;
-  font-weight: 600;
+  font-weight: normal;
   transition: color 0.2s ease;
 }
 

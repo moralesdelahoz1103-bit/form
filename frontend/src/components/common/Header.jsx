@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import './Header.css';
 import logoFSD from '../../assets/img/logo_fsd.png';
-import { logout } from '../../auth/msal';
+import { logout } from '../../utils/auth';
 import Modal from '../common/Modal';
 
 const Header = () => {

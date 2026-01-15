@@ -16,8 +16,13 @@
   flex-direction: column;
   gap: 8px;
   flex: 1;
-  overflow-y: auto;
   padding-bottom: 16px;
+}
+
+.menu-footer {
+  padding: 16px 0;
+  border-top: 1px solid #e0e0e0;
+  flex-shrink: 0;
 }
 
 .menu-item {
@@ -31,7 +36,7 @@
   cursor: pointer;
   transition: all 0.3s ease;
   font-size: 15px;
-  font-weight: 600;
+  font-weight: normal;
   color: var(--text-dark);
   text-align: left;
   width: 100%;
@@ -60,6 +65,44 @@
 
 .menu-label {
   flex: 1;
+}
+
+.config-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+  border: none;
+  background: transparent;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 15px;
+  font-weight: normal;
+  color: var(--text-dark);
+  text-align: left;
+  width: 100%;
+}
+
+.config-menu-item:hover {
+  background: #f0f9f4;
+  color: #26BC58;
+}
+
+.config-menu-item .menu-icon {
+  animation: rotateConfig 3s linear infinite;
+}
+
+@keyframes rotateConfig {
+  0%, 90% {
+    transform: rotate(0deg);
+  }
+  95% {
+    transform: rotate(20deg);
+  }
+  100% {
+    transform: rotate(0deg);
+  }
 }
 
 .session-box {
@@ -92,7 +135,7 @@
   align-items: center;
   justify-content: center;
   font-size: 16px;
-  font-weight: 700;
+  font-weight: normal;
   flex-shrink: 0;
   box-shadow: 0 2px 8px rgba(38, 188, 88, 0.2);
 }
@@ -105,7 +148,7 @@
 
 .session-name {
   font-size: 14px;
-  font-weight: 600;
+  font-weight: normal;
   color: #1f2937;
   margin-bottom: 4px;
   word-wrap: break-word;
@@ -134,7 +177,7 @@
   border-radius: 10px;
   color: #065f46;
   font-size: 14px;
-  font-weight: 600;
+  font-weight: normal;
   cursor: pointer;
   transition: all 0.18s ease;
   width: 100%;
@@ -165,7 +208,7 @@
 
   .menu-nav {
     flex-direction: row;
-    overflow-x: auto;
+    overflow-x: hidden;
   }
 
   .menu-item {

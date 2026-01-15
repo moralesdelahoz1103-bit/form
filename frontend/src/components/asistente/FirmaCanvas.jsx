@@ -60,7 +60,7 @@ const FirmaCanvas = ({ onChange, error }) => {
   return (
     <div className="firma-container">
       <label className="firma-label">
-        Firma Digital <span className="required">*</span>
+        Firma digital <span className="required">*</span>
       </label>
       <div className={`firma-canvas-wrapper ${error ? 'firma-error' : ''}`}>
         <SignatureCanvas

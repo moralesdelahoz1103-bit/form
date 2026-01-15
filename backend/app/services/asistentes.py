@@ -16,10 +16,13 @@ from storage import get_storage_adapter
 # Importar cliente CosmosDB
 try:
     from db.cosmos_client import cosmos_db
-    COSMOS_AVAILABLE = True
+    COSMOS_AVAILABLE = cosmos_db is not None
+    if not COSMOS_AVAILABLE:
+        print("⚠️ CosmosDB no disponible: No se pudo crear la instancia")
 except Exception as e:
     print(f"⚠️ CosmosDB no disponible: {e}")
     COSMOS_AVAILABLE = False
+    cosmos_db = None
 
 # Configuración de archivos JSON (fallback)
 BASE_DIR = Path(__file__).parent.parent
@@ -89,8 +92,7 @@ def crear_asistente(asistente_data: dict, firma_data, sesion_id: str, ip_address
             "correo": asistente_data['correo'],
             "firma_url": firma_url,
             "firma_filename": firma_filename,
-            # Usa pytz para compatibilidad en Windows donde ZoneInfo no tiene America/Bogota
-            "fecha_registro": datetime.now(pytz.timezone("America/Bogota")).isoformat()
+            "fecha_registro": datetime.now(pytz.timezone(settings.TIMEZONE)).isoformat()
         }
         
         return cosmos_db.crear_asistente(nuevo_asistente)
@@ -114,8 +116,7 @@ def crear_asistente(asistente_data: dict, firma_data, sesion_id: str, ip_address
             "correo": asistente_data['correo'],
             "firma_url": firma_url,
             "firma_filename": firma_filename,
-            # Usa pytz para compatibilidad en Windows donde ZoneInfo no tiene America/Bogota
-            "fecha_registro": datetime.now(pytz.timezone("America/Bogota")).isoformat()
+            "fecha_registro": datetime.now(pytz.timezone(settings.TIMEZONE)).isoformat()
         }
         
         asistentes.append(nuevo_asistente)

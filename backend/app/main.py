@@ -11,7 +11,7 @@ import os
 # Añadir el directorio padre al path
 sys.path.append(str(Path(__file__).parent))
 
-from api.endpoints import sesiones, asistentes, auth
+from api.endpoints import sesiones, asistentes, auth, usuarios, permisos
 from core.config import settings
 
 # Crear directorio de datos
@@ -24,29 +24,34 @@ app = FastAPI(
     version="2.0.0"
 )
 
-# Rate limiting
-limiter = Limiter(key_func=get_remote_address)
+# Rate limiting - configuración más permisiva
+limiter = Limiter(
+    key_func=get_remote_address,
+    default_limits=["200 per minute", "50 per second"]
+)
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
-# CORS
+# CORS - Configuración segura solo con orígenes específicos
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
         "http://localhost:3000",
         "http://localhost:5173",
         settings.FRONTEND_URL,
-        "*"
     ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
+    expose_headers=["*"]
 )
 
 # Incluir routers
 app.include_router(sesiones.router)
 app.include_router(asistentes.router)
 app.include_router(auth.router)
+app.include_router(usuarios.router, prefix="/api/usuarios", tags=["usuarios"])
+app.include_router(permisos.router, prefix="/api/permisos", tags=["permisos"])
 
 # Servir archivos estáticos (uploads: QR y firmas)
 from fastapi.staticfiles import StaticFiles

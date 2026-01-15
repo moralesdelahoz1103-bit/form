@@ -146,9 +146,14 @@ const VerAsistentes = () => {
           <div className="sesion-info-box">
             <div className="sesion-info-header">
               <h3>{sesionActual.tema}</h3>
-              <Button onClick={exportarXLSX} variant="primary">
+              <button onClick={exportarXLSX} className="btn-exportar-excel">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                  <polyline points="7 10 12 15 17 10"></polyline>
+                  <line x1="12" y1="15" x2="12" y2="3"></line>
+                </svg>
                 Exportar Excel
-              </Button>
+              </button>
             </div>
             <div className="info-grid">
               <div>
@@ -232,7 +237,7 @@ const VerAsistentes = () => {
       <Modal
         isOpen={!!firmaModal}
         onClose={() => setFirmaModal(null)}
-        title="Firma Digital"
+        title="Firma digital"
         size="md"
       >
         <div className="firma-modal-content">

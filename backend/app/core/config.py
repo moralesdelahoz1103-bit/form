@@ -14,6 +14,7 @@ class Settings(BaseSettings):
     ALLOWED_DOMAIN: str = os.getenv("ALLOWED_DOMAIN", "@fundacionsantodomingo.org")
     TOKEN_EXPIRY_DAYS: int = int(os.getenv("TOKEN_EXPIRY_DAYS", "30"))
     MAX_FILE_SIZE: int = int(os.getenv("MAX_FILE_SIZE", "1048576"))
+    TIMEZONE: str = os.getenv("TIMEZONE", "America/Bogota")
 
     # Entra ID (MSAL) - Backend Authentication
     ENTRA_CLIENT_ID: str = os.getenv("ENTRA_CLIENT_ID", "")
@@ -25,7 +26,7 @@ class Settings(BaseSettings):
     ENTRA_SCOPES: list = ["User.Read"]
     
     # Session Secret para JWT
-    SESSION_SECRET: str = os.getenv("SESSION_SECRET", "change-this-to-a-secure-random-string")
+    SESSION_SECRET: str = os.getenv("SESSION_SECRET", "")
     
     # CosmosDB
     COSMOS_ENDPOINT: str = os.getenv("COSMOS_ENDPOINT", "")
@@ -43,5 +44,41 @@ class Settings(BaseSettings):
     
     class Config:
         case_sensitive = True
+    
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        
+        # Validar SESSION_SECRET
+        if not self.SESSION_SECRET:
+            raise ValueError(
+                "❌ SESSION_SECRET es OBLIGATORIO en .env para la seguridad de la aplicación.\n"
+                "Genera uno con: python -c 'import secrets; print(secrets.token_urlsafe(32))'"
+            )
+        
+        if self.SESSION_SECRET == "change-this-to-a-secure-random-string":
+            raise ValueError(
+                "❌ SESSION_SECRET no puede ser el valor por defecto.\n"
+                "Genera uno seguro con: python -c 'import secrets; print(secrets.token_urlsafe(32))'"
+            )
+        
+        if len(self.SESSION_SECRET) < 32:
+            raise ValueError(
+                f"❌ SESSION_SECRET debe tener al menos 32 caracteres para ser seguro (actual: {len(self.SESSION_SECRET)}).\n"
+                "Genera uno con: python -c 'import secrets; print(secrets.token_urlsafe(32))'"
+            )
+        
+        # Validar configuración de CosmosDB si está en modo cosmosdb
+        if self.STORAGE_MODE == "cosmosdb":
+            if not self.COSMOS_ENDPOINT or not self.COSMOS_KEY:
+                raise ValueError(
+                    "❌ COSMOS_ENDPOINT y COSMOS_KEY son requeridos cuando STORAGE_MODE=cosmosdb"
+                )
+        
+        # Validar configuración de Azure Blob Storage si está en modo azure
+        if self.BLOB_STORAGE_MODE == "azure":
+            if not self.AZURE_STORAGE_CONNECTION_STRING:
+                raise ValueError(
+                    "❌ AZURE_STORAGE_CONNECTION_STRING es requerido cuando BLOB_STORAGE_MODE=azure"
+                )
 
 settings = Settings()

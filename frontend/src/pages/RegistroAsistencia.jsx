@@ -28,7 +28,8 @@ const RegistroAsistencia = () => {
     cargo: '',
     unidad: '',
     correo: '',
-    firma: ''
+    firma: '',
+    autorizacion: false
   });
 
   const [errors, setErrors] = useState({});
@@ -90,6 +91,10 @@ const RegistroAsistencia = () => {
         if (!formData.firma) {
           newErrors.firma = 'La firma es obligatoria';
         }
+      } else if (key === 'autorizacion') {
+        if (!formData.autorizacion) {
+          newErrors.autorizacion = 'Debe autorizar el tratamiento de datos personales';
+        }
       } else if (validations[key]) {
         const error = validations[key](formData[key]);
         if (error) newErrors[key] = error;
@@ -104,7 +109,7 @@ const RegistroAsistencia = () => {
     e.preventDefault();
     
     if (!validateForm()) {
-      setToast({ message: 'Por favor corrige los errores en el formulario', type: 'error' });
+      setToast({ message: 'Por favor verifica los campos del formulario', type: 'error' });
       return;
     }
 
@@ -192,6 +197,18 @@ const RegistroAsistencia = () => {
                 <span className="detalle-label">Tipo:</span>
                 <span className="detalle-value">{sesion.tipo_actividad}</span>
               </div>
+              {sesion.responsable && (
+                <div className="sesion-detalle">
+                  <span className="detalle-label">Responsable:</span>
+                  <span className="detalle-value">{sesion.responsable}</span>
+                </div>
+              )}
+              {sesion.cargo && (
+                <div className="sesion-detalle">
+                  <span className="detalle-label">Cargo:</span>
+                  <span className="detalle-value">{sesion.cargo}</span>
+                </div>
+              )}
             </div>
             {sesion.contenido && (
               <div className="sesion-contenido">
@@ -217,7 +234,7 @@ const RegistroAsistencia = () => {
               />
 
               <Input
-                label="Nombre Completo"
+                label="Nombres y apellidos"
                 name="nombre"
                 value={formData.nombre}
                 onChange={handleChange}
@@ -237,7 +254,7 @@ const RegistroAsistencia = () => {
               />
 
               <Input
-                label="Unidad/Departamento"
+                label="Unidad/Area"
                 name="unidad"
                 value={formData.unidad}
                 onChange={handleChange}
@@ -254,7 +271,7 @@ const RegistroAsistencia = () => {
               value={formData.correo}
               onChange={handleChange}
               error={errors.correo}
-              placeholder="correo@dominio.com"
+              placeholder="correo@fundacionsantodomingo.org"
               required
             />
 
@@ -263,13 +280,42 @@ const RegistroAsistencia = () => {
               error={errors.firma}
             />
 
+            <div className="autorizacion-container">
+              <label className="checkbox-label">
+                <input
+                  type="checkbox"
+                  name="autorizacion"
+                  checked={formData.autorizacion}
+                  onChange={(e) => {
+                    setFormData(prev => ({ ...prev, autorizacion: e.target.checked }));
+                    if (errors.autorizacion && e.target.checked) {
+                      setErrors(prev => ({ ...prev, autorizacion: null }));
+                    }
+                  }}
+                  className="checkbox-input"
+                />
+                <span className="checkbox-text">
+                  Autorizo a Fundación Santo Domingo-FSD al tratamiento de mis datos personales conforme a la política de Tratamiento de Datos Personales.{' '}
+                  <a 
+                    href="https://fundacionsantodomingo.org/conocenos/politica-de-proteccion-de-datos/" 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="politica-link"
+                  >
+                    Ver más
+                  </a>
+                </span>
+              </label>
+              {errors.autorizacion && <span className="error-message">{errors.autorizacion}</span>}
+            </div>
+
             <Button
               type="submit"
               loading={submitting}
               disabled={submitting}
               fullWidth
             >
-              Registrar Asistencia
+              Registrar asistencia
             </Button>
           </form>
         </div>

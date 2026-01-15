@@ -1,8 +1,49 @@
 import random
+import re
+import os
 from typing import Optional
 from azure.storage.blob import BlobServiceClient, ContentSettings
 from app.core.config import settings
 from app.storage.adapter import StorageAdapter
+
+
+def sanitize_filename(filename: str, max_length: int = 100) -> str:
+    """
+    Sanitiza nombres de archivos para prevenir ataques de path traversal.
+    
+    - Elimina caracteres peligrosos: / \ .. : * ? " < > | \0
+    - Reemplaza espacios por guiones bajos
+    - Limita longitud
+    - Solo permite caracteres alfanuméricos, guiones, guiones bajos y puntos
+    """
+    # Remover caracteres nulos
+    filename = filename.replace('\0', '')
+    
+    # Remover path separators y secuencias peligrosas
+    filename = filename.replace('/', '_').replace('\\', '_')
+    filename = filename.replace('..', '_').replace(':', '_')
+    
+    # Remover caracteres peligrosos del sistema de archivos
+    dangerous_chars = ['*', '?', '"', '<', '>', '|']
+    for char in dangerous_chars:
+        filename = filename.replace(char, '_')
+    
+    # Reemplazar espacios múltiples y espacios por guiones bajos
+    filename = re.sub(r'\s+', '_', filename)
+    
+    # Solo permitir caracteres alfanuméricos, guiones, guiones bajos, puntos
+    filename = re.sub(r'[^a-zA-Z0-9áéíóúÁÉÍÓÚñÑ._-]', '_', filename)
+    
+    # Limitar longitud
+    if len(filename) > max_length:
+        name, ext = os.path.splitext(filename)
+        filename = name[:max_length - len(ext)] + ext
+    
+    # Asegurar que no quede vacío
+    if not filename or filename == '.':
+        filename = 'file'
+    
+    return filename
 
 
 class AzureBlobStorage(StorageAdapter):
@@ -42,13 +83,14 @@ class AzureBlobStorage(StorageAdapter):
         """
         Save QR code to Azure Blob Storage.
         Filename format: {nombre}_{fecha}_XX.png (XX = 2 random digits)
+        Protegido contra path traversal.
         """
         # Generate 2 random digits
         random_digits = f"{random.randint(0, 99):02d}"
         
-        # Clean nombre and fecha
-        nombre_clean = nombre.replace(" ", "_").replace("/", "-")
-        fecha_clean = fecha.replace(" ", "_").replace("/", "-")
+        # Sanitizar nombre y fecha (seguro contra path traversal)
+        nombre_clean = sanitize_filename(nombre, max_length=50)
+        fecha_clean = sanitize_filename(fecha, max_length=20)
         
         # Create filename
         filename = f"{nombre_clean}_{fecha_clean}_{random_digits}.png"
@@ -71,9 +113,10 @@ class AzureBlobStorage(StorageAdapter):
         """
         Save signature to Azure Blob Storage.
         Filename format: {cedula}.png
+        Protegido contra path traversal.
         """
-        # Clean cedula
-        cedula_clean = cedula.replace(" ", "_").replace("/", "-")
+        # Sanitizar cédula (seguro contra path traversal)
+        cedula_clean = sanitize_filename(cedula, max_length=20)
         
         # Create filename
         filename = f"{cedula_clean}.png"

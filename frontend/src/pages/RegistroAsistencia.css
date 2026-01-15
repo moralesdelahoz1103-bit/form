@@ -4,9 +4,12 @@
 }
 
 .registro-container {
-  max-width: 900px;
-  margin: 0 auto;
+  max-width: 1400px;
+  margin: 30px auto;
   padding: 40px 24px;
+  grid-template-columns: 1fr 380px;
+  gap: 32px;
+  align-items: start;
 }
 
 .registro-card {
@@ -19,16 +22,16 @@
 
 .sesion-info {
   padding: 32px;
-  background: #26BC58;
+  background: #e9fbeb;
   border-bottom: 2px solid #257137;
 }
 
 .sesion-titulo {
   font-size: 28px;
-  font-weight: 800;
+  font-weight: bold;
   color: white;
   margin-bottom: 24px;
-  background:white;
+  background:#26BC58;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -49,14 +52,14 @@
 
 .detalle-label {
   font-size: 13px;
-  font-weight: 600;
-  color: white;
+  font-weight: normal;
+  color: black;
 }
 
 .detalle-value {
   font-size: 15px;
-  font-weight: 600;
-  color: white;
+  font-weight: normal;
+  color: black;
 }
 
 .sesion-contenido {
@@ -68,7 +71,7 @@
 
 .sesion-contenido h3 {
   font-size: 16px;
-  font-weight: 700;
+  font-weight: normal;
   color: var(--text-dark);
   margin-bottom: 8px;
 }
@@ -86,7 +89,7 @@
 
 .form-title {
   font-size: 24px;
-  font-weight: 700;
+  font-weight: normal;
   color: #26BC58;
   margin-bottom: 24px;
   padding-bottom: 16px;
@@ -97,6 +100,49 @@
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
   gap: 0 20px;
+}
+
+/* Autorización de datos */
+.autorizacion-container {
+  margin: 24px 0;
+  padding: 16px;
+  background: var(--bg-hover);
+  border-radius: var(--radius-md);
+  border: 2px solid #26BC58;
+}
+
+.checkbox-label {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  cursor: pointer;
+  user-select: none;
+}
+
+.checkbox-input {
+  width: 20px;
+  height: 20px;
+  min-width: 20px;
+  cursor: pointer;
+  accent-color: #26BC58;
+  margin-top: 2px;
+}
+
+.checkbox-text {
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--text-dark);
+}
+
+.politica-link {
+  color: #26BC58;
+  font-weight: normal;
+  text-decoration: underline;
+  transition: color 0.2s ease;
+}
+
+.politica-link:hover {
+  color: var(--primary-dark);
 }
 
 .error-page {
@@ -119,9 +165,56 @@
   color: var(--text-light);
 }
 
+/* Sidebar con centro de ayuda */
+.registro-sidebar {
+  position: sticky;
+  top: 24px;
+  background: white;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+  padding: 24px;
+  max-height: calc(100vh - 120px);
+  overflow-y: auto;
+}
+
+.registro-sidebar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.registro-sidebar::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 3px;
+}
+
+.registro-sidebar::-webkit-scrollbar-thumb {
+  background: #26BC58;
+  border-radius: 3px;
+}
+
+.registro-sidebar::-webkit-scrollbar-thumb:hover {
+  background: #1ea147;
+}
+
+@media (max-width: 1200px) {
+  .registro-container {
+    grid-template-columns: 1fr 320px;
+    gap: 24px;
+  }
+
+  .registro-sidebar {
+    padding: 20px;
+  }
+}
+
 @media (max-width: 768px) {
   .registro-container {
     padding: 24px 16px;
+    grid-template-columns: 1fr;
+    gap: 24px;
+  }
+
+  .registro-sidebar {
+    display: none;
   }
 
   .sesion-info {

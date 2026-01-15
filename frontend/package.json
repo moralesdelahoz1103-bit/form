@@ -10,8 +10,6 @@
     "format": "prettier --write src/**/*.{js,jsx,css}"
   },
   "dependencies": {
-    "@azure/msal-browser": "^4.27.0",
-    "@azure/msal-react": "^3.0.23",
     "axios": "^1.6.7",
     "date-fns": "^3.3.1",
     "exceljs": "^4.4.0",

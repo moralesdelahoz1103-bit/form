@@ -17,10 +17,13 @@ from storage import get_storage_adapter
 # Importar cliente CosmosDB
 try:
     from db.cosmos_client import cosmos_db
-    COSMOS_AVAILABLE = True
+    COSMOS_AVAILABLE = cosmos_db is not None
+    if not COSMOS_AVAILABLE:
+        print("⚠️ CosmosDB no disponible: No se pudo crear la instancia")
 except Exception as e:
     print(f"⚠️ CosmosDB no disponible: {e}")
     COSMOS_AVAILABLE = False
+    cosmos_db = None
 
 # Configuración de archivos JSON (fallback)
 BASE_DIR = Path(__file__).parent.parent

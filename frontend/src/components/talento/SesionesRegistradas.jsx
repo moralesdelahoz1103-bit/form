@@ -8,6 +8,7 @@ import Toast from '../common/Toast';
 import { sesionesService } from '../../services/sesiones';
 import { config } from '../../utils/constants';
 import { formatters } from '../../utils/formatters';
+import { tienePermiso } from '../../utils/permisos';
 import './SesionesRegistradas.css';
 
 const SesionesRegistradas = () => {
@@ -15,13 +16,62 @@ const SesionesRegistradas = () => {
   const [loading, setLoading] = useState(true);
   const [toast, setToast] = useState(null);
   const [modalEliminar, setModalEliminar] = useState(null);
+  const [modalDetalles, setModalDetalles] = useState(null);
   const [eliminando, setEliminando] = useState(false);
+  
+  // Estados de permisos
+  const [permisos, setPermisos] = useState({
+    ver: true,
+    editar: false,
+    eliminar: false,
+    exportar: false
+  });
   const [filtros, setFiltros] = useState({
-    tema: '',
+    busqueda: '',
     fecha: '',
     tipo: '',
-    facilitador: ''
+    facilitador: '',
+    responsable: ''
   });
+
+  // Cargar permisos al montar el componente
+  useEffect(() => {
+    const cargarPermisos = async () => {
+      try {
+        const timeoutPromise = new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('Timeout')), 5000)
+        );
+        
+        const permisosPromise = Promise.all([
+          tienePermiso('editar_sesiones'),
+          tienePermiso('eliminar_sesiones'),
+          tienePermiso('exportar_sesiones')
+        ]);
+        
+        const [editar, eliminar, exportar] = await Promise.race([
+          permisosPromise,
+          timeoutPromise
+        ]);
+        
+        setPermisos({
+          ver: true,
+          editar,
+          eliminar,
+          exportar
+        });
+      } catch (error) {
+        console.error('Error cargando permisos:', error);
+        // Mantener permisos por defecto
+        setPermisos({
+          ver: true,
+          editar: false,
+          eliminar: false,
+          exportar: false
+        });
+      }
+    };
+    cargarPermisos();
+  }, []);
 
   useEffect(() => {
     loadSesiones();
@@ -65,10 +115,11 @@ const SesionesRegistradas = () => {
 
   const limpiarFiltros = () => {
     setFiltros({
-      tema: '',
+      busqueda: '',
       fecha: '',
       tipo: '',
-      facilitador: ''
+      facilitador: '',
+      responsable: ''
     });
   };
 
@@ -116,18 +167,20 @@ const SesionesRegistradas = () => {
   };
 
   // Obtener opciones únicas para los filtros
-  const temasUnicos = [...new Set(sesiones.map(s => s.tema).filter(Boolean))];
   const fechasUnicas = [...new Set(sesiones.map(s => s.fecha).filter(Boolean))].sort().reverse();
   const tiposUnicos = [...new Set(sesiones.map(s => s.tipo_actividad).filter(Boolean))];
   const facilitadoresUnicos = [...new Set(sesiones.map(s => s.facilitador).filter(Boolean))];
+  const responsablesUnicos = [...new Set(sesiones.map(s => s.responsable).filter(Boolean))];
 
   const sesionesFiltradas = sesiones.filter(sesion => {
-    const cumpleTema = !filtros.tema || sesion.tema === filtros.tema;
+    const cumpleBusqueda = !filtros.busqueda || 
+      sesion.tema?.toLowerCase().includes(filtros.busqueda.toLowerCase());
     const cumpleFecha = !filtros.fecha || sesion.fecha === filtros.fecha;
     const cumpleTipo = !filtros.tipo || sesion.tipo_actividad === filtros.tipo;
     const cumpleFacilitador = !filtros.facilitador || sesion.facilitador === filtros.facilitador;
+    const cumpleResponsable = !filtros.responsable || sesion.responsable === filtros.responsable;
     
-    return cumpleTema && cumpleFecha && cumpleTipo && cumpleFacilitador;
+    return cumpleBusqueda && cumpleFecha && cumpleTipo && cumpleFacilitador && cumpleResponsable;
   });
 
   if (loading) {
@@ -141,11 +194,13 @@ const SesionesRegistradas = () => {
           <h1 className="page-title">Formaciones o eventos registrados</h1>
           <p className="page-subtitle">Administra todas las formaciones o eventos creados</p>
         </div>
-        <div className="export-buttons">
-          <Button onClick={exportarXLSX} variant="primary">
-            Exportar Excel
-          </Button>
-        </div>
+        {permisos.exportar && (
+          <div className="export-buttons">
+            <Button onClick={exportarXLSX} variant="primary">
+              Exportar Excel
+            </Button>
+          </div>
+        )}
       </div>
 
       {sesiones.length === 0 ? (
@@ -158,17 +213,14 @@ const SesionesRegistradas = () => {
           <div className="filters-container">
             <div className="filters-grid">
               <div className="filter-field">
-                <label className="filter-label">Tema / Título</label>
-                <select
-                  value={filtros.tema}
-                  onChange={(e) => handleFiltroChange('tema', e.target.value)}
-                  className="filter-select"
-                >
-                  <option value="">Todos los temas</option>
-                  {temasUnicos.map(tema => (
-                    <option key={tema} value={tema}>{tema}</option>
-                  ))}
-                </select>
+                <label className="filter-label">Buscar por nombre</label>
+                <input
+                  type="text"
+                  value={filtros.busqueda}
+                  onChange={(e) => handleFiltroChange('busqueda', e.target.value)}
+                  className="filter-input"
+                  placeholder="Buscar capacitación o evento..."
+                />
               </div>
               
               <div className="filter-field">
@@ -208,9 +260,23 @@ const SesionesRegistradas = () => {
                   ))}
                 </select>
               </div>
+              
+              <div className="filter-field">
+                <label className="filter-label">Responsable</label>
+                <select
+                  value={filtros.responsable}
+                  onChange={(e) => handleFiltroChange('responsable', e.target.value)}
+                  className="filter-select"
+                >
+                  <option value="">Todos los responsables</option>
+                  {responsablesUnicos.map(responsable => (
+                    <option key={responsable} value={responsable}>{responsable}</option>
+                  ))}
+                </select>
+              </div>
             </div>
             
-            {(filtros.tema || filtros.fecha || filtros.tipo || filtros.facilitador) && (
+            {(filtros.busqueda || filtros.fecha || filtros.tipo || filtros.facilitador || filtros.responsable) && (
               <button onClick={limpiarFiltros} className="clear-filters-btn">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <line x1="18" y1="6" x2="6" y2="18"/>
@@ -276,7 +342,7 @@ const SesionesRegistradas = () => {
 
                 {sesion.qr_code && (
                   <div className="sesion-qr">
-                    <p className="qr-label">Código QR de Acceso:</p>
+                    <p className="qr-label">Código QR de acceso:</p>
                     <img src={sesion.qr_code.startsWith('/') ? `${config.apiUrl}${sesion.qr_code}` : sesion.qr_code} alt="QR Code" className="qr-image" />
                   </div>
                 )}
@@ -284,18 +350,32 @@ const SesionesRegistradas = () => {
 
               <div className="sesion-card-footer">
                 <Button
-                  onClick={() => setModalEliminar(sesion)}
-                  variant="danger"
-                  className="btn-eliminar"
+                  onClick={() => setModalDetalles(sesion)}
+                  variant="secondary"
+                  className="btn-detalles"
                 >
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{marginRight: '6px'}}>
-                    <polyline points="3 6 5 6 21 6"/>
-                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
-                    <line x1="10" y1="11" x2="10" y2="17"/>
-                    <line x1="14" y1="11" x2="14" y2="17"/>
+                    <circle cx="12" cy="12" r="10"/>
+                    <line x1="12" y1="16" x2="12" y2="12"/>
+                    <line x1="12" y1="8" x2="12.01" y2="8"/>
                   </svg>
-                  Eliminar
+                  Ver detalles
                 </Button>
+                {permisos.eliminar && (
+                  <Button
+                    onClick={() => setModalEliminar(sesion)}
+                    variant="danger"
+                    className="btn-eliminar"
+                  >
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{marginRight: '6px'}}>
+                      <polyline points="3 6 5 6 21 6"/>
+                      <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                      <line x1="10" y1="11" x2="10" y2="17"/>
+                      <line x1="14" y1="11" x2="14" y2="17"/>
+                    </svg>
+                    Eliminar
+                  </Button>
+                )}
               </div>
               </div>
             ))}
@@ -326,6 +406,63 @@ const SesionesRegistradas = () => {
             </Button>
           </div>
         </div>
+      </Modal>
+
+      <Modal
+        isOpen={!!modalDetalles}
+        onClose={() => setModalDetalles(null)}
+        title="Detalles de la formación o evento"
+        size="md"
+      >
+        {modalDetalles && (
+          <div className="modal-ver-detalle-content">
+            <div className="modal-ver-detalle-row">
+              <span className="modal-ver-detalle-label">Tema / Título:</span>
+              <span className="modal-ver-detalle-value">{modalDetalles.tema}</span>
+            </div>
+            <div className="modal-ver-detalle-row">
+              <span className="modal-ver-detalle-label">Fecha:</span>
+              <span className="modal-ver-detalle-value">{formatters.fechaCorta(modalDetalles.fecha)}</span>
+            </div>
+            <div className="modal-ver-detalle-row">
+              <span className="modal-ver-detalle-label">Hora de inicio:</span>
+              <span className="modal-ver-detalle-value">{modalDetalles.hora_inicio}</span>
+            </div>
+            <div className="modal-ver-detalle-row">
+              <span className="modal-ver-detalle-label">Hora de fin:</span>
+              <span className="modal-ver-detalle-value">{modalDetalles.hora_fin}</span>
+            </div>
+            <div className="modal-ver-detalle-row">
+              <span className="modal-ver-detalle-label">Tipo de actividad:</span>
+              <span className="modal-ver-detalle-value">{modalDetalles.tipo_actividad}</span>
+            </div>
+            <div className="modal-ver-detalle-row">
+              <span className="modal-ver-detalle-label">Facilitador:</span>
+              <span className="modal-ver-detalle-value">{modalDetalles.facilitador}</span>
+            </div>
+            <div className="modal-ver-detalle-row">
+              <span className="modal-ver-detalle-label">Responsable:</span>
+              <span className="modal-ver-detalle-value">{modalDetalles.responsable || 'No especificado'}</span>
+            </div>
+            <div className="modal-ver-detalle-row">
+              <span className="modal-ver-detalle-label">Cargo:</span>
+              <span className="modal-ver-detalle-value">{modalDetalles.cargo || 'No especificado'}</span>
+            </div>
+            <div className="modal-ver-detalle-row">
+              <span className="modal-ver-detalle-label">Contenido:</span>
+              <span className="modal-ver-detalle-value modal-ver-detalle-contenido">{modalDetalles.contenido}</span>
+            </div>
+            <div className="modal-ver-detalle-row">
+              <span className="modal-ver-detalle-label">Total de asistentes:</span>
+              <span className="modal-ver-detalle-value modal-ver-detalle-badge">{modalDetalles.total_asistentes || 0}</span>
+            </div>
+            <div className="modal-ver-detalle-actions">
+              <Button onClick={() => setModalDetalles(null)} variant="primary" fullWidth>
+                Cerrar
+              </Button>
+            </div>
+          </div>
+        )}
       </Modal>
 
       {toast && (

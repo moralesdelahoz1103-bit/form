@@ -1,5 +1,6 @@
 import os
 import random
+import re
 from pathlib import Path
 from app.storage.adapter import StorageAdapter
 import logging
@@ -10,6 +11,46 @@ if not logger.handlers:
     ch = logging.StreamHandler()
     ch.setLevel(logging.INFO)
     logger.addHandler(ch)
+
+
+def sanitize_filename(filename: str, max_length: int = 100) -> str:
+    """
+    Sanitiza nombres de archivos para prevenir ataques de path traversal.
+    
+    - Elimina caracteres peligrosos: / \ .. : * ? " < > | \0
+    - Reemplaza espacios por guiones bajos
+    - Limita longitud
+    - Solo permite caracteres alfanuméricos, guiones, guiones bajos y puntos
+    """
+    # Remover caracteres nulos
+    filename = filename.replace('\0', '')
+    
+    # Remover path separators y secuencias peligrosas
+    filename = filename.replace('/', '_').replace('\\', '_')
+    filename = filename.replace('..', '_').replace(':', '_')
+    
+    # Remover caracteres peligrosos del sistema de archivos
+    dangerous_chars = ['*', '?', '"', '<', '>', '|']
+    for char in dangerous_chars:
+        filename = filename.replace(char, '_')
+    
+    # Reemplazar espacios múltiples y espacios por guiones bajos
+    filename = re.sub(r'\s+', '_', filename)
+    
+    # Solo permitir caracteres alfanuméricos, guiones, guiones bajos, puntos
+    # y caracteres latinos (á, é, í, ó, ú, ñ, etc.)
+    filename = re.sub(r'[^a-zA-Z0-9áéíóúÁÉÍÓÚñÑ._-]', '_', filename)
+    
+    # Limitar longitud
+    if len(filename) > max_length:
+        name, ext = os.path.splitext(filename)
+        filename = name[:max_length - len(ext)] + ext
+    
+    # Asegurar que no quede vacío
+    if not filename or filename == '.':
+        filename = 'file'
+    
+    return filename
 
 
 class LocalStorage(StorageAdapter):
@@ -34,17 +75,22 @@ class LocalStorage(StorageAdapter):
         """
         Save QR code to local filesystem.
         Filename format: {nombre}_{fecha}_XX.png (XX = 2 random digits)
+        Protegido contra path traversal.
         """
         # Generate 2 random digits
         random_digits = f"{random.randint(0, 99):02d}"
         
-        # Clean nombre and fecha to avoid filesystem issues
-        nombre_clean = nombre.replace(" ", "_").replace("/", "-")
-        fecha_clean = fecha.replace(" ", "_").replace("/", "-")
+        # Sanitizar nombre y fecha (seguro contra path traversal)
+        nombre_clean = sanitize_filename(nombre, max_length=50)
+        fecha_clean = sanitize_filename(fecha, max_length=20)
         
         # Create filename
         filename = f"{nombre_clean}_{fecha_clean}_{random_digits}.png"
         filepath = self.qr_dir / filename
+        
+        # Validación adicional: asegurar que el path final está dentro del directorio permitido
+        if not filepath.resolve().is_relative_to(self.qr_dir.resolve()):
+            raise ValueError("Path traversal detectado en nombre de archivo QR")
         
         # Save file
         with open(filepath, "wb") as f:
@@ -57,13 +103,18 @@ class LocalStorage(StorageAdapter):
         """
         Save signature to local filesystem.
         Filename format: {cedula}.png
+        Protegido contra path traversal.
         """
-        # Clean cedula to avoid filesystem issues
-        cedula_clean = cedula.replace(" ", "_").replace("/", "-")
+        # Sanitizar cédula (seguro contra path traversal)
+        cedula_clean = sanitize_filename(cedula, max_length=20)
         
         # Create filename
         filename = f"{cedula_clean}.png"
         filepath = self.firma_dir / filename
+        
+        # Validación adicional: asegurar que el path final está dentro del directorio permitido
+        if not filepath.resolve().is_relative_to(self.firma_dir.resolve()):
+            raise ValueError("Path traversal detectado en nombre de archivo de firma")
         
         # Save file
         with open(filepath, "wb") as f:

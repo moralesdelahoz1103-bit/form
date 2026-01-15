@@ -1,4 +1,6 @@
 from fastapi import APIRouter, HTTPException, status, Request
+from slowapi import Limiter
+from slowapi.util import get_remote_address
 import sys
 from pathlib import Path
 sys.path.append(str(Path(__file__).parent.parent.parent))
@@ -15,11 +17,14 @@ from core.exceptions import (
 )
 
 router = APIRouter(prefix="/api", tags=["asistentes"])
+limiter = Limiter(key_func=get_remote_address)
 
 @router.get("/sesion/{token}", response_model=SesionPublicResponse)
-async def obtener_info_sesion(token: str):
+@limiter.limit("30/minute")
+async def obtener_info_sesion(token: str, request: Request):
     """
-    Obtener información pública de una capacitación por token
+    Obtener información pública de una capacitación por token.
+    Rate limit: 30 intentos por minuto por IP.
     """
     try:
         sesion = sesion_service.get_sesion_by_token(token)
@@ -27,6 +32,8 @@ async def obtener_info_sesion(token: str):
             "tema": sesion['tema'],
             "fecha": sesion['fecha'],
             "facilitador": sesion['facilitador'],
+            "responsable": sesion.get('responsable'),
+            "cargo": sesion.get('cargo'),
             "contenido": sesion['contenido'],
             "hora_inicio": sesion['hora_inicio'],
             "hora_fin": sesion['hora_fin'],
@@ -39,18 +46,20 @@ from fastapi import Form, File, UploadFile
 
 
 @router.post("/asistencia", response_model=AsistenteResponse, status_code=status.HTTP_201_CREATED)
+@limiter.limit("5/minute")
 async def registrar_asistencia(
+    request: Request,
     cedula: str = Form(...),
     nombre: str = Form(...),
     cargo: str = Form(...),
     unidad: str = Form(...),
     correo: str = Form(...),
     token: str = Form(...),
-    firma: UploadFile = File(...),
-    request: Request = None
+    firma: UploadFile = File(...)
 ):
     """
-    Registrar asistencia de un participante
+    Registrar asistencia de un participante.
+    Rate limit: 5 registros por minuto por IP (previene spam y duplicados).
     """
     try:
         # Validar token y obtener sesión
