@@ -5,6 +5,7 @@ import CrearCapacitacion from '../components/talento/CrearCapacitacion';
 import SesionesRegistradas from '../components/talento/SesionesRegistradas';
 import VerAsistentes from '../components/talento/VerAsistentes';
 import ConfiguracionModal from '../components/talento/ConfiguracionModal';
+import CentroAyuda from './CentroAyuda';
 import './TalentoHumano.css';
 
 const TalentoHumano = () => {
@@ -19,6 +20,8 @@ const TalentoHumano = () => {
         return <SesionesRegistradas />;
       case 'asistentes':
         return <VerAsistentes />;
+      case 'ayuda':
+        return <CentroAyuda />;
       default:
         return <CrearCapacitacion />;
     }

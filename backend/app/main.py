@@ -11,7 +11,7 @@ import os
 # Añadir el directorio padre al path
 sys.path.append(str(Path(__file__).parent))
 
-from api.endpoints import sesiones, asistentes, auth, usuarios, permisos
+from api.endpoints import sesiones, asistentes, auth, usuarios, permisos, ayuda
 from core.config import settings
 
 # Crear directorio de datos
@@ -52,6 +52,7 @@ app.include_router(asistentes.router)
 app.include_router(auth.router)
 app.include_router(usuarios.router, prefix="/api/usuarios", tags=["usuarios"])
 app.include_router(permisos.router, prefix="/api/permisos", tags=["permisos"])
+app.include_router(ayuda.router, prefix="/api/ayuda", tags=["ayuda"])
 
 # Servir archivos estáticos (uploads: QR y firmas)
 from fastapi.staticfiles import StaticFiles

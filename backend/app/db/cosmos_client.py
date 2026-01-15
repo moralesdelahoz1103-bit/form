@@ -302,6 +302,38 @@ class CosmosDBClient:
         except exceptions.CosmosHttpResponseError as e:
             print(f"Error actualizando permisos: {e}")
             raise
+    
+    # Métodos para gestión de centro de ayuda
+    def obtener_ayuda(self) -> dict:
+        """Obtener configuración del centro de ayuda"""
+        try:
+            return self.configuracion_container.read_item(
+                item="centro_ayuda",
+                partition_key="centro_ayuda"
+            )
+        except exceptions.CosmosResourceNotFoundError:
+            return None
+        except exceptions.CosmosHttpResponseError as e:
+            print(f"Error obteniendo centro de ayuda: {e}")
+            raise
+    
+    def crear_ayuda(self, ayuda_data: dict) -> dict:
+        """Crear configuración inicial del centro de ayuda"""
+        try:
+            ayuda_data["id"] = "centro_ayuda"
+            return self.configuracion_container.create_item(body=ayuda_data)
+        except exceptions.CosmosHttpResponseError as e:
+            print(f"Error creando centro de ayuda: {e}")
+            raise
+    
+    def actualizar_ayuda(self, ayuda_data: dict) -> dict:
+        """Actualizar configuración del centro de ayuda"""
+        try:
+            ayuda_data["id"] = "centro_ayuda"
+            return self.configuracion_container.upsert_item(body=ayuda_data)
+        except exceptions.CosmosHttpResponseError as e:
+            print(f"Error actualizando centro de ayuda: {e}")
+            raise
 
 # Instancia global con lazy initialization
 _cosmos_db_instance = None
