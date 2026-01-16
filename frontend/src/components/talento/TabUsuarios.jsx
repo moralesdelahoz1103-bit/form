@@ -4,8 +4,8 @@ import Toast from '../common/Toast';
 import { usuariosService } from '../../services/usuarios';
 import { tienePermiso } from '../../utils/permisos';
 
-const TabUsuarios = () => {
-  const [usuarios, setUsuarios] = useState([]);
+const TabUsuarios = ({ cachedData, onDataUpdate }) => {
+  const [usuarios, setUsuarios] = useState(cachedData || []);
   const [loading, setLoading] = useState(false);
   const [toast, setToast] = useState({ show: false, message: '', type: '' });
   const [changingRol, setChangingRol] = useState(null);
@@ -51,9 +51,11 @@ const TabUsuarios = () => {
     cargarPermisos();
   }, []);
 
-  // Cargar usuarios una sola vez al montar el componente
+  // Cargar usuarios solo si no hay datos cacheados
   useEffect(() => {
-    cargarUsuarios();
+    if (!cachedData) {
+      cargarUsuarios();
+    }
   }, []);
 
   const cargarUsuarios = async () => {
@@ -61,6 +63,11 @@ const TabUsuarios = () => {
       setLoading(true);
       const data = await usuariosService.listar();
       setUsuarios(data);
+      
+      // Notificar al padre para cachear los datos
+      if (onDataUpdate) {
+        onDataUpdate(data);
+      }
       
       // Inicializar roles temporales con los roles actuales
       const rolesIniciales = {};
@@ -134,7 +141,7 @@ const TabUsuarios = () => {
   const getRoleBadge = (rol) => {
     const roles = {
       'Administrador': { class: 'badge-admin', icon: '👑' },
-      'Editor': { class: 'badge-editor', icon: '✏️' },
+      '': { class: 'badge-', icon: '✏️' },
       'Usuario': { class: 'badge-user', icon: '👤' }
     };
     return roles[rol] || roles['Usuario'];
@@ -226,11 +233,7 @@ const TabUsuarios = () => {
         <div className="legend-items">
           <div className="legend-item">
             <span className="badge badge-user">Usuario</span>
-            <span>Crear y editar formaciones</span>
-          </div>
-          <div className="legend-item">
-            <span className="badge badge-editor">Editor</span>
-            <span>Crear y editar sesiones</span>
+            <span>Consultar formaciones</span>
           </div>
           <div className="legend-item">
             <span className="badge badge-admin">Administrador</span>
@@ -276,7 +279,7 @@ const TabUsuarios = () => {
           >
             <option value="">Todos los roles</option>
             <option value="Usuario">Usuario</option>
-            <option value="Editor">Editor</option>
+
             <option value="Administrador">Administrador</option>
           </select>
         </div>
@@ -366,7 +369,6 @@ const TabUsuarios = () => {
                           disabled={changingRol === usuario.id || !permisos.cambiarRoles}
                         >
                           <option value="Usuario">Usuario</option>
-                          <option value="Editor">Editor</option>
                           <option value="Administrador">Administrador</option>
                         </select>
                         <svg className="select-arrow" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">

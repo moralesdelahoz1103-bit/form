@@ -4,7 +4,7 @@ from datetime import datetime
 
 class UsuarioBase(BaseModel):
     nombre: str
-    rol: str = "Usuario"  # Usuario (por defecto), Editor, Administrador
+    rol: str = "Usuario"  # Usuario (por defecto), Administrador
 
 class UsuarioCreate(BaseModel):
     nombre: str

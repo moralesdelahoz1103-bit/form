@@ -4,12 +4,13 @@
 }
 
 .registro-container {
-  max-width: 1400px;
-  margin: 30px auto;
-  padding: 40px 24px;
+  max-width: 1600px;
+  margin: 30px 500px;
+  padding: 40px 40px;
   grid-template-columns: 1fr 380px;
   gap: 32px;
   align-items: start;
+
 }
 
 .registro-card {

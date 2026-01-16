@@ -89,13 +89,15 @@ const VerAsistentes = () => {
     worksheet.addRow(['Tema:', sesionActual.tema || '']);
     worksheet.addRow(['Fecha:', formatters.fechaCorta(sesionActual.fecha) || '']);
     worksheet.addRow(['Facilitador:', sesionActual.facilitador || '']);
+    worksheet.addRow(['Responsable:', sesionActual.responsable || '']);
+    worksheet.addRow(['Cargo:', sesionActual.cargo || '']);
     worksheet.addRow(['Tipo de actividad:', sesionActual.tipo_actividad || '']);
     worksheet.addRow(['Hora inicio:', sesionActual.hora_inicio || '']);
     worksheet.addRow(['Hora final:', sesionActual.hora_fin || '']);
     worksheet.addRow([]);
     worksheet.addTable({
       name: 'AsistentesTable',
-      ref: 'A8',
+      ref: 'A10',
       headerRow: true,
       style: {
         theme: 'TableStyleMedium9',
@@ -104,7 +106,7 @@ const VerAsistentes = () => {
       columns: encabezados.map(h => ({ name: h })),
       rows: datos
     });
-    const headerRow = worksheet.getRow(8);
+    const headerRow = worksheet.getRow(10);
     headerRow.eachCell(cell => {
       cell.fill = {
         type: 'pattern',

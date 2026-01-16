@@ -199,7 +199,6 @@ const TabCambiarRoles = () => {
                         onChange={(e) => handleRoleChange(usuario.id, e.target.value)}
                       >
                         <option value="Usuario">Usuario</option>
-                        <option value="Editor">Editor</option>
                         <option value="Administrador">Administrador</option>
                       </select>
                     </div>

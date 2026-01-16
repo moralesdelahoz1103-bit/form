@@ -12,6 +12,9 @@ const ConfiguracionModal = ({ isOpen, onClose }) => {
     verUsuarios: false,
     modificarPermisos: false
   });
+  // Cachear datos para evitar recargas innecesarias
+  const [usuariosData, setUsuariosData] = useState(null);
+  const [permisosData, setPermisosData] = useState(null);
 
   useEffect(() => {
     const userInfo = getUserInfo();
@@ -116,9 +119,19 @@ const ConfiguracionModal = ({ isOpen, onClose }) => {
       case 'perfil':
         return <TabPerfil userInfo={userInfo} userRole={userRole} />;
       case 'usuarios':
-        return permisos.verUsuarios ? <TabUsuarios /> : <PermisosDenegados />;
+        return permisos.verUsuarios ? (
+          <TabUsuarios 
+            cachedData={usuariosData}
+            onDataUpdate={setUsuariosData}
+          />
+        ) : <PermisosDenegados />;
       case 'permisos':
-        return permisos.modificarPermisos ? <TabPermisos /> : <PermisosDenegados />;
+        return permisos.modificarPermisos ? (
+          <TabPermisos 
+            cachedData={permisosData}
+            onDataUpdate={setPermisosData}
+          />
+        ) : <PermisosDenegados />;
       case 'sistema':
         return <TabSistema />;
       default:
@@ -246,7 +259,7 @@ const TabPerfil = ({ userInfo, userRole }) => {
                   <li><span className="check">✓</span> Cambiar roles</li>
                 </ul>
               )}
-              {userRole === 'Editor' && (
+              {userRole === '' && (
                 <ul>
                   <li><span className="check">✓</span> Crear y editar sesiones</li>
                   <li><span className="check">✓</span> Gestionar asistentes</li>

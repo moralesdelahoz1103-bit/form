@@ -115,6 +115,22 @@ class PermisosService:
         
         return self.cosmos_db.actualizar_permisos(permisos_doc)
     
+    def restablecer_permisos_defecto(self, user_email: str) -> Dict[str, Any]:
+        """
+        Restablecer los permisos a sus valores por defecto.
+        
+        Args:
+            user_email: Email del usuario que realiza la operación
+            
+        Returns:
+            Documento con permisos por defecto
+            
+        Raises:
+            Exception: Si la base de datos no está disponible
+        """
+        permisos_default = self._permisos_por_defecto()
+        return self.actualizar_permisos(permisos_default, user_email)
+    
     def _crear_permisos_iniciales(self) -> Dict[str, Dict[str, bool]]:
         """
         Crear permisos iniciales en la base de datos con valores por defecto.
@@ -148,7 +164,6 @@ class PermisosService:
         
         Roles:
             - Usuario: Acceso básico, solo lectura
-            - Editor: Puede crear y editar sesiones
             - Administrador: Control total del sistema
             
         Returns:
@@ -157,26 +172,14 @@ class PermisosService:
         return {
             "Usuario": {
                 "ver_sesiones": True,
-                "crear_sesiones": False,
-                "editar_sesiones": False,
-                "eliminar_sesiones": False,
-                "exportar_sesiones": False,
-                "ver_usuarios": False,
-                "cambiar_roles": False,
-                "eliminar_usuarios": False,
-                "acceder_config": True,
-                "modificar_permisos": False,
-            },
-            "Editor": {
-                "ver_sesiones": True,
                 "crear_sesiones": True,
                 "editar_sesiones": True,
-                "eliminar_sesiones": False,
+                "eliminar_sesiones": True,
                 "exportar_sesiones": True,
                 "ver_usuarios": False,
                 "cambiar_roles": False,
                 "eliminar_usuarios": False,
-                "acceder_config": True,
+                "acceder_config": False,
                 "modificar_permisos": False,
             },
             "Administrador": {

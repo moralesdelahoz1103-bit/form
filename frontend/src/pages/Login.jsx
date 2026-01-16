@@ -117,8 +117,8 @@ const Login = () => {
     <div className="login-page">
       <div className="login-card">
         <img src={logo_fsdverde} alt="Fundación Santo Domingo" className="login-logo" />
-        <h1>FORMATO ASISTENCIA A FOMACIONES Y EVENTOS</h1>
-        <p>Ingresa para digilenciar una formación o evento</p>
+        <h1>Formato asistencia a formaciones y eventos</h1>
+        <p>Ingresa para diligenciar una formación o evento</p>
         
         {error && (
           <div style={{ 

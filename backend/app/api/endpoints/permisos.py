@@ -39,3 +39,27 @@ async def actualizar_permisos(
         return resultado
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+@router.post("/restablecer-defecto")
+async def restablecer_permisos_defecto(
+    current_user: dict = Depends(get_current_user)
+):
+    """Restablecer permisos a valores por defecto (solo administradores)"""
+    from app.services.usuarios import usuario_service
+    
+    # Verificar que el usuario sea administrador
+    user_id = current_user.get("oid") or current_user.get("sub")
+    rol = usuario_service.obtener_rol_usuario(user_id)
+    
+    if rol != "Administrador":
+        raise HTTPException(
+            status_code=403,
+            detail="Solo los administradores pueden restablecer permisos"
+        )
+    
+    try:
+        resultado = permisos_service.restablecer_permisos_defecto(user_id)
+        # Retornar solo los permisos en el formato esperado por el frontend
+        return {"permisos": resultado.get("permisos", resultado)}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))

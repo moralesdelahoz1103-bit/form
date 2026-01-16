@@ -4,7 +4,6 @@
 
 export const ROLES = {
   USUARIO: 'Usuario',
-  EDITOR: 'Editor',
   ADMINISTRADOR: 'Administrador'
 };
 
@@ -31,16 +30,6 @@ const ROLE_PERMISSIONS = {
     PERMISSIONS.VER_SESIONES,
     PERMISSIONS.VER_ASISTENTES,
     PERMISSIONS.VER_ESTADISTICAS
-  ],
-  
-  [ROLES.EDITOR]: [
-    PERMISSIONS.VER_SESIONES,
-    PERMISSIONS.VER_ASISTENTES,
-    PERMISSIONS.VER_ESTADISTICAS,
-    PERMISSIONS.CREAR_SESION,
-    PERMISSIONS.EDITAR_SESION,
-    PERMISSIONS.ELIMINAR_SESION,
-    PERMISSIONS.GESTIONAR_ASISTENTES
   ],
   
   [ROLES.ADMINISTRADOR]: Object.values(PERMISSIONS) // Todos los permisos
@@ -91,7 +80,7 @@ export const isAdmin = () => {
 };
 
 /**
- * Verifica si el usuario puede editar (Editor o Administrador)
+ * Verifica si el usuario puede editar ( o Administrador)
  * @returns {boolean}
  */
 export const canEdit = () => {
@@ -100,7 +89,7 @@ export const canEdit = () => {
   
   try {
     const userInfo = JSON.parse(userInfoStr);
-    return userInfo.rol === ROLES.EDITOR || userInfo.rol === ROLES.ADMINISTRADOR;
+    return userInfo.rol === ROLES.ADMINISTRADOR;
   } catch {
     return false;
   }

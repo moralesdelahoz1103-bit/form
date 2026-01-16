@@ -127,7 +127,7 @@ const CentroAyuda = () => {
   const agregarCategoria = () => {
     const nuevaCategoria = {
       id: `cat_${Date.now()}`,
-      nombre: 'Nueva Categoría',
+      nombre: 'Nueva categoría',
       icono: 'folder',
       orden: contenidoEditado.categorias.length + 1,
       tarjetas: []
@@ -152,7 +152,8 @@ const CentroAyuda = () => {
       pregunta: '¿Nueva pregunta?',
       respuesta: 'Nueva respuesta',
       orden: 1,
-      visible: true
+      visible: true,
+      roles_permitidos: ['Usuario', '', 'Administrador']
     };
     setContenidoEditado({
       ...contenidoEditado,
@@ -247,7 +248,7 @@ const CentroAyuda = () => {
 
   if (loading) {
     return (
-      <div className="centro-ayuda">
+      <div className="centro-ayuda-loading">
         <Loading />
       </div>
     );
@@ -455,14 +456,30 @@ const CentroAyuda = () => {
                               placeholder="Respuesta"
                               rows="5"
                             />
-                            <label className="checkbox-label">
-                              <input
-                                type="checkbox"
-                                checked={tarjeta.visible}
-                                onChange={(e) => actualizarTarjeta(categoria.id, tarjeta.id, 'visible', e.target.checked)}
-                              />
-                              <span>Visible para usuarios</span>
-                            </label>
+                            <div className="permisos-control">
+                              <label className="permisos-label">Roles con acceso a esta tarjeta:</label>
+                              <div className="roles-checkboxes">
+                                <label className="checkbox-label rol-checkbox">
+                                  <input
+                                    type="checkbox"
+                                    checked={(tarjeta.roles_permitidos || ['Usuario', '', 'Administrador']).includes('Usuario')}
+                                    onChange={(e) => {
+                                      const rolesActuales = tarjeta.roles_permitidos || ['Usuario', '', 'Administrador'];
+                                      let nuevosRoles;
+                                      if (e.target.checked) {
+                                        // Si se marca, dar acceso a todos los roles
+                                        nuevosRoles = ['Usuario', '', 'Administrador'];
+                                      } else {
+                                        // Si se desmarca, solo  y Administrador
+                                        nuevosRoles = ['', 'Administrador'];
+                                      }
+                                      actualizarTarjeta(categoria.id, tarjeta.id, 'roles_permitidos', nuevosRoles);
+                                    }}
+                                  />
+                                  <span>Usuario</span>
+                                </label>
+                              </div>
+                            </div>
                           </div>
                         ) : (
                           <>

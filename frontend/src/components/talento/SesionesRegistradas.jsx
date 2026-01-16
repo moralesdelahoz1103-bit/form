@@ -109,6 +109,53 @@ const SesionesRegistradas = () => {
     setToast({ message: '¡Link copiado!', type: 'success' });
   };
 
+  const copiarQR = async (qrUrl) => {
+    try {
+      const fullUrl = qrUrl.startsWith('/') ? `${config.apiUrl}${qrUrl}` : qrUrl;
+      const response = await fetch(fullUrl);
+      const blob = await response.blob();
+      
+      await navigator.clipboard.write([
+        new ClipboardItem({
+          [blob.type]: blob
+        })
+      ]);
+      
+      setToast({ message: '¡QR copiado al portapapeles!', type: 'success' });
+    } catch (error) {
+      console.error('Error al copiar QR:', error);
+      setToast({ message: 'Error al copiar QR', type: 'error' });
+    }
+  };
+
+  const descargarQR = async (qrUrl, nombreSesion) => {
+    try {
+      const fullUrl = qrUrl.startsWith('/') ? `${config.apiUrl}${qrUrl}` : qrUrl;
+      const nombreArchivo = nombreSesion ? `QR-${nombreSesion.replace(/[^a-zA-Z0-9]/g, '_')}` : 'QR-evento';
+      
+      // Descargar la imagen como blob
+      const response = await fetch(fullUrl, { mode: 'cors' });
+      const blob = await response.blob();
+      
+      // Crear URL temporal del blob
+      const blobUrl = window.URL.createObjectURL(blob);
+      
+      // Crear link y descargar
+      const link = document.createElement('a');
+      link.download = `${nombreArchivo}.png`;
+      link.href = blobUrl;
+      link.click();
+      
+      // Limpiar URL temporal
+      setTimeout(() => window.URL.revokeObjectURL(blobUrl), 100);
+      
+      setToast({ message: '¡QR descargado!', type: 'success' });
+    } catch (error) {
+      console.error('Error al descargar QR:', error);
+      setToast({ message: 'Error al descargar QR', type: 'error' });
+    }
+  };
+
   const handleFiltroChange = (campo, valor) => {
     setFiltros(prev => ({ ...prev, [campo]: valor }));
   };
@@ -125,12 +172,14 @@ const SesionesRegistradas = () => {
 
   // Exportar sesiones filtradas a XLSX como tabla nativa con exceljs
   const exportarXLSX = async () => {
-    const encabezados = ['Tema', 'Fecha', 'Tipo de actividad', 'Facilitador', 'Hora inicio', 'Hora final', 'Cantidad de asistentes'];
+    const encabezados = ['Tema', 'Fecha', 'Tipo de actividad', 'Facilitador', 'Responsable', 'Cargo', 'Hora inicio', 'Hora final', 'Cantidad de asistentes'];
     const datos = sesionesFiltradas.map(sesion => ([
       sesion.tema || '',
       formatters.fechaCorta(sesion.fecha) || '',
       sesion.tipo_actividad || '',
       sesion.facilitador || '',
+      sesion.responsable || '',
+      sesion.cargo || '',
       sesion.hora_inicio || '',
       sesion.hora_fin || '',
       sesion.total_asistentes || 0
@@ -344,6 +393,23 @@ const SesionesRegistradas = () => {
                   <div className="sesion-qr">
                     <p className="qr-label">Código QR de acceso:</p>
                     <img src={sesion.qr_code.startsWith('/') ? `${config.apiUrl}${sesion.qr_code}` : sesion.qr_code} alt="QR Code" className="qr-image" />
+                    <div className="qr-actions-mini">
+                      <button onClick={() => copiarQR(sesion.qr_code)} className="btn-qr-mini">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+                          <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+                        </svg>
+                        Copiar
+                      </button>
+                      <button onClick={() => descargarQR(sesion.qr_code, sesion.tema)} className="btn-qr-mini">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                          <polyline points="7 10 12 15 17 10"/>
+                          <line x1="12" y1="15" x2="12" y2="3"/>
+                        </svg>
+                        Descargar
+                      </button>
+                    </div>
                   </div>
                 )}
               </div>

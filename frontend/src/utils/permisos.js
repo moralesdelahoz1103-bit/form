@@ -71,29 +71,17 @@ export const invalidarCachePermisos = () => {
 /**
  * Permisos por defecto del sistema
  */
-const getPermisosDefecto = () => ({
+export const getPermisosDefecto = () => ({
   Usuario: {
-    ver_sesiones: true,
-    crear_sesiones: false,
-    editar_sesiones: false,
-    eliminar_sesiones: false,
-    exportar_sesiones: false,
-    ver_usuarios: false,
-    cambiar_roles: false,
-    eliminar_usuarios: false,
-    acceder_config: true,
-    modificar_permisos: false,
-  },
-  Editor: {
     ver_sesiones: true,
     crear_sesiones: true,
     editar_sesiones: true,
-    eliminar_sesiones: false,
+    eliminar_sesiones: true,
     exportar_sesiones: true,
     ver_usuarios: false,
     cambiar_roles: false,
     eliminar_usuarios: false,
-    acceder_config: true,
+    acceder_config: false,
     modificar_permisos: false,
   },
   Administrador: {
@@ -162,11 +150,11 @@ export const esAdministrador = () => {
 };
 
 /**
- * Verifica si el usuario es editor o superior
+ * Verifica si el usuario es  o superior
  */
-export const esEditorOSuperior = () => {
+export const esOSuperior = () => {
   const rol = obtenerRolUsuario();
-  return rol === 'Editor' || rol === 'Administrador';
+  return rol === '' || rol === 'Administrador';
 };
 
 /**
@@ -193,7 +181,6 @@ export const usePermisos = () => {
     tienePermiso: (permiso) => permisos?.[permiso] || false,
     rol,
     esAdministrador: rol === 'Administrador',
-    esEditor: rol === 'Editor',
     esUsuario: rol === 'Usuario'
   };
 };

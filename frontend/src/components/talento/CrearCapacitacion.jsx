@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Input from '../common/Input';
 import Select from '../common/Select';
 import Button from '../common/Button';
@@ -6,6 +6,7 @@ import Toast from '../common/Toast';
 import { sesionesService } from '../../services/sesiones';
 import { validations } from '../../utils/validations';
 import { tienePermiso } from '../../utils/permisos';
+import QRCode from 'qrcode';
 import './CrearCapacitacion.css';
 
 const CrearCapacitacion = () => {
@@ -30,6 +31,10 @@ const CrearCapacitacion = () => {
   const [submitting, setSubmitting] = useState(false);
   const [toast, setToast] = useState(null);
   const [linkGenerado, setLinkGenerado] = useState('');
+  const [showModal, setShowModal] = useState(false);
+  const [qrDataUrl, setQrDataUrl] = useState('');
+  const [nombreFormacion, setNombreFormacion] = useState('');
+  const qrCanvasRef = useRef(null);
 
   const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}');
   const userName = userInfo.name || 'Usuario autenticado';
@@ -166,6 +171,20 @@ const CrearCapacitacion = () => {
       const response = await sesionesService.crear(payload);
       console.log('Respuesta del servidor:', response);
       setLinkGenerado(response.link);
+      setNombreFormacion(formData.tema); // Guardar nombre antes de limpiar
+      
+      // Generar QR code
+      const qrUrl = await QRCode.toDataURL(response.link, {
+        width: 300,
+        margin: 2,
+        color: {
+          dark: '#257137',
+          light: '#FFFFFF'
+        }
+      });
+      setQrDataUrl(qrUrl);
+      setShowModal(true);
+      
       setToast({ message: '¡Formulario creado exitosamente!', type: 'success' });
       
       // Limpiar formulario
@@ -199,6 +218,42 @@ const CrearCapacitacion = () => {
   const copiarLink = () => {
     navigator.clipboard.writeText(linkGenerado);
     setToast({ message: '¡Link copiado al portapapeles!', type: 'success' });
+  };
+
+  const copiarQR = async () => {
+    try {
+      // Convertir data URL a blob
+      const response = await fetch(qrDataUrl);
+      const blob = await response.blob();
+      
+      // Copiar al portapapeles
+      await navigator.clipboard.write([
+        new ClipboardItem({
+          [blob.type]: blob
+        })
+      ]);
+      
+      setToast({ message: '¡QR copiado al portapapeles!', type: 'success' });
+    } catch (error) {
+      console.error('Error al copiar QR:', error);
+      setToast({ message: 'Error al copiar QR', type: 'error' });
+    }
+  };
+
+  const descargarQR = () => {
+    const link = document.createElement('a');
+    const nombreArchivo = nombreFormacion ? `QR-${nombreFormacion.replace(/[^a-zA-Z0-9]/g, '_')}` : 'QR-evento';
+    link.download = `${nombreArchivo}.png`;
+    link.href = qrDataUrl;
+    link.click();
+    setToast({ message: '¡QR descargado!', type: 'success' });
+  };
+
+  const cerrarModal = () => {
+    setShowModal(false);
+    setLinkGenerado('');
+    setQrDataUrl('');
+    setNombreFormacion('');
   };
 
 
@@ -362,37 +417,68 @@ const CrearCapacitacion = () => {
             Crear formulario
           </Button>
         </form>
+      </div>
 
-        {linkGenerado && (
-          <div className="link-generado">
-            <h3>
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{marginRight: '8px', verticalAlign: 'middle'}}>
+      {showModal && (
+        <div className="modal-overlay" onClick={cerrarModal}>
+          <div className="modal-qr" onClick={(e) => e.stopPropagation()}>
+            <button className="modal-close" onClick={cerrarModal}>
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <line x1="18" y1="6" x2="6" y2="18"/>
+                <line x1="6" y1="6" x2="18" y2="18"/>
+              </svg>
+            </button>
+            
+            <div className="modal-header">
+              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
                 <polyline points="22 4 12 14.01 9 11.01"/>
               </svg>
-              Link de registro generado
-            </h3>
-            <div className="link-box">
-              <input
-                type="text"
-                value={linkGenerado}
-                readOnly
-                className="link-input"
-              />
-              <Button onClick={copiarLink} variant="secondary">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{marginRight: '6px'}}>
-                  <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
-                  <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
-                </svg>
-                Copiar
-              </Button>
+              <h2>¡Formación creada exitosamente!</h2>
+              <p>Comparte este código QR o link con los participantes</p>
             </div>
-            <p className="link-info">
-              Comparte este enlace con los participantes de la formacion o evento para que puedan registrar su asistencia
-            </p>
+
+            <div className="modal-body">
+              <div className="qr-container">
+                {qrDataUrl && <img src={qrDataUrl} alt="QR Code" className="qr-image" />}
+              </div>
+
+              <div className="qr-actions">
+                <button className="btn-qr-action" onClick={copiarQR}>
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+                    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+                  </svg>
+                  Copiar
+                </button>
+                <button className="btn-qr-action" onClick={descargarQR}>
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                    <polyline points="7 10 12 15 17 10"/>
+                    <line x1="12" y1="15" x2="12" y2="3"/>
+                  </svg>
+                  Descargar
+                </button>
+              </div>
+
+              <div className="link-section">
+                <label>Link de registro</label>
+                <div className="link-input-group">
+                  <input
+                    type="text"
+                    value={linkGenerado}
+                    readOnly
+                    className="link-input-modal"
+                  />
+                  <button className="btn-copy-link" onClick={copiarLink}>
+                    Copiar
+                  </button>
+                </div>
+              </div>
+            </div>
           </div>
-        )}
-      </div>
+        </div>
+      )}
 
       {toast && (
         <Toast

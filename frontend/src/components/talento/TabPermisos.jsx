@@ -2,12 +2,14 @@ import { useState, useEffect } from 'react';
 import './TabPermisos.css';
 import Toast from '../common/Toast';
 import { config } from '../../utils/constants';
-import { invalidarCachePermisos } from '../../utils/permisos';
+import { invalidarCachePermisos, getPermisosDefecto } from '../../utils/permisos';
 
-const TabPermisos = () => {
-  const [permisos, setPermisos] = useState({});
+const API_URL = config.apiUrl;
+
+const TabPermisos = ({ cachedData, onDataUpdate }) => {
+  const [permisos, setPermisos] = useState(cachedData || {});
   const [permisosOriginales, setPermisosOriginales] = useState({});
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(!cachedData);
   const [saving, setSaving] = useState(false);
   const [toast, setToast] = useState({ show: false, message: '', type: '' });
 
@@ -15,7 +17,7 @@ const TabPermisos = () => {
   const categoriasPermisos = [
     {
       id: 'sesiones',
-      nombre: 'Sesiones y capacitaciones',
+      nombre: 'Formaciones y eventos',
       permisos: [
         { id: 'ver_sesiones', nombre: 'Ver sesiones', descripcion: 'Visualizar la lista de sesiones registradas' },
         { id: 'crear_sesiones', nombre: 'Crear sesiones', descripcion: 'Registrar nuevas sesiones de capacitación' },
@@ -30,7 +32,7 @@ const TabPermisos = () => {
       permisos: [
         { id: 'ver_usuarios', nombre: 'Ver usuarios', descripcion: 'Visualizar la lista de usuarios del sistema' },
         { id: 'cambiar_roles', nombre: 'Cambiar roles', descripcion: 'Modificar roles de otros usuarios' },
-        { id: 'eliminar_usuarios', nombre: 'Eliminar usuarios', descripcion: 'Remover usuarios del sistema' },
+        // { id: 'eliminar_usuarios', nombre: 'Eliminar usuarios', descripcion: 'Remover usuarios del sistema' },
       ]
     },
     {
@@ -43,10 +45,14 @@ const TabPermisos = () => {
     }
   ];
 
-  const roles = ['Usuario', 'Editor', 'Administrador'];
+  const roles = ['Usuario', 'Administrador'];
 
   useEffect(() => {
-    cargarPermisos();
+    if (!cachedData) {
+      cargarPermisos();
+    } else {
+      setPermisosOriginales(JSON.parse(JSON.stringify(cachedData)));
+    }
   }, []);
 
   const cargarPermisos = async () => {
@@ -68,26 +74,14 @@ const TabPermisos = () => {
         permisosData = {
           Usuario: {
             ver_sesiones: true,
-            crear_sesiones: false,
-            editar_sesiones: false,
-            eliminar_sesiones: false,
-            exportar_sesiones: false,
-            ver_usuarios: false,
-            cambiar_roles: false,
-            eliminar_usuarios: false,
-            acceder_config: true,
-            modificar_permisos: false,
-          },
-          Editor: {
-            ver_sesiones: true,
             crear_sesiones: true,
             editar_sesiones: true,
-            eliminar_sesiones: false,
+            eliminar_sesiones: true,
             exportar_sesiones: true,
             ver_usuarios: false,
             cambiar_roles: false,
             eliminar_usuarios: false,
-            acceder_config: true,
+            acceder_config: false,
             modificar_permisos: false,
           },
           Administrador: {
@@ -107,6 +101,11 @@ const TabPermisos = () => {
 
       setPermisos(permisosData);
       setPermisosOriginales(JSON.parse(JSON.stringify(permisosData)));
+      
+      // Notificar al padre para cachear los datos
+      if (onDataUpdate) {
+        onDataUpdate(permisosData);
+      }
     } catch (error) {
       console.error('Error cargando permisos:', error);
       showToast('Error al cargar permisos', 'error');
@@ -177,8 +176,47 @@ const TabPermisos = () => {
 
   const handleRestaurarDefecto = async () => {
     if (window.confirm('¿Estás seguro de restaurar los permisos por defecto? Esta acción sobrescribirá la configuración actual.')) {
-      await cargarPermisos();
-      showToast('Permisos restaurados a valores por defecto', 'success');
+      try {
+        setSaving(true);
+        
+        // Obtener permisos por defecto del código
+        const permisosDefecto = getPermisosDefecto();
+        
+        // Guardar en el backend
+        const response = await fetch(`${API_URL}/api/permisos`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${localStorage.getItem('authToken')}`
+          },
+          body: JSON.stringify(permisosDefecto)
+        });
+
+        if (!response.ok) {
+          throw new Error('Error al guardar permisos');
+        }
+
+        const data = await response.json();
+        
+        // Actualizar estado local
+        setPermisos(permisosDefecto);
+        setPermisosOriginales(JSON.parse(JSON.stringify(permisosDefecto)));
+        
+        // Actualizar el caché del padre
+        if (onDataUpdate) {
+          onDataUpdate(permisosDefecto);
+        }
+        
+        // Invalidar cache de permisos
+        invalidarCachePermisos();
+        
+        showToast('Permisos restaurados a valores por defecto', 'success');
+      } catch (error) {
+        console.error('Error al restablecer permisos:', error);
+        showToast('Error al restablecer permisos', 'error');
+      } finally {
+        setSaving(false);
+      }
     }
   };
 

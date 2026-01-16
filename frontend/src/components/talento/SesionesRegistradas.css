@@ -9,6 +9,7 @@
   flex-wrap: wrap;
   gap: 16px;
   margin-bottom: 24px;
+
 }
 
 
@@ -248,6 +249,38 @@
   padding: 8px;
   background: white;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.qr-actions-mini {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  margin-top: 12px;
+}
+
+.btn-qr-mini {
+  padding: 8px 16px;
+  background: #26bc58;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s ease;
+}
+
+.btn-qr-mini:hover {
+  background: #1e9d4c;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(38, 188, 88, 0.3);
+}
+
+.btn-qr-mini svg {
+  flex-shrink: 0;
 }
 
 .sesion-card-footer {

@@ -42,7 +42,7 @@ async def cambiar_rol_usuario(
     verificar_es_administrador(current_user)
     
     # Validar rol
-    roles_validos = ["Usuario", "Editor", "Administrador"]
+    roles_validos = ["Usuario", "Administrador"]
     if rol not in roles_validos:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
