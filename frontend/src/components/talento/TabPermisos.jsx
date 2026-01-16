@@ -128,6 +128,12 @@ const TabPermisos = ({ cachedData, onDataUpdate }) => {
     }));
   };
 
+  // Verificar si un permiso es crítico y no puede ser desactivado
+  const esPermisoCritico = (rol, permisoId) => {
+    const permisosCriticos = ['acceder_config', 'modificar_permisos'];
+    return rol === 'Administrador' && permisosCriticos.includes(permisoId);
+  };
+
   const tieneChangiosPendientes = () => {
     return JSON.stringify(permisos) !== JSON.stringify(permisosOriginales);
   };
@@ -270,6 +276,7 @@ const TabPermisos = ({ cachedData, onDataUpdate }) => {
         <div>
           <strong>Importante</strong>
           <p>Los cambios en permisos se aplican de inmediato después de guardar. Los usuarios necesitarán recargar la página para ver los nuevos permisos.</p>
+          <p style={{color: '#059669', marginTop: '8px'}}><strong>Protección</strong> Los permisos "Acceder a configuración" y "Modificar permisos" no se pueden desactivar para Administradores para garantizar el acceso al sistema.</p>
         </div>
       </div>
 
@@ -300,18 +307,30 @@ const TabPermisos = ({ cachedData, onDataUpdate }) => {
                       <div className="permiso-nombre">{permiso.nombre}</div>
                       <div className="permiso-descripcion">{permiso.descripcion}</div>
                     </td>
-                    {roles.map(rol => (
-                      <td key={`${rol}-${permiso.id}`} className="permiso-switch-cell">
-                        <label className="switch">
-                          <input
-                            type="checkbox"
-                            checked={permisos[rol]?.[permiso.id] || false}
-                            onChange={() => handleTogglePermiso(rol, permiso.id)}
-                          />
-                          <span className="slider"></span>
-                        </label>
-                      </td>
-                    ))}
+                    {roles.map(rol => {
+                      const esCritico = esPermisoCritico(rol, permiso.id);
+                      return (
+                        <td key={`${rol}-${permiso.id}`} className="permiso-switch-cell">
+                          <label className={`switch ${esCritico ? 'switch-locked' : ''}`} title={esCritico ? 'Permiso crítico - No se puede desactivar' : ''}>
+                            <input
+                              type="checkbox"
+                              checked={permisos[rol]?.[permiso.id] || false}
+                              onChange={() => handleTogglePermiso(rol, permiso.id)}
+                              disabled={esCritico}
+                            />
+                            <span className="slider"></span>
+                          </label>
+                          {esCritico && (
+                            <span className="permiso-locked-badge" title="Este permiso no se puede desactivar para garantizar el acceso al sistema">
+                              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                                <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                              </svg>
+                            </span>
+                          )}
+                        </td>
+                      );
+                    })}
                   </tr>
                 ))}
               </tbody>

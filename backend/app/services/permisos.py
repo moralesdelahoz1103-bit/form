@@ -91,6 +91,7 @@ class PermisosService:
     def actualizar_permisos(self, permisos: Dict[str, Dict[str, bool]], user_email: str) -> Dict[str, Any]:
         """
         Actualizar la configuración de permisos en la base de datos.
+        Incluye validación para proteger permisos críticos del rol Administrador.
         
         Args:
             permisos: Nueva configuración de permisos
@@ -101,10 +102,21 @@ class PermisosService:
             
         Raises:
             Exception: Si la base de datos no está disponible
+            ValueError: Si se intenta desactivar permisos críticos
         """
         if not self.cosmos_db:
             raise Exception("Base de datos no disponible")
-            
+        
+        # Validación de seguridad: NO permitir desactivar permisos críticos para Administrador
+        permisos_criticos = ['acceder_config', 'modificar_permisos']
+        admin_permisos = permisos.get('Administrador', {})
+        
+        for permiso_critico in permisos_criticos:
+            if not admin_permisos.get(permiso_critico, False):
+                error_msg = f"No se puede desactivar el permiso crítico '{permiso_critico}' para el rol Administrador. Este permiso es necesario para garantizar el acceso al sistema."
+                print(f"ERROR: {error_msg}")
+                raise ValueError(error_msg)
+        
         permisos_doc = {
             "id": self.permisos_id,
             "tipo": "configuracion",

@@ -5,19 +5,24 @@ import './MenuLateral.css';
 
 const MenuLateral = ({ activeView, onViewChange, onConfigClick }) => {
   const [puedeAccederConfig, setPuedeAccederConfig] = useState(false);
+  const [puedeVerSesiones, setPuedeVerSesiones] = useState(false);
   
   // Extraer información del usuario del localStorage
   const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}');
   const userName = userInfo.name || 'Usuario';
   const userEmail = userInfo.email || 'usuario@fundacionsantodomingo.org';
   
-  // Verificar permiso de acceso a configuración
+  // Verificar permisos de acceso
   useEffect(() => {
-    const verificarPermiso = async () => {
-      const puede = await tienePermiso('acceder_config');
-      setPuedeAccederConfig(puede);
+    const verificarPermisos = async () => {
+      const [puedeConfig, puedeSesiones] = await Promise.all([
+        tienePermiso('acceder_config'),
+        tienePermiso('ver_sesiones')
+      ]);
+      setPuedeAccederConfig(puedeConfig);
+      setPuedeVerSesiones(puedeSesiones);
     };
-    verificarPermiso();
+    verificarPermisos();
   }, []);
   
 
@@ -94,10 +99,18 @@ const MenuLateral = ({ activeView, onViewChange, onConfigClick }) => {
       .substring(0, 2);
   };
 
+  // Filtrar items según permisos
+  const menuItemsFiltrados = menuItems.filter(item => {
+    if (item.id === 'sesiones') {
+      return puedeVerSesiones;
+    }
+    return true;
+  });
+
   return (
     <aside className="menu-lateral">
       <nav className="menu-nav">
-        {menuItems.map(item => (
+        {menuItemsFiltrados.map(item => (
           <button
             key={item.id}
             onClick={() => onViewChange(item.id)}

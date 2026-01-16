@@ -292,6 +292,30 @@ input:focus + .slider {
   box-shadow: 0 0 0 3px rgba(0, 191, 97, 0.2);
 }
 
+/* Switch bloqueado */
+.switch-locked {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.switch-locked .slider {
+  cursor: not-allowed;
+  background-color: #10b981 !important;
+}
+
+.switch-locked input:disabled + .slider:before {
+  transform: translateX(24px);
+}
+
+.permiso-locked-badge {
+  display: inline-flex;
+  align-items: center;
+  margin-left: 8px;
+  color: #059669;
+  vertical-align: middle;
+  cursor: help;
+}
+
 .permisos-footer {
   margin-top: 32px;
   padding-top: 24px;

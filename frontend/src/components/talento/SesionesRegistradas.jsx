@@ -26,11 +26,12 @@ const SesionesRegistradas = () => {
   
   // Estados de permisos
   const [permisos, setPermisos] = useState({
-    ver: true,
+    ver: false,
     editar: false,
     eliminar: false,
     exportar: false
   });
+  const [verificandoPermiso, setVerificandoPermiso] = useState(true);
   const [filtros, setFiltros] = useState({
     busqueda: '',
     fecha: '',
@@ -48,18 +49,19 @@ const SesionesRegistradas = () => {
         );
         
         const permisosPromise = Promise.all([
+          tienePermiso('ver_sesiones'),
           tienePermiso('editar_sesiones'),
           tienePermiso('eliminar_sesiones'),
           tienePermiso('exportar_sesiones')
         ]);
         
-        const [editar, eliminar, exportar] = await Promise.race([
+        const [ver, editar, eliminar, exportar] = await Promise.race([
           permisosPromise,
           timeoutPromise
         ]);
         
         setPermisos({
-          ver: true,
+          ver,
           editar,
           eliminar,
           exportar
@@ -68,11 +70,13 @@ const SesionesRegistradas = () => {
         console.error('Error cargando permisos:', error);
         // Mantener permisos por defecto
         setPermisos({
-          ver: true,
+          ver: false,
           editar: false,
           eliminar: false,
           exportar: false
         });
+      } finally {
+        setVerificandoPermiso(false);
       }
     };
     cargarPermisos();
@@ -368,6 +372,24 @@ const SesionesRegistradas = () => {
     
     return cumpleBusqueda && cumpleFecha && cumpleTipo && cumpleFacilitador && cumpleResponsable;
   });
+
+  if (verificandoPermiso) {
+    return <Loading />;
+  }
+
+  if (!permisos.ver) {
+    return (
+      <div className="sesiones-registradas">
+        <div className="page-header">
+          <h1 className="page-title">Acceso Denegado</h1>
+        </div>
+        <div className="empty-state">
+          <p>No tienes permiso para ver las formaciones o eventos</p>
+          <p className="empty-subtitle">Contacta al administrador del sistema si necesitas acceso</p>
+        </div>
+      </div>
+    );
+  }
 
   if (loading) {
     return <Loading />;
