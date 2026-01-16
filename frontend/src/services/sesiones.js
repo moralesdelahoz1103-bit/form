@@ -19,6 +19,12 @@ export const sesionesService = {
     return response.data;
   },
 
+  // Actualizar capacitación
+  actualizar: async (id, sesionData) => {
+    const response = await api.put(`/api/sesiones/${id}`, sesionData);
+    return response.data;
+  },
+
   // Eliminar capacitación
   eliminar: async (id) => {
     await api.delete(`/api/sesiones/${id}`);

@@ -160,6 +160,30 @@ def get_sesion_by_token(token: str) -> dict:
     
     return sesion
 
+def actualizar_sesion(sesion_id: str, datos_actualizacion: dict) -> dict:
+    """Actualizar sesión con los datos proporcionados"""
+    now = datetime.utcnow().isoformat()
+    datos_actualizacion['updated_at'] = now
+    
+    if settings.STORAGE_MODE == "cosmosdb" and COSMOS_AVAILABLE:
+        # Obtener sesión actual
+        sesion_actual = cosmos_db.obtener_sesion(sesion_id)
+        if not sesion_actual:
+            raise ValueError("Sesión no encontrada")
+        
+        # Actualizar solo los campos proporcionados
+        sesion_actual.update(datos_actualizacion)
+        return cosmos_db.actualizar_sesion(sesion_id, sesion_actual)
+    else:
+        sesiones = load_sesiones()
+        for i, sesion in enumerate(sesiones):
+            if sesion['id'] == sesion_id:
+                # Actualizar solo los campos proporcionados
+                sesiones[i].update(datos_actualizacion)
+                save_sesiones(sesiones)
+                return sesiones[i]
+        raise ValueError("Sesión no encontrada")
+
 def delete_sesion(sesion_id: str) -> bool:
     """Eliminar sesión"""
     if settings.STORAGE_MODE == "cosmosdb" and COSMOS_AVAILABLE:

@@ -4,7 +4,7 @@ import sys
 from pathlib import Path
 sys.path.append(str(Path(__file__).parent.parent.parent))
 
-from schemas.sesion import SesionCreate, SesionResponse, SesionPublicResponse
+from schemas.sesion import SesionCreate, SesionUpdate, SesionResponse, SesionPublicResponse
 from services import sesiones as sesion_service
 from services import asistentes as asistente_service
 from core.security import get_current_user
@@ -58,6 +58,39 @@ async def obtener_sesion(sesion_id: str, current_user: dict = Depends(get_curren
     sesion['total_asistentes'] = len(asistentes)
     
     return sesion
+
+@router.put("/{sesion_id}", response_model=SesionResponse)
+async def actualizar_sesion(sesion_id: str, sesion_update: SesionUpdate, current_user: dict = Depends(get_current_user)):
+    """
+    Actualizar información de una capacitación (requiere autenticación)
+    """
+    # Obtener sesión existente
+    sesion = sesion_service.get_sesion_by_id(sesion_id)
+    if not sesion:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Sesión no encontrada")
+    
+    # Verificar que el usuario actual es el creador
+    if sesion.get('created_by') and sesion.get('created_by') != current_user.get('email'):
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="No autorizado")
+    
+    try:
+        # Preparar datos de actualización
+        datos_actualizacion = sesion_update.dict(exclude_unset=True)
+        
+        # Si se seleccionó 'Otros' y se especificó un valor personalizado, usarlo
+        if datos_actualizacion.get('tipo_actividad') == 'Otros' and datos_actualizacion.get('tipo_actividad_custom'):
+            datos_actualizacion['tipo_actividad'] = datos_actualizacion.pop('tipo_actividad_custom')
+        
+        # Actualizar sesión
+        sesion_actualizada = sesion_service.actualizar_sesion(sesion_id, datos_actualizacion)
+        
+        # Añadir conteo de asistentes
+        asistentes = asistente_service.get_asistentes_by_sesion(sesion_id)
+        sesion_actualizada['total_asistentes'] = len(asistentes)
+        
+        return sesion_actualizada
+    except ValueError as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
 
 @router.delete("/{sesion_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def eliminar_sesion(sesion_id: str, current_user: dict = Depends(get_current_user)):

@@ -18,6 +18,11 @@ const SesionesRegistradas = () => {
   const [modalEliminar, setModalEliminar] = useState(null);
   const [modalDetalles, setModalDetalles] = useState(null);
   const [eliminando, setEliminando] = useState(false);
+  const [modoEdicion, setModoEdicion] = useState(false);
+  const [datosEdicion, setDatosEdicion] = useState({});
+  const [erroresEdicion, setErroresEdicion] = useState({});
+  const [guardando, setGuardando] = useState(false);
+  const [customTipoEdicion, setCustomTipoEdicion] = useState('');
   
   // Estados de permisos
   const [permisos, setPermisos] = useState({
@@ -101,6 +106,138 @@ const SesionesRegistradas = () => {
       setToast({ message: 'Error al eliminar formación o evento', type: 'error' });
     } finally {
       setEliminando(false);
+    }
+  };
+
+  const handleEditar = () => {
+    setDatosEdicion({ ...modalDetalles });
+    setErroresEdicion({});
+    // Si el tipo de actividad no es uno de los predefinidos, se considera "Otros"
+    const tiposPredefinidos = ['Inducción', 'Formación', 'Evento'];
+    if (modalDetalles.tipo_actividad && !tiposPredefinidos.includes(modalDetalles.tipo_actividad)) {
+      setCustomTipoEdicion(modalDetalles.tipo_actividad);
+      setDatosEdicion({ ...modalDetalles, tipo_actividad: 'Otros' });
+    } else {
+      setCustomTipoEdicion('');
+    }
+    setModoEdicion(true);
+  };
+
+  const handleCancelarEdicion = () => {
+    setModoEdicion(false);
+    setDatosEdicion({});
+    setErroresEdicion({});
+    setCustomTipoEdicion('');
+  };
+
+  const handleCambioEdicion = (campo, valor) => {
+    // Manejar cambio en campo custom_tipo
+    if (campo === 'custom_tipo') {
+      setCustomTipoEdicion(valor);
+      if (erroresEdicion.custom_tipo) {
+        setErroresEdicion(prev => ({ ...prev, custom_tipo: null }));
+      }
+      return;
+    }
+
+    // Si se cambia tipo_actividad y no es "Otros", limpiar customTipo
+    if (campo === 'tipo_actividad' && valor !== 'Otros') {
+      setCustomTipoEdicion('');
+      setErroresEdicion(prev => ({ ...prev, custom_tipo: undefined }));
+    }
+
+    setDatosEdicion(prev => ({ ...prev, [campo]: valor }));
+    // Limpiar error del campo si existe
+    if (erroresEdicion[campo]) {
+      setErroresEdicion(prev => ({ ...prev, [campo]: null }));
+    }
+  };
+
+  const validarEdicion = () => {
+    const errores = {};
+    
+    if (!datosEdicion.tema || datosEdicion.tema.trim().length < 3) {
+      errores.tema = 'El tema debe tener al menos 3 caracteres';
+    }
+    if (!datosEdicion.fecha) {
+      errores.fecha = 'La fecha es requerida';
+    }
+    if (!datosEdicion.tipo_actividad) {
+      errores.tipo_actividad = 'El tipo de actividad es requerido';
+    }
+    // Si seleccionó "Otros", validar el campo de texto
+    if (datosEdicion.tipo_actividad === 'Otros') {
+      if (!customTipoEdicion || customTipoEdicion.trim() === '') {
+        errores.custom_tipo = 'Por favor especifica el tipo de actividad';
+      } else if (customTipoEdicion.trim().length < 3) {
+        errores.custom_tipo = 'El tipo de actividad debe tener al menos 3 caracteres';
+      }
+    }
+    if (!datosEdicion.facilitador || datosEdicion.facilitador.trim().length < 3) {
+      errores.facilitador = 'El facilitador debe tener al menos 3 caracteres';
+    }
+    if (!datosEdicion.responsable || datosEdicion.responsable.trim().length < 3) {
+      errores.responsable = 'El responsable debe tener al menos 3 caracteres';
+    }
+    if (!datosEdicion.cargo || datosEdicion.cargo.trim().length < 3) {
+      errores.cargo = 'El cargo debe tener al menos 3 caracteres';
+    }
+    if (!datosEdicion.contenido || datosEdicion.contenido.trim().length < 10) {
+      errores.contenido = 'El contenido debe tener al menos 10 caracteres';
+    }
+    if (!datosEdicion.hora_inicio) {
+      errores.hora_inicio = 'La hora de inicio es requerida';
+    }
+    if (!datosEdicion.hora_fin) {
+      errores.hora_fin = 'La hora de fin es requerida';
+    }
+    if (datosEdicion.hora_fin && datosEdicion.hora_inicio && datosEdicion.hora_fin <= datosEdicion.hora_inicio) {
+      errores.hora_fin = 'Hora fin debe ser posterior a hora inicio';
+    }
+    
+    setErroresEdicion(errores);
+    return Object.keys(errores).length === 0;
+  };
+
+  const handleGuardarEdicion = async () => {
+    if (!validarEdicion()) {
+      setToast({ message: 'Por favor corrige los errores en el formulario', type: 'error' });
+      return;
+    }
+
+    setGuardando(true);
+    try {
+      const datosActualizacion = {
+        tema: datosEdicion.tema,
+        fecha: datosEdicion.fecha,
+        tipo_actividad: datosEdicion.tipo_actividad,
+        facilitador: datosEdicion.facilitador,
+        responsable: datosEdicion.responsable,
+        cargo: datosEdicion.cargo,
+        contenido: datosEdicion.contenido,
+        hora_inicio: datosEdicion.hora_inicio,
+        hora_fin: datosEdicion.hora_fin
+      };
+
+      // Si se seleccionó "Otros", enviar el valor personalizado
+      if (datosEdicion.tipo_actividad === 'Otros') {
+        datosActualizacion.tipo_actividad_custom = customTipoEdicion;
+      }
+
+      const sesionActualizada = await sesionesService.actualizar(modalDetalles.id, datosActualizacion);
+      
+      setToast({ message: 'Formación o evento actualizado exitosamente', type: 'success' });
+      setModoEdicion(false);
+      setModalDetalles(sesionActualizada);
+      loadSesiones();
+    } catch (error) {
+      console.error('Error actualizando sesión:', error);
+      setToast({ 
+        message: error.response?.data?.detail || 'Error al actualizar formación o evento', 
+        type: 'error' 
+      });
+    } finally {
+      setGuardando(false);
     }
   };
 
@@ -476,57 +613,214 @@ const SesionesRegistradas = () => {
 
       <Modal
         isOpen={!!modalDetalles}
-        onClose={() => setModalDetalles(null)}
-        title="Detalles de la formación o evento"
+        onClose={() => {
+          setModalDetalles(null);
+          setModoEdicion(false);
+          setDatosEdicion({});
+          setErroresEdicion({});
+          setCustomTipoEdicion('');
+        }}
+        title={modoEdicion ? "Editar formación o evento" : "Detalles de la formación o evento"}
         size="md"
       >
         {modalDetalles && (
           <div className="modal-ver-detalle-content">
-            <div className="modal-ver-detalle-row">
-              <span className="modal-ver-detalle-label">Tema / Título:</span>
-              <span className="modal-ver-detalle-value">{modalDetalles.tema}</span>
-            </div>
-            <div className="modal-ver-detalle-row">
-              <span className="modal-ver-detalle-label">Fecha:</span>
-              <span className="modal-ver-detalle-value">{formatters.fechaCorta(modalDetalles.fecha)}</span>
-            </div>
-            <div className="modal-ver-detalle-row">
-              <span className="modal-ver-detalle-label">Hora de inicio:</span>
-              <span className="modal-ver-detalle-value">{modalDetalles.hora_inicio}</span>
-            </div>
-            <div className="modal-ver-detalle-row">
-              <span className="modal-ver-detalle-label">Hora de fin:</span>
-              <span className="modal-ver-detalle-value">{modalDetalles.hora_fin}</span>
-            </div>
-            <div className="modal-ver-detalle-row">
-              <span className="modal-ver-detalle-label">Tipo de actividad:</span>
-              <span className="modal-ver-detalle-value">{modalDetalles.tipo_actividad}</span>
-            </div>
-            <div className="modal-ver-detalle-row">
-              <span className="modal-ver-detalle-label">Facilitador:</span>
-              <span className="modal-ver-detalle-value">{modalDetalles.facilitador}</span>
-            </div>
-            <div className="modal-ver-detalle-row">
-              <span className="modal-ver-detalle-label">Responsable:</span>
-              <span className="modal-ver-detalle-value">{modalDetalles.responsable || 'No especificado'}</span>
-            </div>
-            <div className="modal-ver-detalle-row">
-              <span className="modal-ver-detalle-label">Cargo:</span>
-              <span className="modal-ver-detalle-value">{modalDetalles.cargo || 'No especificado'}</span>
-            </div>
-            <div className="modal-ver-detalle-row">
-              <span className="modal-ver-detalle-label">Contenido:</span>
-              <span className="modal-ver-detalle-value modal-ver-detalle-contenido">{modalDetalles.contenido}</span>
-            </div>
-            <div className="modal-ver-detalle-row">
-              <span className="modal-ver-detalle-label">Total de asistentes:</span>
-              <span className="modal-ver-detalle-value modal-ver-detalle-badge">{modalDetalles.total_asistentes || 0}</span>
-            </div>
-            <div className="modal-ver-detalle-actions">
-              <Button onClick={() => setModalDetalles(null)} variant="primary" fullWidth>
-                Cerrar
-              </Button>
-            </div>
+            {!modoEdicion ? (
+              // Modo lectura
+              <>
+                <div className="modal-ver-detalle-row">
+                  <span className="modal-ver-detalle-label">Tema / Título:</span>
+                  <span className="modal-ver-detalle-value">{modalDetalles.tema}</span>
+                </div>
+                <div className="modal-ver-detalle-row">
+                  <span className="modal-ver-detalle-label">Fecha:</span>
+                  <span className="modal-ver-detalle-value">{formatters.fechaCorta(modalDetalles.fecha)}</span>
+                </div>
+                <div className="modal-ver-detalle-row">
+                  <span className="modal-ver-detalle-label">Hora de inicio:</span>
+                  <span className="modal-ver-detalle-value">{modalDetalles.hora_inicio}</span>
+                </div>
+                <div className="modal-ver-detalle-row">
+                  <span className="modal-ver-detalle-label">Hora de fin:</span>
+                  <span className="modal-ver-detalle-value">{modalDetalles.hora_fin}</span>
+                </div>
+                <div className="modal-ver-detalle-row">
+                  <span className="modal-ver-detalle-label">Tipo de actividad:</span>
+                  <span className="modal-ver-detalle-value">{modalDetalles.tipo_actividad}</span>
+                </div>
+                <div className="modal-ver-detalle-row">
+                  <span className="modal-ver-detalle-label">Facilitador:</span>
+                  <span className="modal-ver-detalle-value">{modalDetalles.facilitador}</span>
+                </div>
+                <div className="modal-ver-detalle-row">
+                  <span className="modal-ver-detalle-label">Responsable:</span>
+                  <span className="modal-ver-detalle-value">{modalDetalles.responsable || 'No especificado'}</span>
+                </div>
+                <div className="modal-ver-detalle-row">
+                  <span className="modal-ver-detalle-label">Cargo:</span>
+                  <span className="modal-ver-detalle-value">{modalDetalles.cargo || 'No especificado'}</span>
+                </div>
+                <div className="modal-ver-detalle-row">
+                  <span className="modal-ver-detalle-label">Contenido:</span>
+                  <span className="modal-ver-detalle-value modal-ver-detalle-contenido">{modalDetalles.contenido}</span>
+                </div>
+                <div className="modal-ver-detalle-row">
+                  <span className="modal-ver-detalle-label">Total de asistentes:</span>
+                  <span className="modal-ver-detalle-value modal-ver-detalle-badge">{modalDetalles.total_asistentes || 0}</span>
+                </div>
+                <div className="modal-ver-detalle-actions">
+                  {permisos.editar && (
+                    <Button onClick={handleEditar} variant="secondary">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{marginRight: '6px'}}>
+                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                      </svg>
+                      Editar
+                    </Button>
+                  )}
+                  <Button onClick={() => setModalDetalles(null)} variant="primary">
+                    Cerrar
+                  </Button>
+                </div>
+              </>
+            ) : (
+              // Modo edición
+              <>
+                <div className="modal-edicion-grid">
+                  <div className="modal-edicion-field">
+                    <label className="modal-edicion-label">Tema / Título *</label>
+                    <input
+                      type="text"
+                      value={datosEdicion.tema || ''}
+                      onChange={(e) => handleCambioEdicion('tema', e.target.value)}
+                      className={`modal-edicion-input ${erroresEdicion.tema ? 'input-error' : ''}`}
+                      placeholder="Título de la formación o evento"
+                    />
+                    {erroresEdicion.tema && <span className="error-message">{erroresEdicion.tema}</span>}
+                  </div>
+
+                  <div className="modal-edicion-field">
+                    <label className="modal-edicion-label">Fecha *</label>
+                    <input
+                      type="date"
+                      value={datosEdicion.fecha || ''}
+                      onChange={(e) => handleCambioEdicion('fecha', e.target.value)}
+                      className={`modal-edicion-input ${erroresEdicion.fecha ? 'input-error' : ''}`}
+                    />
+                    {erroresEdicion.fecha && <span className="error-message">{erroresEdicion.fecha}</span>}
+                  </div>
+
+                  <div className="modal-edicion-field">
+                    <label className="modal-edicion-label">Hora de inicio *</label>
+                    <input
+                      type="time"
+                      value={datosEdicion.hora_inicio || ''}
+                      onChange={(e) => handleCambioEdicion('hora_inicio', e.target.value)}
+                      className={`modal-edicion-input ${erroresEdicion.hora_inicio ? 'input-error' : ''}`}
+                    />
+                    {erroresEdicion.hora_inicio && <span className="error-message">{erroresEdicion.hora_inicio}</span>}
+                  </div>
+
+                  <div className="modal-edicion-field">
+                    <label className="modal-edicion-label">Hora de fin *</label>
+                    <input
+                      type="time"
+                      value={datosEdicion.hora_fin || ''}
+                      onChange={(e) => handleCambioEdicion('hora_fin', e.target.value)}
+                      className={`modal-edicion-input ${erroresEdicion.hora_fin ? 'input-error' : ''}`}
+                    />
+                    {erroresEdicion.hora_fin && <span className="error-message">{erroresEdicion.hora_fin}</span>}
+                  </div>
+
+                  <div className="modal-edicion-field">
+                    <label className="modal-edicion-label">Tipo de actividad *</label>
+                    <select
+                      value={datosEdicion.tipo_actividad || ''}
+                      onChange={(e) => handleCambioEdicion('tipo_actividad', e.target.value)}
+                      className={`modal-edicion-input ${erroresEdicion.tipo_actividad ? 'input-error' : ''}`}
+                    >
+                      <option value="">Seleccionar...</option>
+                      <option value="Inducción">Inducción</option>
+                      <option value="Formación">Formación</option>
+                      <option value="Evento">Evento</option>
+                      <option value="Otros">Otros</option>
+                    </select>
+                    {erroresEdicion.tipo_actividad && <span className="error-message">{erroresEdicion.tipo_actividad}</span>}
+                  </div>
+
+                  {datosEdicion.tipo_actividad === 'Otros' && (
+                    <div className="modal-edicion-field">
+                      <label className="modal-edicion-label">Especificar tipo *</label>
+                      <input
+                        type="text"
+                        value={customTipoEdicion}
+                        onChange={(e) => handleCambioEdicion('custom_tipo', e.target.value)}
+                        className={`modal-edicion-input ${erroresEdicion.custom_tipo ? 'input-error' : ''}`}
+                        placeholder="Ej: Taller, Conferencia, etc."
+                      />
+                      {erroresEdicion.custom_tipo && <span className="error-message">{erroresEdicion.custom_tipo}</span>}
+                    </div>
+                  )}
+
+                  <div className="modal-edicion-field">{datosEdicion.tipo_actividad !== 'Otros' && <div className="modal-edicion-field"></div>}
+                    <label className="modal-edicion-label">Facilitador *</label>
+                    <input
+                      type="text"
+                      value={datosEdicion.facilitador || ''}
+                      onChange={(e) => handleCambioEdicion('facilitador', e.target.value)}
+                      className={`modal-edicion-input ${erroresEdicion.facilitador ? 'input-error' : ''}`}
+                      placeholder="Nombre del facilitador"
+                    />
+                    {erroresEdicion.facilitador && <span className="error-message">{erroresEdicion.facilitador}</span>}
+                  </div>
+
+                  <div className="modal-edicion-field">
+                    <label className="modal-edicion-label">Responsable *</label>
+                    <input
+                      type="text"
+                      value={datosEdicion.responsable || ''}
+                      onChange={(e) => handleCambioEdicion('responsable', e.target.value)}
+                      className={`modal-edicion-input ${erroresEdicion.responsable ? 'input-error' : ''}`}
+                      placeholder="Nombre del responsable"
+                    />
+                    {erroresEdicion.responsable && <span className="error-message">{erroresEdicion.responsable}</span>}
+                  </div>
+
+                  <div className="modal-edicion-field">
+                    <label className="modal-edicion-label">Cargo *</label>
+                    <input
+                      type="text"
+                      value={datosEdicion.cargo || ''}
+                      onChange={(e) => handleCambioEdicion('cargo', e.target.value)}
+                      className={`modal-edicion-input ${erroresEdicion.cargo ? 'input-error' : ''}`}
+                      placeholder="Cargo del responsable"
+                    />
+                    {erroresEdicion.cargo && <span className="error-message">{erroresEdicion.cargo}</span>}
+                  </div>
+
+                  <div className="modal-edicion-field modal-edicion-field-full">
+                    <label className="modal-edicion-label">Contenido *</label>
+                    <textarea
+                      value={datosEdicion.contenido || ''}
+                      onChange={(e) => handleCambioEdicion('contenido', e.target.value)}
+                      className={`modal-edicion-textarea ${erroresEdicion.contenido ? 'input-error' : ''}`}
+                      placeholder="Descripción del contenido de la formación o evento"
+                      rows={4}
+                    />
+                    {erroresEdicion.contenido && <span className="error-message">{erroresEdicion.contenido}</span>}
+                  </div>
+                </div>
+
+                <div className="modal-ver-detalle-actions">
+                  <Button onClick={handleCancelarEdicion} variant="secondary" disabled={guardando}>
+                    Cancelar
+                  </Button>
+                  <Button onClick={handleGuardarEdicion} variant="primary" loading={guardando}>
+                    Guardar cambios
+                  </Button>
+                </div>
+              </>
+            )}
           </div>
         )}
       </Modal>

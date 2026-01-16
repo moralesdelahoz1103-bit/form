@@ -391,6 +391,63 @@
   flex: 1;
 }
 
+/* Estilos para modo edición */
+.modal-edicion-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.modal-edicion-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.modal-edicion-field-full {
+  grid-column: 1 / -1;
+}
+
+.modal-edicion-label {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-dark);
+}
+
+.modal-edicion-input,
+.modal-edicion-textarea {
+  padding: 10px 14px;
+  border: 2px solid #26BC58;
+  border-radius: 6px;
+  font-size: 14px;
+  font-family: inherit;
+  transition: all 0.3s ease;
+}
+
+.modal-edicion-input:focus,
+.modal-edicion-textarea:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(45, 95, 76, 0.1);
+}
+
+.modal-edicion-input.input-error,
+.modal-edicion-textarea.input-error {
+  border-color: var(--danger);
+}
+
+.modal-edicion-textarea {
+  resize: vertical;
+  min-height: 100px;
+}
+
+.error-message {
+  font-size: 12px;
+  color: var(--danger);
+  margin-top: 4px;
+}
+
 @media (max-width: 768px) {
   .filters-grid {
     grid-template-columns: 1fr;
@@ -403,5 +460,9 @@
   
   .sesion-card {
     max-width: none;
+  }
+
+  .modal-edicion-grid {
+    grid-template-columns: 1fr;
   }
 }
