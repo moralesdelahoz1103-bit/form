@@ -19,6 +19,7 @@ class Usuario(BaseModel):
     nombre: str
     rol: str
     fecha_ingreso: datetime
+    formularios_creados: int = 0
 
     class Config:
         from_attributes = True

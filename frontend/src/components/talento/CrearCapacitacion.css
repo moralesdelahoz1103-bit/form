@@ -15,13 +15,16 @@
 
 .page-header {
   margin-bottom: 32px;
+  display: flex;
+  align-items: flex-end;
+  gap: 16px;
 }
 
 .page-title {
   font-size: 32px;
   font-weight: normal;
   color: var(--text-dark);
-  margin-bottom: 8px;
+  margin: 0;
   background-color: #26BC58;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -32,6 +35,7 @@
   font-size: 16px;
   color: var(--text-light);
   margin: 0;
+  padding-bottom: 2px;
   
 }
 

@@ -26,7 +26,33 @@ python scripts/restaurar_permisos.py
 
 ---
 
-### 2. `hacerme_admin.py` 👤
+### 2. `corregir_contador_formularios.py` 🔢
+**Propósito**: Verificar y corregir el contador de formularios creados por cada usuario.
+
+**Cuándo usar**:
+- El contador de formularios no coincide con las sesiones reales
+- Después de errores durante la creación o eliminación de sesiones
+- Para auditar la integridad de los contadores
+
+**Uso**:
+```bash
+cd backend
+# Solo verificar (sin hacer cambios)
+python scripts/corregir_contador_formularios.py
+
+# Verificar y corregir automáticamente
+python scripts/corregir_contador_formularios.py corregir
+```
+
+**Características**:
+- ✅ Compara contadores con sesiones reales en la base de datos
+- ✅ Soporta tanto created_by_id (nuevo) como created_by (legacy)
+- ✅ Modo seguro de verificación sin modificar datos
+- ✅ Modo de corrección automática con confirmación
+
+---
+
+### 3. `hacerme_admin.py` 👤
 **Propósito**: Cambiar el rol de un usuario a Administrador.
 
 **Cuándo usar**:
@@ -41,7 +67,7 @@ python scripts/hacerme_admin.py
 
 ---
 
-### 3. `ver_usuarios.py` 📊
+### 4. `ver_usuarios.py` 📊
 **Propósito**: Listar todos los usuarios registrados en el sistema.
 
 **Cuándo usar**:
@@ -56,7 +82,7 @@ python scripts/ver_usuarios.py
 
 ---
 
-### 4. `agregar_admin.py` ➕
+### 5. `agregar_admin.py` ➕
 **Propósito**: Agregar un nuevo usuario administrador al sistema.
 
 **Uso**:
@@ -67,7 +93,7 @@ python scripts/agregar_admin.py
 
 ---
 
-### 5. `eliminar_duplicados.py` 🧹
+### 6. `eliminar_duplicados.py` 🧹
 **Propósito**: Limpiar usuarios duplicados en la base de datos.
 
 **Uso**:
@@ -79,6 +105,30 @@ python scripts/eliminar_duplicados.py
 ---
 
 ## 🚨 Escenarios de Emergencia
+
+### Problema: "El contador de formularios no coincide"
+
+**Síntoma**: El número de formularios mostrado en la interfaz no corresponde con los formularios reales del usuario.
+
+**Solución**:
+1. Primero verifica el problema:
+   ```bash
+   cd backend
+   python scripts/corregir_contador_formularios.py
+   ```
+2. Revisa el reporte y confirma las diferencias
+3. Si todo se ve correcto, aplica las correcciones:
+   ```bash
+   python scripts/corregir_contador_formularios.py corregir
+   ```
+4. Refresca la interfaz en el navegador
+
+**Prevención**: El sistema ahora tiene manejo robusto de errores que previene desincronización:
+- Los contadores se actualizan ANTES de eliminar sesiones
+- Si falla la eliminación, el contador se revierte automáticamente
+- Cada operación tiene rollback en caso de error
+
+---
 
 ### Problema: "Necesito restablecer permisos a valores por defecto"
 

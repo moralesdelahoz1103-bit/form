@@ -27,18 +27,11 @@ const TabPermisos = ({ cachedData, onDataUpdate }) => {
       ]
     },
     {
-      id: 'usuarios',
-      nombre: 'Gestión de usuarios',
-      permisos: [
-        { id: 'ver_usuarios', nombre: 'Ver usuarios', descripcion: 'Visualizar la lista de usuarios del sistema' },
-        { id: 'cambiar_roles', nombre: 'Cambiar roles', descripcion: 'Modificar roles de otros usuarios' },
-        // { id: 'eliminar_usuarios', nombre: 'Eliminar usuarios', descripcion: 'Remover usuarios del sistema' },
-      ]
-    },
-    {
       id: 'configuracion',
       nombre: 'Configuración y sistema',
       permisos: [
+        { id: 'ver_usuarios', nombre: 'Ver usuarios', descripcion: 'Visualizar la lista de usuarios del sistema' },
+        { id: 'cambiar_roles', nombre: 'Cambiar roles', descripcion: 'Modificar roles de otros usuarios' },
         { id: 'acceder_config', nombre: 'Acceder a configuración', descripcion: 'Entrar al panel de configuración' },
         { id: 'modificar_permisos', nombre: 'Modificar permisos', descripcion: 'Cambiar permisos de los roles' },
       ]

@@ -7,6 +7,8 @@ import { tienePermiso } from '../../utils/permisos';
 const TabUsuarios = ({ cachedData, onDataUpdate }) => {
   const [usuarios, setUsuarios] = useState(cachedData || []);
   const [loading, setLoading] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
+  const [ultimaActualizacion, setUltimaActualizacion] = useState(null);
   const [toast, setToast] = useState({ show: false, message: '', type: '' });
   const [changingRol, setChangingRol] = useState(null);
   const [rolesTemporales, setRolesTemporales] = useState({}); // Roles seleccionados pero no guardados
@@ -55,6 +57,9 @@ const TabUsuarios = ({ cachedData, onDataUpdate }) => {
   useEffect(() => {
     if (!cachedData) {
       cargarUsuarios();
+    } else {
+      // Si hay datos cacheados, establecer la hora de última actualización al cargar desde caché
+      setUltimaActualizacion(new Date());
     }
   }, []);
 
@@ -75,6 +80,9 @@ const TabUsuarios = ({ cachedData, onDataUpdate }) => {
         rolesIniciales[usuario.id] = usuario.rol;
       });
       setRolesTemporales(rolesIniciales);
+      
+      // Guardar hora de actualización
+      setUltimaActualizacion(new Date());
     } catch (error) {
       console.error('Error cargando usuarios:', error);
       showToast('Error al cargar usuarios', 'error');
@@ -85,6 +93,36 @@ const TabUsuarios = ({ cachedData, onDataUpdate }) => {
 
   const showToast = (message, type = 'success') => {
     setToast({ show: true, message, type });
+  };
+
+  const handleRefresh = async () => {
+    try {
+      setRefreshing(true);
+      const data = await usuariosService.listar();
+      setUsuarios(data);
+      
+      // Actualizar caché en el componente padre
+      if (onDataUpdate) {
+        onDataUpdate(data);
+      }
+      
+      // Inicializar roles temporales con los roles actuales
+      const rolesIniciales = {};
+      data.forEach(usuario => {
+        rolesIniciales[usuario.id] = usuario.rol;
+      });
+      setRolesTemporales(rolesIniciales);
+      
+      // Guardar hora de actualización
+      setUltimaActualizacion(new Date());
+      
+      showToast('Datos actualizados correctamente', 'success');
+    } catch (error) {
+      console.error('Error actualizando usuarios:', error);
+      showToast('Error al actualizar los datos', 'error');
+    } finally {
+      setRefreshing(false);
+    }
   };
 
   const handleCambiarRol = (usuarioId, nuevoRol) => {
@@ -149,15 +187,30 @@ const TabUsuarios = ({ cachedData, onDataUpdate }) => {
 
   const formatearFecha = (fecha) => {
     try {
-      return new Date(fecha).toLocaleDateString('es-ES', {
+      // Convertir a zona horaria de Colombia (UTC-5)
+      return new Date(fecha).toLocaleDateString('es-CO', {
         year: 'numeric',
         month: 'long',
         day: 'numeric',
         hour: '2-digit',
-        minute: '2-digit'
+        minute: '2-digit',
+        timeZone: 'America/Bogota'
       });
     } catch {
       return 'Fecha no disponible';
+    }
+  };
+
+  const formatearHoraActualizacion = (fecha) => {
+    try {
+      return new Date(fecha).toLocaleTimeString('es-CO', {
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: true,
+        timeZone: 'America/Bogota'
+      });
+    } catch {
+      return '';
     }
   };
 
@@ -301,6 +354,29 @@ const TabUsuarios = ({ cachedData, onDataUpdate }) => {
         )}
       </div>
 
+      {/* Última actualización */}
+      <div className="refresh-section">
+        <div className="ultima-actualizacion">
+          <span className="texto-actualizacion">
+            {ultimaActualizacion 
+              ? `Última actualización ${formatearHoraActualizacion(ultimaActualizacion)}`
+              : 'Sin actualizar'}
+          </span>
+          <button 
+            className={`btn-refresh-icon ${refreshing ? 'refreshing' : ''}`}
+            onClick={handleRefresh}
+            disabled={refreshing}
+            title="Actualizar datos"
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <polyline points="23 4 23 10 17 10"></polyline>
+              <polyline points="1 20 1 14 7 14"></polyline>
+              <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+            </svg>
+          </button>
+        </div>
+      </div>
+
       <>
         {hayFiltrosActivos && usuariosFiltrados.length > 0 && (
           <div className="resultados-info">
@@ -313,7 +389,7 @@ const TabUsuarios = ({ cachedData, onDataUpdate }) => {
               <tr>
                 <th>Usuario</th>
                 <th>Rol</th>
-                <th>Fecha de ingreso</th>
+                <th>Formularios creados</th>
                 <th>Acciones</th>
               </tr>
             </thead>
@@ -377,13 +453,13 @@ const TabUsuarios = ({ cachedData, onDataUpdate }) => {
                       </div>
                     </td>
                     <td>
-                      <span className="fecha-text">
-                        {formatearFecha(usuario.fecha_ingreso)}
-                      </span>
+                      <div className="contador-formularios">
+                        <span className="contador-badge">{usuario.formularios_creados || 0}</span>
+                      </div>
                     </td>
                     <td>
                       <div className="actions-cell">
-                        {permisos.cambiarRoles && (
+                        {permisos.cambiarRoles ? (
                           <button
                             className={`btn-action btn-save ${tieneChangiosPendientes(usuario.id) ? 'has-changes' : ''}`}
                             onClick={() => handleGuardarRol(usuario.id, usuario.nombre)}
@@ -394,6 +470,8 @@ const TabUsuarios = ({ cachedData, onDataUpdate }) => {
                               <polyline points="20 6 9 17 4 12"></polyline>
                             </svg>
                           </button>
+                        ) : (
+                          <span style={{fontSize: '12px', color: '#999'}}>Sin permisos</span>
                         )}
                       </div>
                     </td>
