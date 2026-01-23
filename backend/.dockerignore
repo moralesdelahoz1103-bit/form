@@ -1,0 +1,56 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+dist/
+build/
+
+# Virtual environments
+venv/
+env/
+ENV/
+
+# Environment variables (CRITICAL - never include in Docker image)
+.env
+.env.local
+.env.*.local
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Git
+.git/
+.gitignore
+.gitattributes
+
+# Local data
+uploads/
+data/
+*.db
+*.sqlite
+*.log
+
+# Utility scripts (development only, not for production)
+list_azure_blobs.py
+delete_old_azure_files.py
+
+# Documentation
+README.md
+*.md
+!requirements.txt
+
+# Tests
+tests/
+test_*.py
+*_test.py

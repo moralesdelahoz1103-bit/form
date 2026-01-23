@@ -6,8 +6,21 @@ services:
     volumes:
       - ./backend:/app
       - /app/__pycache__
+    env_file:
+      - ./backend/.env
     environment:
       - PYTHONUNBUFFERED=1
+      # Azure Storage variables (from .env)
+      - COSMOS_ENDPOINT=${COSMOS_ENDPOINT}
+      - COSMOS_KEY=${COSMOS_KEY}
+      - COSMOS_DATABASE_NAME=${COSMOS_DATABASE_NAME}
+      - STORAGE_MODE=${STORAGE_MODE}
+      - BLOB_STORAGE_MODE=${BLOB_STORAGE_MODE}
+      - AZURE_STORAGE_CONNECTION_STRING=${AZURE_STORAGE_CONNECTION_STRING}
+      - ENTRA_CLIENT_ID=${ENTRA_CLIENT_ID}
+      - ENTRA_TENANT_ID=${ENTRA_TENANT_ID}
+      - ENTRA_CLIENT_SECRET=${ENTRA_CLIENT_SECRET}
+      - SESSION_SECRET=${SESSION_SECRET}
     restart: unless-stopped
 
   frontend:
@@ -20,3 +33,4 @@ services:
     depends_on:
       - backend
     restart: unless-stopped
+
