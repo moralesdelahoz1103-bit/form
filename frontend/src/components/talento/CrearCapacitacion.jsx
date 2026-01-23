@@ -6,7 +6,7 @@ import Toast from '../common/Toast';
 import { sesionesService } from '../../services/sesiones';
 import { validations } from '../../utils/validations';
 import { tienePermiso } from '../../utils/permisos';
-import QRCode from 'qrcode';
+
 import './CrearCapacitacion.css';
 
 const CrearCapacitacion = () => {
@@ -32,9 +32,8 @@ const CrearCapacitacion = () => {
   const [toast, setToast] = useState(null);
   const [linkGenerado, setLinkGenerado] = useState('');
   const [showModal, setShowModal] = useState(false);
-  const [qrDataUrl, setQrDataUrl] = useState('');
   const [nombreFormacion, setNombreFormacion] = useState('');
-  const qrCanvasRef = useRef(null);
+  const [nuevaSesion, setNuevaSesion] = useState(null);
 
   const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}');
   const userName = userInfo.name || 'Usuario autenticado';
@@ -46,7 +45,7 @@ const CrearCapacitacion = () => {
   useEffect(() => {
     const verificarPermisos = async () => {
       try {
-        const timeoutPromise = new Promise((_, reject) => 
+        const timeoutPromise = new Promise((_, reject) =>
           setTimeout(() => reject(new Error('Timeout')), 3000)
         );
         const puede = await Promise.race([
@@ -83,7 +82,7 @@ const CrearCapacitacion = () => {
     }
 
     setFormData(prev => ({ ...prev, [name]: value }));
-    
+
     if (errors[name]) {
       const error = validations[name]?.(value);
       setErrors(prev => ({ ...prev, [name]: error }));
@@ -92,7 +91,7 @@ const CrearCapacitacion = () => {
 
   const validateForm = () => {
     const newErrors = {};
-    
+
     // Validar campos requeridos
     if (!formData.tema || formData.tema.trim() === '') {
       newErrors.tema = 'El tema es requerido';
@@ -128,7 +127,7 @@ const CrearCapacitacion = () => {
     if (!formData.hora_fin || formData.hora_fin.trim() === '') {
       newErrors.hora_fin = 'La hora de fin es requerida';
     }
-    
+
     // Validar con reglas específicas
     Object.keys(formData).forEach(key => {
       if (!newErrors[key] && validations[key]) {
@@ -149,7 +148,7 @@ const CrearCapacitacion = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     if (!validateForm()) {
       setToast({ message: 'Por favor corrige los errores en el formulario', type: 'error' });
       return;
@@ -163,7 +162,7 @@ const CrearCapacitacion = () => {
       const payload = {
         ...formData
       };
-      
+
       if (formData.tipo_actividad === 'Otros') {
         payload.tipo_actividad_custom = customTipo;
       }
@@ -172,21 +171,11 @@ const CrearCapacitacion = () => {
       console.log('Respuesta del servidor:', response);
       setLinkGenerado(response.link);
       setNombreFormacion(formData.tema); // Guardar nombre antes de limpiar
-      
-      // Generar QR code
-      const qrUrl = await QRCode.toDataURL(response.link, {
-        width: 300,
-        margin: 2,
-        color: {
-          dark: '#257137',
-          light: '#FFFFFF'
-        }
-      });
-      setQrDataUrl(qrUrl);
+      setNuevaSesion(response); // Guardar respuesta completa con QR del backend
       setShowModal(true);
-      
+
       setToast({ message: '¡Formulario creado exitosamente!', type: 'success' });
-      
+
       // Limpiar formulario
       setFormData({
         tema: '',
@@ -199,15 +188,15 @@ const CrearCapacitacion = () => {
         hora_inicio: '',
         hora_fin: ''
       });
-        setCustomTipo('');
+      setCustomTipo('');
       setErrors({});
     } catch (error) {
       console.error('Error completo:', error);
       console.error('Error message:', error.message);
       console.error('Error detail:', error.detail);
-      setToast({ 
-        message: error.message || error.detail || 'Error al crear la formación/evento', 
-        type: 'error' 
+      setToast({
+        message: error.message || error.detail || 'Error al crear la formación/evento',
+        type: 'error'
       });
       setLinkGenerado(''); // Limpiar link previo en caso de error
     } finally {
@@ -222,17 +211,27 @@ const CrearCapacitacion = () => {
 
   const copiarQR = async () => {
     try {
-      // Convertir data URL a blob
-      const response = await fetch(qrDataUrl);
+      if (!nuevaSesion?.qr_code) {
+        setToast({ message: 'QR no disponible', type: 'error' });
+        return;
+      }
+
+      // Obtener la URL completa del QR
+      const qrUrl = nuevaSesion.qr_code.startsWith('http')
+        ? nuevaSesion.qr_code
+        : `${import.meta.env.VITE_API_URL || 'http://localhost:8000'}${nuevaSesion.qr_code}`;
+
+      // Convertir URL a blob
+      const response = await fetch(qrUrl);
       const blob = await response.blob();
-      
+
       // Copiar al portapapeles
       await navigator.clipboard.write([
         new ClipboardItem({
           [blob.type]: blob
         })
       ]);
-      
+
       setToast({ message: '¡QR copiado al portapapeles!', type: 'success' });
     } catch (error) {
       console.error('Error al copiar QR:', error);
@@ -240,19 +239,44 @@ const CrearCapacitacion = () => {
     }
   };
 
-  const descargarQR = () => {
-    const link = document.createElement('a');
-    const nombreArchivo = nombreFormacion ? `QR-${nombreFormacion.replace(/[^a-zA-Z0-9]/g, '_')}` : 'QR-evento';
-    link.download = `${nombreArchivo}.png`;
-    link.href = qrDataUrl;
-    link.click();
-    setToast({ message: '¡QR descargado!', type: 'success' });
+  const descargarQR = async () => {
+    if (!nuevaSesion?.qr_code) {
+      setToast({ message: 'QR no disponible', type: 'error' });
+      return;
+    }
+
+    try {
+      // Obtener la URL completa del QR
+      const qrUrl = nuevaSesion.qr_code.startsWith('http')
+        ? nuevaSesion.qr_code
+        : `${import.meta.env.VITE_API_URL || 'http://localhost:8000'}${nuevaSesion.qr_code}`;
+
+      // Fetch the image as blob
+      const response = await fetch(qrUrl);
+      const blob = await response.blob();
+
+      // Create download link
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      const nombreArchivo = nombreFormacion ? `QR-${nombreFormacion.replace(/[^a-zA-Z0-9]/g, '_')}` : 'QR-evento';
+      link.download = `${nombreArchivo}.png`;
+      link.href = url;
+      link.click();
+
+      // Clean up
+      window.URL.revokeObjectURL(url);
+
+      setToast({ message: '¡QR descargado!', type: 'success' });
+    } catch (error) {
+      console.error('Error al descargar QR:', error);
+      setToast({ message: 'Error al descargar QR', type: 'error' });
+    }
   };
 
   const cerrarModal = () => {
     setShowModal(false);
     setLinkGenerado('');
-    setQrDataUrl('');
+    setNuevaSesion(null);
     setNombreFormacion('');
   };
 
@@ -424,15 +448,15 @@ const CrearCapacitacion = () => {
           <div className="modal-qr" onClick={(e) => e.stopPropagation()}>
             <button className="modal-close" onClick={cerrarModal}>
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <line x1="18" y1="6" x2="6" y2="18"/>
-                <line x1="6" y1="6" x2="18" y2="18"/>
+                <line x1="18" y1="6" x2="6" y2="18" />
+                <line x1="6" y1="6" x2="18" y2="18" />
               </svg>
             </button>
-            
+
             <div className="modal-header">
               <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
-                <polyline points="22 4 12 14.01 9 11.01"/>
+                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+                <polyline points="22 4 12 14.01 9 11.01" />
               </svg>
               <h2>¡Formación creada exitosamente!</h2>
               <p>Comparte este código QR o link con los participantes</p>
@@ -440,22 +464,28 @@ const CrearCapacitacion = () => {
 
             <div className="modal-body">
               <div className="qr-container">
-                {qrDataUrl && <img src={qrDataUrl} alt="QR Code" className="qr-image" />}
+                {nuevaSesion?.qr_code && (
+                  <img
+                    src={nuevaSesion.qr_code.startsWith('http') ? nuevaSesion.qr_code : `${import.meta.env.VITE_API_URL || 'http://localhost:8000'}${nuevaSesion.qr_code}`}
+                    alt="QR Code"
+                    className="qr-image"
+                  />
+                )}
               </div>
 
               <div className="qr-actions">
                 <button className="btn-qr-action" onClick={copiarQR}>
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
-                    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+                    <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
+                    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
                   </svg>
                   Copiar
                 </button>
                 <button className="btn-qr-action" onClick={descargarQR}>
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-                    <polyline points="7 10 12 15 17 10"/>
-                    <line x1="12" y1="15" x2="12" y2="3"/>
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                    <polyline points="7 10 12 15 17 10" />
+                    <line x1="12" y1="15" x2="12" y2="3" />
                   </svg>
                   Descargar
                 </button>

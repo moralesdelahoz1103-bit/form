@@ -57,6 +57,9 @@ def crear_asistente(asistente_data: dict, firma_data, sesion_id: str, ip_address
     - bytes: los bytes del archivo de imagen (cuando viene como upload)
     - str: un data URL o base64 crudo (cuando viene desde frontend en base64)
     """
+    
+    # Import sesiones service to get session info
+    from services import sesiones as sesion_service
 
     # Save firma using storage adapter
     storage = get_storage_adapter()
@@ -72,8 +75,22 @@ def crear_asistente(asistente_data: dict, firma_data, sesion_id: str, ip_address
         firma_bytes = base64.b64decode(firma_base64)
     else:
         raise ValueError('Formato de firma no soportado')
+    
+    # Get session info to extract training name and creator
+    sesion = sesion_service.get_sesion_by_id(sesion_id)
+    nombre_capacitacion = sesion.get('tema', 'unknown') if sesion else 'unknown'
+    created_by = sesion.get('created_by', 'unknown') if sesion else 'unknown'
+    
     cedula = asistente_data['cedula']
-    firma_filename = storage.save_firma(firma_bytes, cedula)
+    nombre_persona = asistente_data.get('nombre', cedula)
+    
+    firma_filename = storage.save_firma(
+        firma_bytes, 
+        cedula, 
+        nombre_capacitacion,
+        created_by,
+        nombre_persona
+    )
     firma_url = storage.get_firma_url(firma_filename)
     
     if settings.STORAGE_MODE == "cosmosdb" and COSMOS_AVAILABLE:

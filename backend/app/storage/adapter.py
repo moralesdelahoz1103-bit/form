@@ -9,7 +9,7 @@ class StorageAdapter(ABC):
     """
     
     @abstractmethod
-    def save_qr(self, qr_image_bytes: bytes, nombre: str, fecha: str) -> str:
+    def save_qr(self, qr_image_bytes: bytes, nombre: str, fecha: str, created_by: str = "") -> str:
         """
         Save QR code image to storage.
         
@@ -17,27 +17,31 @@ class StorageAdapter(ABC):
             qr_image_bytes: QR code image as bytes
             nombre: Name for the session (used in filename)
             fecha: Date string (used in filename)
+            created_by: Email of the creator (used for folder organization)
             
         Returns:
             URL or path to access the saved QR code
             
-        Filename format: {nombre}_{fecha}_XX.png (XX = 2 random digits)
+        Folder structure: QRS/{created_by}/{nombre}/qr_{timestamp}.png
         """
         pass
     
     @abstractmethod
-    def save_firma(self, firma_image_bytes: bytes, cedula: str) -> str:
+    def save_firma(self, firma_image_bytes: bytes, cedula: str, nombre_capacitacion: str = "", created_by: str = "", nombre_persona: str = "") -> str:
         """
         Save signature (firma) image to storage.
         
         Args:
             firma_image_bytes: Signature image as bytes
-            cedula: ID number of the person (used as filename)
+            cedula: ID number of the person
+            nombre_capacitacion: Name of the training session
+            created_by: Email/name of the training creator
+            nombre_persona: Name of the person signing
             
         Returns:
             URL or path to access the saved signature
             
-        Filename format: {cedula}.png
+        New structure: {Creator}/{Training}/Firmas/Firma_{Cedula}.png
         """
         pass
     

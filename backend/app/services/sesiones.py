@@ -49,7 +49,7 @@ def save_sesiones(sesiones: List[dict]):
     with open(DATA_FILE, 'w', encoding='utf-8') as f:
         json.dump(sesiones, f, ensure_ascii=False, indent=2)
 
-def generar_qr(link: str, nombre: str, fecha: str) -> str:
+def generar_qr(link: str, nombre: str, fecha: str, created_by: str = "") -> str:
     """
     Genera un código QR y lo guarda usando el storage adapter.
     Retorna el filename del QR guardado.
@@ -72,7 +72,7 @@ def generar_qr(link: str, nombre: str, fecha: str) -> str:
     
     # Save using storage adapter
     storage = get_storage_adapter()
-    filename = storage.save_qr(qr_bytes, nombre, fecha)
+    filename = storage.save_qr(qr_bytes, nombre, fecha, created_by)
     
     return filename
 
@@ -91,7 +91,8 @@ def crear_sesion(sesion_data: dict) -> dict:
     # Generate QR and save with storage adapter
     nombre = sesion_data.get('tema', 'sesion')
     fecha = sesion_data.get('fecha', datetime.utcnow().strftime('%Y-%m-%d'))
-    qr_filename = generar_qr(link, nombre, fecha)
+    created_by = sesion_data.get('created_by', '')
+    qr_filename = generar_qr(link, nombre, fecha, created_by)
     
     # Get QR URL from storage adapter
     storage = get_storage_adapter()
@@ -186,13 +187,41 @@ def actualizar_sesion(sesion_id: str, datos_actualizacion: dict) -> dict:
 
 def delete_sesion(sesion_id: str) -> bool:
     """Eliminar sesión"""
+    from app.storage import get_storage_adapter
+    
     if settings.STORAGE_MODE == "cosmosdb" and COSMOS_AVAILABLE:
+        # Get session info before deleting
+        sesion = get_sesion_by_id(sesion_id)
+        
+        # Delete from CosmosDB
         cosmos_db.eliminar_sesion(sesion_id)
+        
+        # Delete training folder from Azure if using Azure storage
+        if sesion and settings.BLOB_STORAGE_MODE == "azure":
+            storage = get_storage_adapter()
+            if hasattr(storage, 'delete_training_folder'):
+                created_by = sesion.get('created_by', '')
+                nombre = sesion.get('tema', '')
+                storage.delete_training_folder(created_by, nombre)
+        
         return True
     else:
+        # Get session info before deleting
         sesiones = load_sesiones()
+        sesion = next((s for s in sesiones if s['id'] == sesion_id), None)
+        
+        # Delete from JSON
         new_sesiones = [s for s in sesiones if s['id'] != sesion_id]
         if len(new_sesiones) == len(sesiones):
             return False
         save_sesiones(new_sesiones)
+        
+        # Delete training folder from Azure if using Azure storage
+        if sesion and settings.BLOB_STORAGE_MODE == "azure":
+            storage = get_storage_adapter()
+            if hasattr(storage, 'delete_training_folder'):
+                created_by = sesion.get('created_by', '')
+                nombre = sesion.get('tema', '')
+                storage.delete_training_folder(created_by, nombre)
+        
         return True

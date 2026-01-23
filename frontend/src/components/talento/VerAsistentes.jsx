@@ -26,6 +26,8 @@ const VerAsistentes = () => {
     if (!firma) return null;
     // Si ya viene con data URL, úsalo
     if (firma.startsWith('data:')) return firma;
+    // Proxy URL (Azure storage through backend)
+    if (firma.startsWith('/api/proxy')) return `${config.apiUrl}${firma}`;
     // Si es una ruta relativa a uploads, convertir a URL absoluta del backend
     if (firma.startsWith('/uploads')) return `${config.apiUrl}${firma}`;
     // Si es una URL absoluta, úsala

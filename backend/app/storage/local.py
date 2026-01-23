@@ -71,7 +71,7 @@ class LocalStorage(StorageAdapter):
         self.firma_dir.mkdir(parents=True, exist_ok=True)
         logger.info(f"LocalStorage base_dir: {self.base_dir}")
     
-    def save_qr(self, qr_image_bytes: bytes, nombre: str, fecha: str) -> str:
+    def save_qr(self, qr_image_bytes: bytes, nombre: str, fecha: str, created_by: str = "") -> str:
         """
         Save QR code to local filesystem.
         Filename format: {nombre}_{fecha}_XX.png (XX = 2 random digits)
@@ -99,11 +99,12 @@ class LocalStorage(StorageAdapter):
         
         return filename
     
-    def save_firma(self, firma_image_bytes: bytes, cedula: str) -> str:
+    def save_firma(self, firma_image_bytes: bytes, cedula: str, nombre_capacitacion: str = "", created_by: str = "", nombre_persona: str = "") -> str:
         """
         Save signature to local filesystem.
         Filename format: {cedula}.png
         Protegido contra path traversal.
+        Note: Local storage doesn't use the new folder structure, kept for backward compatibility.
         """
         # Sanitizar cédula (seguro contra path traversal)
         cedula_clean = sanitize_filename(cedula, max_length=20)
