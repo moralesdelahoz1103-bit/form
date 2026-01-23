@@ -19,7 +19,7 @@ const ConfiguracionModal = ({ isOpen, onClose }) => {
   useEffect(() => {
     const userInfo = getUserInfo();
     setUserRole(userInfo?.rol || 'Usuario');
-    
+
     // Cargar permisos
     const cargarPermisos = async () => {
       const [verUsuarios, modificarPermisos] = await Promise.all([
@@ -34,35 +34,35 @@ const ConfiguracionModal = ({ isOpen, onClose }) => {
   if (!isOpen) return null;
 
   const userInfo = getUserInfo() || {};
-  const userName = userInfo.nombre || 'Usuario';
+  const userName = userInfo.name || 'Usuario';
 
   const esAdmin = userRole === 'Administrador';
 
   // Tabs disponibles según el rol
   const tabs = [
-    { 
-      id: 'perfil', 
-      label: 'Mi perfil', 
+    {
+      id: 'perfil',
+      label: 'Mi perfil',
       icon: 'user',
       description: 'Información de tu cuenta'
     },
-    { 
-      id: 'usuarios', 
-      label: 'Gestión de usuarios', 
+    {
+      id: 'usuarios',
+      label: 'Gestión de usuarios',
       icon: 'users',
       description: 'Administra roles',
       requierePermiso: 'verUsuarios'
     },
-    { 
-      id: 'permisos', 
-      label: 'Permisos de roles', 
+    {
+      id: 'permisos',
+      label: 'Permisos de roles',
       icon: 'shield',
       description: 'Configura permisos por rol',
       requierePermiso: 'modificarPermisos'
     },
-    { 
-      id: 'sistema', 
-      label: 'Sistema', 
+    {
+      id: 'sistema',
+      label: 'Sistema',
       icon: 'settings',
       description: 'Información del sistema',
       adminOnly: false
@@ -120,14 +120,14 @@ const ConfiguracionModal = ({ isOpen, onClose }) => {
         return <TabPerfil userInfo={userInfo} userRole={userRole} />;
       case 'usuarios':
         return permisos.verUsuarios ? (
-          <TabUsuarios 
+          <TabUsuarios
             cachedData={usuariosData}
             onDataUpdate={setUsuariosData}
           />
         ) : <PermisosDenegados />;
       case 'permisos':
         return permisos.modificarPermisos ? (
-          <TabPermisos 
+          <TabPermisos
             cachedData={permisosData}
             onDataUpdate={setPermisosData}
           />
@@ -146,8 +146,8 @@ const ConfiguracionModal = ({ isOpen, onClose }) => {
           <div className="config-header-content">
             <div className="config-header-icon">
               <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/>
-                <circle cx="12" cy="12" r="3"/>
+                <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z" />
+                <circle cx="12" cy="12" r="3" />
               </svg>
             </div>
             <div className="config-header-text">
@@ -176,7 +176,7 @@ const ConfiguracionModal = ({ isOpen, onClose }) => {
                 </div>
               </div>
             </div>
-            
+
             <div className="config-tabs">
               {availableTabs.map((tab) => (
                 <button
@@ -227,7 +227,7 @@ const TabPerfil = ({ userInfo, userRole }) => {
           <div className="config-card-body">
             <div className="info-item">
               <span className="info-label">Nombre completo</span>
-              <span className="info-value">{userInfo.nombre || 'No disponible'}</span>
+              <span className="info-value">{userInfo.name || 'No disponible'}</span>
             </div>
             <div className="info-item">
               <span className="info-label">Correo electrónico</span>
@@ -351,8 +351,8 @@ const PermisosDenegados = () => {
     <div className="config-section">
       <div className="permisos-denegados">
         <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-          <path d="M12 2L3 7v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V7l-9-5z"/>
-          <line x1="9" y1="12" x2="15" y2="12"/>
+          <path d="M12 2L3 7v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V7l-9-5z" />
+          <line x1="9" y1="12" x2="15" y2="12" />
         </svg>
         <h3>Acceso Restringido</h3>
         <p>Solo los administradores pueden acceder a esta sección.</p>
