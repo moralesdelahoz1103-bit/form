@@ -1,46 +1,108 @@
-README — Proyecto Form
+# Form - Sistema de Gestión de Formaciones
 
-Resumen
-Este repositorio contiene una aplicación para gestionar formaciones/eventos y el registro de asistencia.
-- Frontend: React (Vite)
-- Backend: FastAPI
-- Almacenamiento: Azure Cosmos DB (recomendado) o JSON local como fallback
-- Autenticación: Microsoft Entra ID (Azure AD) gestionada en el backend
+Sistema para gestionar formaciones, eventos y registro de asistencia con códigos QR y firmas digitales.
 
-Cómo ejecutar (desarrollo)
-1) Backend
-- Ir a `backend/`
-- Instalar dependencias: `python -m pip install -r requirements.txt`
-- Configurar variables en `backend/.env` (ver `AZURE_CONFIG_GUIDE.md` para Entra ID)
-- Ejecutar servidor:
-  ```powershell
-  cd backend
-  python -m uvicorn main:app --app-dir app --host 0.0.0.0 --port 8000 --reload
-  ```
+## 🚀 Tecnologías
 
-2) Frontend
-- Ir a `frontend/`
-- Instalar dependencias: `npm install`
-- Ejecutar en dev:
-  ```powershell
-  cd frontend
-  npm run dev
-  ```
+- **Frontend**: React + Vite
+- **Backend**: FastAPI (Python)
+- **Base de Datos**: Azure Cosmos DB (o JSON local)
+- **Almacenamiento**: Azure Blob Storage (QR y firmas)
+- **Autenticación**: Microsoft Entra ID (Azure AD)
+- **Infraestructura**: Docker & Docker Compose
 
-Variables importantes (backend `.env`)
-- `ENTRA_CLIENT_ID`, `ENTRA_CLIENT_SECRET`, `ENTRA_TENANT_ID`
-- `FRONTEND_URL` (ej: `http://localhost:3000`)
-- `STORAGE_MODE` = `cosmosdb` o `json`
-- `COSMOS_ENDPOINT`, `COSMOS_KEY`, `COSMOS_DATABASE_NAME` (si usas Cosmos)
-- `SESSION_SECRET` (secreto para firmar JWT de sesión)
+---
 
-Notas importantes
-- La lógica de redención de tokens MSAL se ejecuta en el backend para evitar errores CORS y mantener secreto el `client_secret`.
-- Recomendación: migrar a cookies `HttpOnly` para sesiones en producción.
+## 🛠️ Configuración y Despliegue con Docker (Recomendado)
 
-Migración de datos
-- Hay un script `backend/scripts/migrate_add_created_by.py` que puede añadir el campo `created_by` a sesiones existentes.
+### Prerrequisitos
+- Docker Desktop instalado
+- Archivo `.env` configurado (ver `backend/.env.example`)
 
-Contacto
-- Para cambios mayores (remoção de archivos, refactor), confirmar antes de ejecutar acciones destructivas.
+### 1. Iniciar la aplicación
+Ejecuta el siguiente comando para levantar frontend y backend:
 
+```bash
+docker-compose up
+```
+
+La aplicación estará disponible en:
+- **Frontend**: http://localhost:3000
+- **Backend API**: http://localhost:8000/docs
+
+### 2. Desarrollo y Hot Reload
+Docker está configurado con volúmenes para desarrollo. **No necesitas reiniciar** para:
+- Cambios en código Python (`.py`)
+- Cambios en React (`.jsx`, `.js`, `.css`)
+
+### 3. Actualizar dependencias o configuración
+Si instalas nuevas librerías o cambias el `.env`:
+
+```bash
+# Si agregas librerías (pip/npm)
+docker-compose up --build
+
+# Si cambias variables de entorno (.env)
+docker-compose restart
+```
+
+---
+
+## ☁️ Almacenamiento (Azure Blob Storage)
+
+El sistema utiliza Azure Blob Storage para guardar los códigos QR y las firmas de asistencia.
+
+### Estructura de Carpetas
+```
+formatoformacionesoeventos/
+└── {Creador}/
+    └── {Capacitacion}/
+        ├── QR_{Capacitacion}.png
+        └── Firmas/
+            ├── Firma_{Cedula1}.png
+            └── Firma_{Cedula2}.png
+```
+
+### Seguridad y Proxy
+- Los archivos en Azure son **PRIVADOS**.
+- El acceso se realiza a través de un **Proxy en el Backend**.
+- backend genera tokens SAS temporales (24h) interna y transparente para el usuario.
+- **NUNCA** se exponen las credenciales ni los tokens SAS al frontend.
+
+---
+
+## 🔐 Seguridad y Variables de Entorno
+
+**IMPORTANTE**: Nunca subir el archivo `.env` al repositorio.
+
+### Configuración `.env`
+Copia `.env.example` a `backend/.env` y completa los valores:
+
+```bash
+cp backend/.env.example backend/.env
+```
+
+Variables críticas:
+- `COSMOS_KEY`: Clave de base de datos
+- `AZURE_STORAGE_CONNECTION_STRING`: Conexión a almacenamiento
+- `ENTRA_CLIENT_SECRET`: Secreto de autenticación Microsoft
+
+---
+
+## 🔧 Scripts de Utilidad (Backend)
+
+En la carpeta `backend/` hay scripts útiles para desarrollo (NO usar en producción):
+
+- `list_azure_blobs.py`: Lista todos los archivos en Azure Storage.
+- `delete_old_azure_files.py`: Elimina archivos con la estructura antigua.
+
+Ejecutar:
+```bash
+cd backend
+python list_azure_blobs.py
+```
+
+---
+
+## 📞 Soporte
+Para problemas con credenciales o acceso a Azure, contactar al equipo de infraestructura.
