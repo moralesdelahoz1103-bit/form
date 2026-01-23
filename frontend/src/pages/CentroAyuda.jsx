@@ -56,13 +56,13 @@ const CentroAyuda = () => {
       });
 
       if (manejarErrorAuth(response)) return;
-      
+
       if (!response.ok) throw new Error('Error al cargar el contenido');
-      
+
       const data = await response.json();
       setContenido(data);
       setContenidoEditado(JSON.parse(JSON.stringify(data)));
-      
+
       if (data.categorias?.length > 0) {
         setCategoriaExpandida({ [data.categorias[0].id]: true });
       }
@@ -104,13 +104,13 @@ const CentroAyuda = () => {
       });
 
       if (manejarErrorAuth(response)) return;
-      
+
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
         console.error('Error del servidor:', errorData);
         throw new Error(errorData.detail || 'Error al guardar');
       }
-      
+
       const data = await response.json();
       setContenido(data);
       setContenidoEditado(JSON.parse(JSON.stringify(data)));
@@ -157,8 +157,8 @@ const CentroAyuda = () => {
     };
     setContenidoEditado({
       ...contenidoEditado,
-      categorias: contenidoEditado.categorias.map(cat => 
-        cat.id === categoriaId 
+      categorias: contenidoEditado.categorias.map(cat =>
+        cat.id === categoriaId
           ? { ...cat, tarjetas: [...cat.tarjetas, nuevaTarjeta] }
           : cat
       )
@@ -169,8 +169,8 @@ const CentroAyuda = () => {
     if (!window.confirm('¿Eliminar esta tarjeta de ayuda?')) return;
     setContenidoEditado({
       ...contenidoEditado,
-      categorias: contenidoEditado.categorias.map(cat => 
-        cat.id === categoriaId 
+      categorias: contenidoEditado.categorias.map(cat =>
+        cat.id === categoriaId
           ? { ...cat, tarjetas: cat.tarjetas.filter(t => t.id !== tarjetaId) }
           : cat
       )
@@ -180,7 +180,7 @@ const CentroAyuda = () => {
   const actualizarCategoria = (categoriaId, campo, valor) => {
     setContenidoEditado({
       ...contenidoEditado,
-      categorias: contenidoEditado.categorias.map(cat => 
+      categorias: contenidoEditado.categorias.map(cat =>
         cat.id === categoriaId ? { ...cat, [campo]: valor } : cat
       )
     });
@@ -189,14 +189,14 @@ const CentroAyuda = () => {
   const actualizarTarjeta = (categoriaId, tarjetaId, campo, valor) => {
     setContenidoEditado({
       ...contenidoEditado,
-      categorias: contenidoEditado.categorias.map(cat => 
-        cat.id === categoriaId 
+      categorias: contenidoEditado.categorias.map(cat =>
+        cat.id === categoriaId
           ? {
-              ...cat,
-              tarjetas: cat.tarjetas.map(tar => 
-                tar.id === tarjetaId ? { ...tar, [campo]: valor } : tar
-              )
-            }
+            ...cat,
+            tarjetas: cat.tarjetas.map(tar =>
+              tar.id === tarjetaId ? { ...tar, [campo]: valor } : tar
+            )
+          }
           : cat
       )
     });
@@ -218,11 +218,11 @@ const CentroAyuda = () => {
 
   const resaltarTexto = (texto, termino) => {
     if (!termino.trim()) return texto;
-    
+
     const regex = new RegExp(`(${termino})`, 'gi');
     const partes = texto.split(regex);
-    
-    return partes.map((parte, i) => 
+
+    return partes.map((parte, i) =>
       regex.test(parte) ? <mark key={i}>{parte}</mark> : parte
     );
   };
@@ -233,14 +233,14 @@ const CentroAyuda = () => {
     if (!busqueda.trim()) return datos.categorias;
 
     const terminoBusqueda = busqueda.toLowerCase();
-    
+
     return datos.categorias
       .map(categoria => ({
         ...categoria,
-        tarjetas: categoria.tarjetas.filter(tarjeta => 
+        tarjetas: categoria.tarjetas.filter(tarjeta =>
           (modoEdicion || tarjeta.visible) &&
           (tarjeta.pregunta.toLowerCase().includes(terminoBusqueda) ||
-           tarjeta.respuesta.toLowerCase().includes(terminoBusqueda))
+            tarjeta.respuesta.toLowerCase().includes(terminoBusqueda))
         )
       }))
       .filter(categoria => categoria.tarjetas.length > 0);
@@ -260,7 +260,7 @@ const CentroAyuda = () => {
     <div className="centro-ayuda">
       <div className="page-header">
         <div>
-          <h1 className="page-title">Centro de Ayuda</h1>
+          <h1 className="page-title">Centro de ayuda</h1>
           <p className="page-subtitle">
             Encuentra respuestas a tus preguntas sobre el sistema de registro de asistencia
           </p>
@@ -269,7 +269,7 @@ const CentroAyuda = () => {
           <div className="header-actions">
             {!modoEdicion ? (
               <Button onClick={iniciarEdicion} variant="secondary">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{marginRight: '6px'}}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: '6px' }}>
                   <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
                   <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
                 </svg>
@@ -283,7 +283,7 @@ const CentroAyuda = () => {
                 <Button onClick={guardarCambios} variant="primary" disabled={guardando}>
                   {guardando ? 'Guardando...' : (
                     <>
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{marginRight: '6px'}}>
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: '6px' }}>
                         <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
                         <polyline points="17 21 17 13 7 13 7 21"></polyline>
                         <polyline points="7 3 7 8 15 8"></polyline>
@@ -293,7 +293,7 @@ const CentroAyuda = () => {
                   )}
                 </Button>
                 <Button onClick={cancelarEdicion} variant="secondary">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{marginRight: '6px'}}>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: '6px' }}>
                     <line x1="18" y1="6" x2="6" y2="18"></line>
                     <line x1="6" y1="6" x2="18" y2="18"></line>
                   </svg>
@@ -319,7 +319,7 @@ const CentroAyuda = () => {
             className="search-input"
           />
           {busqueda && (
-            <button 
+            <button
               className="clear-search"
               onClick={() => setBusqueda('')}
               aria-label="Limpiar búsqueda"
