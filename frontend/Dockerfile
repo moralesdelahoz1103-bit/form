@@ -1,18 +1,21 @@
-FROM node:20-alpine
-
+# Production Dockerfile for Vite app: build -> Nginx static server
+FROM node:20-alpine AS build
 WORKDIR /app
 
-# Copiar package files
 COPY package*.json ./
+RUN npm ci
 
-# Instalar dependencias
-RUN npm install
-
-# Copiar código
 COPY . .
 
-# Exponer puerto
-EXPOSE 3000
+# Build-time API URL for Vite.
+ARG VITE_API_URL
+ENV VITE_API_URL=${VITE_API_URL}
 
-# Comando de desarrollo
-CMD ["npm", "run", "dev", "--", "--host", "0.0.0.0"]
+RUN npm run build
+
+FROM nginx:alpine
+COPY --from=build /app/dist /usr/share/nginx/html
+COPY nginx.conf /etc/nginx/conf.d/default.conf
+EXPOSE 80
+CMD ["nginx", "-g", "daemon off;"]
+
