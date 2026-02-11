@@ -53,8 +53,8 @@ class SesionResponse(BaseModel):
     hora_inicio: str
     hora_fin: str
     link: str
-    qr_code: str
-    qr_filename: Optional[str] = None
+    qr_code: Optional[str] = None  # Deprecated: QR ahora se genera dinámicamente
+    qr_filename: Optional[str] = None  # Deprecated
     token_expiry: str
     token_active: bool
     created_by: Optional[str] = None

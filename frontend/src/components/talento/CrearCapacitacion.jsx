@@ -6,6 +6,7 @@ import Toast from '../common/Toast';
 import { sesionesService } from '../../services/sesiones';
 import { validations } from '../../utils/validations';
 import { tienePermiso } from '../../utils/permisos';
+import { config } from '../../utils/constants';
 
 import './CrearCapacitacion.css';
 
@@ -211,15 +212,13 @@ const CrearCapacitacion = () => {
 
   const copiarQR = async () => {
     try {
-      if (!nuevaSesion?.qr_code) {
+      if (!nuevaSesion?.id) {
         setToast({ message: 'QR no disponible', type: 'error' });
         return;
       }
 
-      // Obtener la URL completa del QR
-      const qrUrl = nuevaSesion.qr_code.startsWith('http')
-        ? nuevaSesion.qr_code
-        : `${import.meta.env.VITE_API_URL || 'http://localhost:8000'}${nuevaSesion.qr_code}`;
+      // Obtener la URL completa del QR dinámico
+      const qrUrl = `${config.apiUrl}/api/sesiones/${nuevaSesion.id}/qr`;
 
       // Convertir URL a blob
       const response = await fetch(qrUrl);
@@ -240,16 +239,14 @@ const CrearCapacitacion = () => {
   };
 
   const descargarQR = async () => {
-    if (!nuevaSesion?.qr_code) {
+    if (!nuevaSesion?.id) {
       setToast({ message: 'QR no disponible', type: 'error' });
       return;
     }
 
     try {
-      // Obtener la URL completa del QR
-      const qrUrl = nuevaSesion.qr_code.startsWith('http')
-        ? nuevaSesion.qr_code
-        : `${import.meta.env.VITE_API_URL || 'http://localhost:8000'}${nuevaSesion.qr_code}`;
+      // Obtener la URL completa del QR dinámico
+      const qrUrl = `${config.apiUrl}/api/sesiones/${nuevaSesion.id}/qr`;
 
       // Fetch the image as blob
       const response = await fetch(qrUrl);
@@ -464,9 +461,9 @@ const CrearCapacitacion = () => {
 
             <div className="modal-body">
               <div className="qr-container">
-                {nuevaSesion?.qr_code && (
+                {nuevaSesion?.id && (
                   <img
-                    src={nuevaSesion.qr_code.startsWith('http') ? nuevaSesion.qr_code : `${import.meta.env.VITE_API_URL || 'http://localhost:8000'}${nuevaSesion.qr_code}`}
+                    src={`${config.apiUrl}/api/sesiones/${nuevaSesion.id}/qr`}
                     alt="QR Code"
                     className="qr-image"
                   />

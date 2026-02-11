@@ -215,3 +215,30 @@ async def obtener_asistentes(sesion_id: str):
     
     asistentes = asistente_service.get_asistentes_by_sesion(sesion_id)
     return asistentes
+
+@router.get("/{sesion_id}/qr")
+async def obtener_qr_sesion(sesion_id: str):
+    """
+    Genera y devuelve el código QR de la sesión dinámicamente
+    """
+    from fastapi.responses import Response
+    
+    sesion = sesion_service.get_sesion_by_id(sesion_id)
+    if not sesion:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Sesión no encontrada")
+    
+    # Generar QR dinámicamente
+    qr_bytes = sesion_service.generar_qr_dinamico(sesion['link'])
+    
+    # Devolver imagen con headers de caché y CORS
+    return Response(
+        content=qr_bytes,
+        media_type="image/png",
+        headers={
+            "Cache-Control": "public, max-age=3600",
+            "Content-Disposition": f"inline; filename=qr_{sesion_id}.png",
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Methods": "GET, OPTIONS",
+            "Access-Control-Allow-Headers": "*"
+        }
+    )

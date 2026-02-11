@@ -49,10 +49,10 @@ def save_sesiones(sesiones: List[dict]):
     with open(DATA_FILE, 'w', encoding='utf-8') as f:
         json.dump(sesiones, f, ensure_ascii=False, indent=2)
 
-def generar_qr(link: str, nombre: str, fecha: str, created_by: str = "") -> str:
+def generar_qr_dinamico(link: str) -> bytes:
     """
-    Genera un código QR y lo guarda usando el storage adapter.
-    Retorna el filename del QR guardado.
+    Genera un código QR dinámicamente y retorna los bytes de la imagen.
+    No guarda el QR en storage.
     """
     qr = qrcode.QRCode(
         version=1,
@@ -68,13 +68,7 @@ def generar_qr(link: str, nombre: str, fecha: str, created_by: str = "") -> str:
     # Convert to bytes
     buffered = BytesIO()
     img.save(buffered, format="PNG")
-    qr_bytes = buffered.getvalue()
-    
-    # Save using storage adapter
-    storage = get_storage_adapter()
-    filename = storage.save_qr(qr_bytes, nombre, fecha, created_by)
-    
-    return filename
+    return buffered.getvalue()
 
 # ========== FUNCIONES PRINCIPALES ==========
 
@@ -88,22 +82,10 @@ def crear_sesion(sesion_data: dict) -> dict:
     
     link = f"{settings.FRONTEND_URL}/registro?token={token}"
     
-    # Generate QR and save with storage adapter
-    nombre = sesion_data.get('tema', 'sesion')
-    fecha = sesion_data.get('fecha', datetime.utcnow().strftime('%Y-%m-%d'))
-    created_by = sesion_data.get('created_by', '')
-    qr_filename = generar_qr(link, nombre, fecha, created_by)
-    
-    # Get QR URL from storage adapter
-    storage = get_storage_adapter()
-    qr_url = storage.get_qr_url(qr_filename)
-    
     nueva_sesion = {
         "id": sesion_id,
         "token": token,
         "link": link,
-        "qr_code": qr_url,
-        "qr_filename": qr_filename,
         "token_expiry": expiry,
         "token_active": True,
         "created_at": now,

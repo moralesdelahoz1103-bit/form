@@ -250,10 +250,10 @@ const SesionesRegistradas = () => {
     setToast({ message: '¡Link copiado!', type: 'success' });
   };
 
-  const copiarQR = async (qrUrl) => {
+  const copiarQR = async (sesionId) => {
     try {
-      const fullUrl = qrUrl.startsWith('/') ? `${config.apiUrl}${qrUrl}` : qrUrl;
-      const response = await fetch(fullUrl);
+      const qrUrl = `${config.apiUrl}/api/sesiones/${sesionId}/qr`;
+      const response = await fetch(qrUrl);
       const blob = await response.blob();
       
       await navigator.clipboard.write([
@@ -269,13 +269,13 @@ const SesionesRegistradas = () => {
     }
   };
 
-  const descargarQR = async (qrUrl, nombreSesion) => {
+  const descargarQR = async (sesionId, nombreSesion) => {
     try {
-      const fullUrl = qrUrl.startsWith('/') ? `${config.apiUrl}${qrUrl}` : qrUrl;
+      const qrUrl = `${config.apiUrl}/api/sesiones/${sesionId}/qr`;
       const nombreArchivo = nombreSesion ? `QR-${nombreSesion.replace(/[^a-zA-Z0-9]/g, '_')}` : 'QR-evento';
       
       // Descargar la imagen como blob
-      const response = await fetch(fullUrl, { mode: 'cors' });
+      const response = await fetch(qrUrl, { mode: 'cors' });
       const blob = await response.blob();
       
       // Crear URL temporal del blob
@@ -548,19 +548,19 @@ const SesionesRegistradas = () => {
                   </button>
                 </div>
 
-                {sesion.qr_code && (
+                {sesion.id && (
                   <div className="sesion-qr">
                     <p className="qr-label">Código QR de acceso:</p>
-                    <img src={sesion.qr_code.startsWith('/') ? `${config.apiUrl}${sesion.qr_code}` : sesion.qr_code} alt="QR Code" className="qr-image" />
+                    <img src={`${config.apiUrl}/api/sesiones/${sesion.id}/qr`} alt="QR Code" className="qr-image" />
                     <div className="qr-actions-mini">
-                      <button onClick={() => copiarQR(sesion.qr_code)} className="btn-qr-mini">
+                      <button onClick={() => copiarQR(sesion.id)} className="btn-qr-mini">
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                           <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
                           <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
                         </svg>
                         Copiar
                       </button>
-                      <button onClick={() => descargarQR(sesion.qr_code, sesion.tema)} className="btn-qr-mini">
+                      <button onClick={() => descargarQR(sesion.id, sesion.tema)} className="btn-qr-mini">
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                           <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
                           <polyline points="7 10 12 15 17 10"/>
