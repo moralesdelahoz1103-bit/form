@@ -70,7 +70,7 @@ const SeguimientoDrawer = ({
                                             </div>
                                         </div>
                                         <div className="timeline-responsable">
-                                            <span style={{ fontWeight: '600', color: '#4b5563' }}>Fecha capacitación:</span> {formatters.fechaCorta(item.fecha_formacion)}
+                                            <span style={{ fontWeight: '600', color: '#4b5563' }}>Fecha actividad:</span> {formatters.fechaCorta(item.fecha_formacion)}
                                         </div>
                                         <div className="timeline-responsable" style={{ marginTop: '4px' }}>
                                             <span style={{ fontWeight: '600', color: '#4b5563' }}>Facilitador:</span> {item.facilitador || 'N/A'}

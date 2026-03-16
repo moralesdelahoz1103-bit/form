@@ -7,14 +7,15 @@ export const useCapacitacionForm = () => {
     const [formData, setFormData] = useState({
         tema: '',
         fecha: '',
-        tipo_actividad: '',
-        facilitador: '',
+        actividad: '',
+        facilitador_entidad: '',
+        tipo_actividad: 'Interno',
         responsable: '',
-        cargo: '',
+        cargo_responsable: '',
         contenido: '',
         hora_inicio: '',
         hora_fin: '',
-        tipo_formacion: 'Interna',
+        dirigido_a: 'Personal FSD',
         modalidad: ''
     });
 
@@ -52,28 +53,28 @@ export const useCapacitacionForm = () => {
         const { name, value, type, checked } = e.target;
         let finalValue = value;
         if (type === 'checkbox') {
-            if (name === 'tipo_formacion') {
+            if (name === 'dirigido_a') {
                 finalValue = checked ? 'Externa' : 'Interna';
             } else {
                 finalValue = checked;
             }
         }
 
-        if (name === 'custom_tipo') {
+        if (name === 'actividad_custom') {
             setCustomTipo(finalValue);
         }
-        if (name === 'tipo_actividad' && finalValue !== 'Otros (eventos)') {
+        if (name === 'actividad' && finalValue !== 'Otros (eventos)') {
             setCustomTipo('');
         }
 
         setFormData(prev => ({ ...prev, [name]: finalValue }));
 
         const error = validations[name]?.(finalValue);
-        if (name === 'custom_tipo') {
+        if (name === 'actividad_custom') {
             if (!finalValue || finalValue.trim() === '') {
-                setErrors(prev => ({ ...prev, custom_tipo: 'Por favor especifica el tipo de actividad' }));
+                setErrors(prev => ({ ...prev, actividad_custom: 'Por favor especifica el tipo de actividad' }));
             } else {
-                setErrors(prev => { const { custom_tipo, ...rest } = prev; return rest; });
+                setErrors(prev => { const { actividad_custom, ...rest } = prev; return rest; });
             }
         } else {
             setErrors(prev => {
@@ -89,17 +90,18 @@ export const useCapacitacionForm = () => {
 
         if (!formData.tema?.trim()) newErrors.tema = 'El tema es requerido';
         if (!formData.fecha?.trim()) newErrors.fecha = 'La fecha es requerida';
-        if (!formData.tipo_actividad?.trim()) newErrors.tipo_actividad = 'El tipo de actividad es requerido';
-        if (formData.tipo_actividad === 'Otros (eventos)' && (!customTipo || customTipo.trim() === '')) {
-            newErrors.custom_tipo = 'Por favor especifica el tipo de actividad';
+        if (!formData.actividad?.trim()) newErrors.actividad = 'La actividad es requerida';
+        if (formData.actividad === 'Otros (eventos)' && (!customTipo || customTipo.trim() === '')) {
+            newErrors.actividad_custom = 'Por favor especifica el tipo de actividad';
         }
-        if (!formData.facilitador?.trim()) newErrors.facilitador = 'El facilitador es requerido';
+        if (!formData.facilitador_entidad?.trim()) newErrors.facilitador_entidad = 'El facilitador es requerido';
         if (!formData.responsable?.trim()) newErrors.responsable = 'El responsable es requerido';
-        if (!formData.cargo?.trim()) newErrors.cargo = 'El cargo es requerido';
+        if (!formData.cargo_responsable?.trim()) newErrors.cargo_responsable = 'El cargo es requerido';
         if (!formData.contenido?.trim()) newErrors.contenido = 'El contenido es requerido';
         if (!formData.hora_inicio?.trim()) newErrors.hora_inicio = 'La hora de inicio es requerida';
         if (!formData.hora_fin?.trim()) newErrors.hora_fin = 'La hora de fin es requerida';
-        if (!formData.tipo_formacion) newErrors.tipo_formacion = 'El tipo de formación es requerido';
+        if (!formData.tipo_actividad) newErrors.tipo_actividad = 'El tipo de actividad es requerido';
+        if (!formData.dirigido_a) newErrors.dirigido_a = 'El campo dirigido a es requerido';
         if (!formData.modalidad) newErrors.modalidad = 'La modalidad es obligatoria';
 
         Object.keys(formData).forEach(key => {
@@ -153,8 +155,8 @@ export const useCapacitacionForm = () => {
         try {
             const payload = { ...formData };
 
-            if (formData.tipo_actividad === 'Otros (eventos)') {
-                payload.tipo_actividad_custom = customTipo;
+            if (formData.actividad === 'Otros (eventos)') {
+                payload.actividad_custom = customTipo;
             }
 
             payload.es_recurrente = recurrenceData?.esRecurrente || false;
@@ -163,7 +165,7 @@ export const useCapacitacionForm = () => {
                     fecha: oc.fecha,
                     hora_inicio: oc.hora_inicio || null,
                     hora_fin: oc.hora_fin || null,
-                    facilitador: oc.facilitador || null,
+                    facilitador_entidad: oc.facilitador || null,
                     contenido: oc.contenido || null,
                 }));
             } else {
@@ -178,8 +180,9 @@ export const useCapacitacionForm = () => {
             addToast('¡Formulario creado exitosamente!', 'success');
 
             setFormData({
-                tema: '', fecha: '', tipo_actividad: '', facilitador: '', responsable: '',
-                cargo: '', contenido: '', hora_inicio: '', hora_fin: '', tipo_formacion: 'Interna', modalidad: ''
+                tema: '', fecha: '', actividad: '', facilitador_entidad: '', responsable: '',
+                cargo_responsable: '', contenido: '', hora_inicio: '', hora_fin: '',
+                dirigido_a: 'Personal FSD', modalidad: '', tipo_actividad: 'Interno'
             });
             setCustomTipo('');
             setErrors({});

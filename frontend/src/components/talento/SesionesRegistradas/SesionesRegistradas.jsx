@@ -1,5 +1,5 @@
 ﻿import React, { useState } from 'react';
-import { Button, Toast } from '../../common';
+import { Button, Toast, Loading } from '../../common';
 import { usePermisos } from '../../../utils/permisos';
 import { sesionesService } from '../../../services/sesiones';
 
@@ -56,10 +56,8 @@ const SesionesRegistradas = () => {
 
   if (loading) {
     return (
-      <div style={{ minHeight: '60vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '16px' }}>
-        <div style={{ width: 52, height: 52, border: '4px solid rgba(38,188,88,0.2)', borderTopColor: '#26BC58', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
-        <p style={{ color: '#26BC58', fontWeight: 600, margin: 0 }}>Cargando formaciones...</p>
-        <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+      <div style={{ minHeight: '60vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <Loading size="md" text="Cargando actividades" />
       </div>
     );
   }
@@ -68,8 +66,8 @@ const SesionesRegistradas = () => {
     <div className="sesiones-registradas">
       <div className="page-header">
         <div>
-          <h1 className="page-title">Formaciones registradas</h1>
-          <p className="page-subtitle">Administra todas las formaciones registradas</p>
+          <h1 className="page-title">Actividades registradas</h1>
+          <p className="page-subtitle">Administra todas las actividades registradas</p>
 
           {esAdministrador && (
             <div className="admin-view-selector">
@@ -77,7 +75,7 @@ const SesionesRegistradas = () => {
                 className={`admin-view-btn ${!verGlobal ? 'active' : ''}`}
                 onClick={() => setVerGlobal(false)}
               >
-                Mis formaciones
+                Mis actividades
               </button>
               <button
                 className={`admin-view-btn ${verGlobal ? 'active' : ''}`}
@@ -107,8 +105,8 @@ const SesionesRegistradas = () => {
 
       {sesiones.length === 0 ? (
         <div className="empty-state">
-          <p>No hay formaciones registradas aún</p>
-          <p className="empty-subtitle">Crea tu primera formación desde el menú "Crear formación"</p>
+          <p>No hay actividades registradas aún</p>
+          <p className="empty-subtitle">Crea tu primera actividad desde el menú "Crear actividad"</p>
         </div>
       ) : (
         <>
@@ -119,7 +117,7 @@ const SesionesRegistradas = () => {
             tiposUnicos={uniqueOptions.tipos}
             facilitadoresUnicos={uniqueOptions.facilitadores}
             responsablesUnicos={uniqueOptions.responsables}
-            tiposFormacionUnicas={uniqueOptions.tiposFormacion}
+            dirigido_a_Unicos={uniqueOptions.dirigido_a}
             modalidadesUnicas={uniqueOptions.modalidades}
           />
 

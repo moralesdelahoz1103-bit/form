@@ -1,27 +1,27 @@
-# Form - Sistema de Gestión de Formaciones
+# Formato de asistencia a actividades
 
-Sistema para gestionar formaciones, eventos y registro de asistencia con códigos QR y firmas digitales.
+sistema para gestionar Formaciones, Capacitaciones, Eventos y registro de asistencia con códigos qr.
 
-## 🚀 Tecnologías
+## tecnologías
 
-- **Frontend**: React + Vite
-- **Backend**: FastAPI (Python)
-- **Base de Datos**: Azure Cosmos DB (o JSON local)
-- **Almacenamiento**: Azure Blob Storage (QR y firmas)
-- **Autenticación**: Microsoft Entra ID (Azure AD)
-- **Infraestructura**: Docker & Docker Compose
+- **frontend**: react + vite
+- **backend**: fastapi (python)
+- **base de datos**: azure cosmos db (o json local)
+- **almacenamiento**: azure blob storage (qr y firmas)
+- **autenticación**: microsoft entra id (azure ad)
+- **infraestructura**: docker & docker compose
 
 ---
 
-## 🛠️ Desarrollo Local (Sin Docker)
+## desarrollo local 
 
-### Prerrequisitos
-- Python 3.10+
-- Node.js 18+
-- Archivos `.env` configurados en las carpetas `backend/` y `frontend/`
+### prerrequisitos
+- python 3.10+
+- node.js 18+
+- archivos `.env` configurados en las carpetas `backend/` y `frontend/`
 
-### 1. Configurar y encender el Backend
-Desde la raíz del proyecto:
+### 1. configurar y encender el backend
+desde la raíz del proyecto:
 
 ```powershell
 cd backend
@@ -35,10 +35,10 @@ pip install -r requirements.txt
 # iniciar servidor
 python -m uvicorn app.main:app --reload
 ```
-El backend estará en: [http://localhost:8000/docs](http://localhost:8000/docs)
+el backend estará en: [http://localhost:8000/docs](http://localhost:8000/docs)
 
-### 2. Configurar y encender el Frontend
-Desde la raíz del proyecto en otra terminal:
+### 2. configurar y encender el frontend
+desde la raíz del proyecto en otra terminal:
 
 ```powershell
 cd frontend
@@ -48,59 +48,58 @@ npm install --force
 # iniciar servidor de desarrollo
 npm run dev
 ```
-La aplicación estará en: [http://localhost:3000](http://localhost:3000)
+la aplicación estará en: [http://localhost:3000](http://localhost:3000)
 
 ---
 
-## ☁️ Almacenamiento (Azure Blob Storage)
+## almacenamiento (azure blob storage)
 
-El sistema utiliza Azure Blob Storage para guardar los códigos QR y las firmas de asistencia.
+el sistema utiliza azure blob storage para guardar los códigos qr y las firmas de asistencia.
 
-### Estructura de Carpetas
+### estructura de carpetas
 ```
-formatoformacionesoeventos/
-└── {Creador}/
-    └── {Capacitacion}/
-        ├── QR_{Capacitacion}.png
-        └── Firmas/
-            ├── Firma_{Cedula1}.png
-            └── Firma_{Cedula2}.png
+formatoactividadesoeventos/
+└── {creador}/
+    └── {actividad}/
+        ├── qr_{actividad}.png
+        └── firmas/
+            ├── firma_{cedula1}.png
+            └── firma_{cedula2}.png
 ```
 
-### Seguridad y Proxy
-- Los archivos en Azure son **PRIVADOS**.
-- El acceso se realiza a través de un **Proxy en el Backend**.
-- backend genera tokens SAS temporales (24h) interna y transparente para el usuario.
-- **NUNCA** se exponen las credenciales ni los tokens SAS al frontend.
+### seguridad y proxy
+- los archivos en azure son **privados**.
+- el acceso se realiza a través de un **proxy en el backend**.
+- el backend genera tokens sas temporales de forma interna para el acceso seguro.
+- **nunca** se exponen las credenciales ni los tokens sas al frontend.
 
 ---
 
-## 🔐 Seguridad y Variables de Entorno
+## seguridad y variables de entorno
 
-**IMPORTANTE**: Nunca subir el archivo `.env` al repositorio.
+**importante**: nunca subir el archivo `.env` al repositorio. el archivo `.gitignore` está configurado para proteger estos archivos.
 
-### Configuración `.env`
-Copia `.env.example` a `backend/.env` y completa los valores:
+### configuración .env
+copia `.env.example` a `backend/.env` y completa los valores obligatorios:
 
-```bash
-cp backend/.env.example backend/.env
-```
-
-Variables críticas:
-- `COSMOS_KEY`: Clave de base de datos
-- `AZURE_STORAGE_CONNECTION_STRING`: Conexión a almacenamiento
-- `ENTRA_CLIENT_SECRET`: Secreto de autenticación Microsoft
+- `entra_client_id`: id de la aplicación en azure
+- `entra_client_secret`: secreto de la aplicación
+- `entra_tenant_id`: id del inquilino de microsoft
+- `session_secret`: clave secreta para jwt (debe ser una cadena aleatoria de mínimo 32 caracteres)
+- `cosmos_endpoint`: url de la cuenta de cosmosdb
+- `cosmos_key`: llave de acceso a cosmosdb
+- `azure_storage_connection_string`: cadena de conexión para blobs
 
 ---
 
-## 🔧 Scripts de Utilidad (Backend)
+## scripts de utilidad (backend)
 
-En la carpeta `backend/` hay scripts útiles para desarrollo (NO usar en producción):
+en la carpeta `backend/` hay scripts útiles para tareas específicas:
 
-- `list_azure_blobs.py`: Lista todos los archivos en Azure Storage.
-- `delete_old_azure_files.py`: Elimina archivos con la estructura antigua.
+- `list_azure_blobs.py`: lista todos los archivos almacenados en azure storage para verificar la estructura.
+- `inspect_routes.py`: permite visualizar todas las rutas registradas en la api de fastapi.
 
-Ejecutar:
+ejecutar:
 ```bash
 cd backend
 python list_azure_blobs.py

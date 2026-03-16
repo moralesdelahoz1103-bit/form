@@ -55,7 +55,7 @@ const CrearCapacitacion = () => {
   return (
     <div className="crear-capacitacion">
       <div className="page-header">
-        <h1 className="page-title">Crear formación</h1>
+        <h1 className="page-title">Crear actividad</h1>
         <p className="page-subtitle">Complete el formulario para generar un enlace de registro</p>
       </div>
 

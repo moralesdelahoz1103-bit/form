@@ -55,7 +55,7 @@
 
 @media (max-width: 768px) {
   .view-toggle {
-    display: none !important;
+    display: flex;
   }
 }
 

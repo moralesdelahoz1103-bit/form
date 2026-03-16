@@ -118,7 +118,7 @@
     white-space: nowrap;
 }
 
-.sesion-facilitador-row {
+.sesion-facilitador_entidad-row {
     margin-top: 8px;
     padding: 8px 0;
     border-top: 1px solid #eee;
@@ -127,13 +127,13 @@
     align-items: center;
 }
 
-.sesion-facilitador-row .info-label {
+.sesion-facilitador_entidad-row .info-label {
     font-size: 13px;
     color: #475569;
     font-weight: normal;
 }
 
-.sesion-facilitador-row .info-value {
+.sesion-facilitador_entidad-row .info-value {
     font-size: 13px;
     color: var(--text-dark);
     font-weight: 600;
@@ -239,7 +239,9 @@
     border-radius: var(--radius-lg);
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05), 0 1px 2px rgba(0, 0, 0, 0.02);
     border: 1px solid #e2e8f0;
-    overflow-x: auto;
+    overflow-x: hidden;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
     margin-top: 8px;
 }
 
@@ -248,8 +250,7 @@
     border-collapse: collapse;
     font-size: 13.5px;
     text-align: center;
-    min-width: 800px;
-    table-layout: auto;
+    table-layout: fixed;
 }
 
 .sesiones-table th {
@@ -257,7 +258,8 @@
     padding: 14px 12px;
     color: #475569;
     border-bottom: 1px solid #e2e8f0;
-    white-space: nowrap;
+    white-space: normal;
+    word-break: break-word;
     font-size: 13px;
     font-weight: normal;
     text-align: center;
@@ -272,6 +274,14 @@
     font-size: 13px;
     font-weight: normal;
     transition: background-color 0.2s ease;
+    white-space: normal;
+    word-break: break-word;
+    overflow-wrap: anywhere;
+}
+
+.sesiones-table th:first-child,
+.sesiones-table td:first-child {
+    width: 25%;
 }
 
 .fecha-plus {
@@ -291,21 +301,32 @@
 
 .col-tema {
     color: #1e293b;
-    max-width: 280px;
+    width: 30%;
     font-size: 13px;
     font-weight: normal;
     text-align: left !important;
     padding-left: 16px !important;
+    min-width: 0;
+}
+
+.col-tema-content {
+    width: 100%;
+    min-width: 0;
+}
+
+.col-tema-title {
+    display: block;
+    width: 100%;
+    min-width: 0;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
 }
 
-.col-facilitador {
-    max-width: 180px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+.col-facilitador_entidad {
+    width: 13%;
+    white-space: normal;
+    word-break: break-word;
     text-align: center;
 }
 
@@ -320,10 +341,9 @@
 }
 
 .col-creator {
-    max-width: 120px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    width: 12%;
+    white-space: normal;
+    word-break: break-word;
     text-align: center;
     font-size: 12px;
 }
@@ -332,6 +352,7 @@
     display: flex;
     gap: 4px;
     justify-content: center;
+    flex-wrap: wrap;
 }
 
 .btn-table-action {
@@ -362,7 +383,37 @@
 }
 
 .whitespace-nowrap {
-    white-space: nowrap;
+    white-space: normal;
+}
+
+@media (max-width: 1100px) {
+    .sesiones-table th,
+    .sesiones-table td {
+        padding: 8px 6px;
+        font-size: 11.5px;
+    }
+
+    .sesiones-table th:first-child,
+    .sesiones-table td:first-child {
+        width: 40%;
+    }
+
+    .col-tema {
+        width: 25%;
+    }
+
+    .col-facilitador_entidad {
+        width: 12%;
+    }
+
+    .col-creator {
+        width: 10%;
+    }
+
+    .btn-table-action {
+        width: 28px;
+        height: 28px;
+    }
 }
 
 /* ── Pagination ── */

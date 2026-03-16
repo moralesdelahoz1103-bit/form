@@ -1,53 +1,68 @@
-# Dependencies
+# dependencias
 node_modules/
 frontend/node_modules/
+backend/venv/
+backend/env/
+.venv/
+env/
+venv/
+ENV/
 
-# Python
+# python / backend
 __pycache__/
 *.py[cod]
 *$py.class
 *.so
 .Python
-env/
-venv/
-.venv/
-ENV/
-backend/venv/
+*.egg-info/
+*.db
+*.sqlite
+backend/app/data/*.json
+!backend/app/data/.gitkeep
 
-# Build
+# archivos de usuario / subidas
+backend/app/uploads/*
+!backend/app/uploads/.gitkeep
+backend/app/uploads/firmas/*
+!backend/app/uploads/firmas/.gitkeep
+uploads/
+firmas/
+
+# frontend / construcción
 frontend/dist/
 frontend/build/
-*.egg-info/
+dist/
+build/
 
-# IDE
+# variables de entorno (seguridad)
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+backend/.env
+frontend/.env
+*.env
+
+# editores e ide
 .vscode/
+!.vscode/extensions.json
 .idea/
 *.swp
 *.swo
 *~
+.project
+.pydevproject
+.settings/
 
-# OS
+# sistema
 .DS_Store
 Thumbs.db
+desktop.ini
 
-# Environment variables
-.env
-backend/.env
-.env.local
-.env.production
-
-# Data files (comentar si quieres subir datos de prueba)
-backend/app/data/*.json
-backend/app/uploads/firmas/*
-
-# Keep folders but ignore content
-!backend/app/data/.gitkeep
-!backend/app/uploads/.gitkeep
-!backend/app/uploads/firmas/.gitkeep
-
-# Logs
+# logs
 *.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
-
+pip-log.txt

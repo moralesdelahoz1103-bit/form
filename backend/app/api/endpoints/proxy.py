@@ -1,8 +1,9 @@
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import StreamingResponse
 import httpx
-from app.storage import get_storage_adapter
-from app.core.config import settings
+from api.endpoints.auth import get_current_user
+from storage import get_storage_adapter
+from core.config import settings
 
 router = APIRouter(prefix="/api/proxy", tags=["proxy"])
 

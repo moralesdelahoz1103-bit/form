@@ -74,7 +74,7 @@ def crear_asistente(asistente_data: dict, sesion_id: str, ip_address: Optional[s
             "unidad": asistente_data.get('unidad'),
             "empresa": asistente_data.get('empresa'),
             "telefono": asistente_data.get('telefono'),
-            "correo": asistente_data['correo'],
+            "correo": asistente_data.get('correo'),
             "fecha_registro": datetime.now(pytz.timezone(settings.TIMEZONE)).isoformat()
         }
         if asistente_data.get('ocurrencia_id'):
@@ -100,7 +100,7 @@ def crear_asistente(asistente_data: dict, sesion_id: str, ip_address: Optional[s
             "unidad": asistente_data.get('unidad'),
             "empresa": asistente_data.get('empresa'),
             "telefono": asistente_data.get('telefono'),
-            "correo": asistente_data['correo'],
+            "correo": asistente_data.get('correo'),
             "fecha_registro": datetime.now(pytz.timezone(settings.TIMEZONE)).isoformat()
         }
         if asistente_data.get('ocurrencia_id'):

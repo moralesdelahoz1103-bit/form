@@ -1,5 +1,5 @@
 import React from 'react';
-import { Toast } from '../../common';
+import { Toast, Loading } from '../../common';
 import { useTabUsuarios } from './hooks/useTabUsuarios';
 import UsuariosFiltros from './components/UsuariosFiltros';
 import UsuariosTabla from './components/UsuariosTabla';
@@ -26,8 +26,7 @@ const TabUsuarios = ({ cachedData, onDataUpdate, onAdminsCountUpdate }) => {
   if (verificandoPermisos || loading) {
     return (
       <div className="tab-usuarios-loading">
-        <div className="loading-spinner" />
-        <p>{verificandoPermisos ? 'Verificando permisos...' : 'Cargando usuarios...'}</p>
+        <Loading size="md" text={verificandoPermisos ? 'Verificando permisos' : 'Cargando usuarios'} />
       </div>
     );
   }

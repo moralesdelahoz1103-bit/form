@@ -1,4 +1,5 @@
 import React from 'react';
+import BrandSpinner from '../BrandSpinner/BrandSpinner';
 import './Button.css';
 
 const Button = ({
@@ -27,8 +28,8 @@ const Button = ({
       {/* Spinner superpuesto: no ocupa espacio en el flujo del DOM */}
       {loading && (
         <span className="btn-loading-overlay">
-          <span className="spinner" />
-          <span>Cargando...</span>
+          <BrandSpinner size="xs" className="btn-loading-spinner" />
+          <span>Cargando</span>
         </span>
       )}
     </button>

@@ -28,12 +28,13 @@ export const useSesionEditor = (setSesiones, setToast) => {
             fecha: tabActualData.fecha || '',
             hora_inicio: tabActualData.hora_inicio || '',
             hora_fin: tabActualData.hora_fin || '',
-            facilitador: tabActualData.facilitador || modalDetalles.facilitador || '',
-            tipo_actividad: tabActualData.tipo_actividad || modalDetalles.tipo_actividad || '',
-            tipo_formacion: tabActualData.tipo_formacion || modalDetalles.tipo_formacion || '',
+            facilitador_entidad: tabActualData.facilitador_entidad || modalDetalles.facilitador_entidad || '',
+            tipo_actividad: tabActualData.tipo_actividad || modalDetalles.tipo_actividad || 'Interno',
+            actividad: tabActualData.actividad || modalDetalles.actividad || '',
+            dirigido_a: tabActualData.dirigido_a || modalDetalles.dirigido_a || '',
             modalidad: tabActualData.modalidad || modalDetalles.modalidad || '',
             responsable: tabActualData.responsable || modalDetalles.responsable || '',
-            cargo: tabActualData.cargo || modalDetalles.cargo || '',
+            cargo_responsable: tabActualData.cargo_responsable || modalDetalles.cargo_responsable || '',
             contenido: tabActualData.contenido || modalDetalles.contenido || ''
         });
         setModoEdicion(true);
@@ -47,16 +48,16 @@ export const useSesionEditor = (setSesiones, setToast) => {
     };
 
     const handleCambioEdicion = (campo, valor) => {
-        if (campo === 'custom_tipo') {
+        if (campo === 'actividad_custom') {
             setCustomTipoEdicion(valor);
-            if (erroresEdicion.custom_tipo) {
-                setErroresEdicion(prev => ({ ...prev, custom_tipo: null }));
+            if (erroresEdicion.actividad_custom) {
+                setErroresEdicion(prev => ({ ...prev, actividad_custom: null }));
             }
             return;
         }
-        if (campo === 'tipo_actividad' && !valor.startsWith('Otros')) {
+        if (campo === 'actividad' && !valor.startsWith('Otros')) {
             setCustomTipoEdicion('');
-            setErroresEdicion(prev => ({ ...prev, custom_tipo: undefined }));
+            setErroresEdicion(prev => ({ ...prev, actividad_custom: undefined }));
         }
         setDatosEdicion(prev => ({ ...prev, [campo]: valor }));
         if (erroresEdicion[campo]) {
@@ -70,16 +71,19 @@ export const useSesionEditor = (setSesiones, setToast) => {
         if (esPrincipal) {
             if (!datosEdicion.hora_inicio) errores.hora_inicio = 'Hora inicio es obligatoria';
             if (!datosEdicion.hora_fin) errores.hora_fin = 'Hora fin es obligatoria';
-            if (!datosEdicion.tipo_actividad) errores.tipo_actividad = 'Selecciona un tipo';
-            if (datosEdicion.tipo_actividad?.startsWith('Otros') && !customTipoEdicion?.trim()) {
-                errores.custom_tipo = 'Especifica el tipo';
+            if (!datosEdicion.actividad) errores.actividad = 'Selecciona un tipo';
+            if (datosEdicion.actividad?.startsWith('Otros') && !customTipoEdicion?.trim()) {
+                errores.actividad_custom = 'Especifica el tipo';
             }
             if (!datosEdicion.contenido?.trim()) errores.contenido = 'El contenido es obligatorio';
-            if (!datosEdicion.facilitador?.trim()) errores.facilitador = 'El facilitador es obligatorio';
-            if (!datosEdicion.tipo_formacion) errores.tipo_formacion = 'Selecciona un tipo de formación';
+            if (datosEdicion.contenido?.trim() && datosEdicion.contenido.trim().length < 100) {
+                errores.contenido = 'El contenido debe tener al menos 100 caracteres';
+            }
+            if (!datosEdicion.facilitador_entidad?.trim()) errores.facilitador_entidad = 'El facilitador es obligatorio';
+            if (!datosEdicion.dirigido_a) errores.dirigido_a = 'Selecciona a quién va dirigido';
             if (!datosEdicion.modalidad) errores.modalidad = 'Selecciona una modalidad';
             if (!datosEdicion.responsable?.trim()) errores.responsable = 'El responsable es obligatorio';
-            if (!datosEdicion.cargo?.trim()) errores.cargo = 'El cargo es obligatorio';
+            if (!datosEdicion.cargo_responsable?.trim()) errores.cargo_responsable = 'El cargo es obligatorio';
         }
         if (!datosEdicion.fecha) errores.fecha = 'La fecha es obligatoria';
         setErroresEdicion(errores);
@@ -92,8 +96,11 @@ export const useSesionEditor = (setSesiones, setToast) => {
         try {
             const datosParaGuardar = {
                 ...datosEdicion,
-                tipo_actividad: datosEdicion.tipo_actividad?.startsWith('Otros') ? customTipoEdicion : datosEdicion.tipo_actividad,
+                actividad: datosEdicion.actividad?.startsWith('Otros') ? customTipoEdicion : datosEdicion.actividad,
             };
+
+            // Si se cambió el tema, actualizar en modalDetalles (esto afectará a todas las sesiones visualmente)
+            const temaCambiado = datosParaGuardar.tema !== modalDetalles.tema;
 
             if (sesionTabActiva !== '__principal__') {
                 Object.keys(datosParaGuardar).forEach(key => {
@@ -105,17 +112,52 @@ export const useSesionEditor = (setSesiones, setToast) => {
 
             if (sesionTabActiva === '__principal__') {
                 await sesionesService.actualizar(modalDetalles.id, datosParaGuardar);
-                const sesionActualizada = { ...modalDetalles, ...datosParaGuardar };
+                
+                // Actualizar todas las ocurrencias para que hereden estos campos si se editan desde la principal
+                const camposGlobales = {
+                    tema: datosParaGuardar.tema,
+                    actividad: datosParaGuardar.actividad,
+                    actividad_custom: datosParaGuardar.actividad_custom,
+                    dirigido_a: datosParaGuardar.dirigido_a
+                };
+                
+                const nuevasOcurrenciasSync = (modalDetalles.ocurrencias || []).map(oc => ({
+                    ...oc,
+                    ...camposGlobales
+                }));
+
+                const sesionActualizada = { ...modalDetalles, ...datosParaGuardar, ocurrencias: nuevasOcurrenciasSync };
                 setModalDetalles(sesionActualizada);
-                setSesiones(prev => prev.map(s => s.id === modalDetalles.id ? { ...s, ...datosParaGuardar } : s));
+                setSesiones(prev => prev.map(s => s.id === modalDetalles.id ? { ...s, ...datosParaGuardar, ocurrencias: nuevasOcurrenciasSync } : s));
             } else {
                 await sesionesService.actualizarOcurrencia(modalDetalles.id, sesionTabActiva, datosParaGuardar);
-                const nuevasOcurrencias = (modalDetalles.ocurrencias || []).map(oc =>
-                    oc.id === sesionTabActiva ? { ...oc, ...datosParaGuardar } : oc
+                
+                // Extraer los campos que deben sincronizarse globalmente
+                const camposGlobales = {
+                    tema: datosParaGuardar.tema,
+                    actividad: datosParaGuardar.actividad,
+                    actividad_custom: datosParaGuardar.actividad_custom,
+                    dirigido_a: datosParaGuardar.dirigido_a
+                };
+
+                // Actualizar la ocurrencia específica con todos sus datos, 
+                // pero a las demás solo le aplicamos los campos globales
+                const nuevasOcurrenciasSync = (modalDetalles.ocurrencias || []).map(oc =>
+                    oc.id === sesionTabActiva 
+                        ? { ...oc, ...datosParaGuardar } 
+                        : { ...oc, ...camposGlobales }
                 );
-                const sesionActualizada = { ...modalDetalles, ocurrencias: nuevasOcurrencias };
+
+                const sesionActualizada = { 
+                    ...modalDetalles, 
+                    ...camposGlobales, // Actualizar la principal también
+                    ocurrencias: nuevasOcurrenciasSync 
+                };
+                
                 setModalDetalles(sesionActualizada);
-                setSesiones(prev => prev.map(s => s.id === modalDetalles.id ? { ...s, ocurrencias: nuevasOcurrencias } : s));
+                setSesiones(prev => prev.map(s => s.id === modalDetalles.id ? 
+                    { ...s, ...camposGlobales, ocurrencias: nuevasOcurrenciasSync } : s
+                ));
             }
             setModoEdicion(false);
             setDatosEdicion({});

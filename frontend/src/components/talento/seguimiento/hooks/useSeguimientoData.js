@@ -82,10 +82,10 @@ export const useSeguimientoData = (esAdministrador, userEmail) => {
             if (!data || !data.historial) return;
 
             const wb = new ExcelJS.Workbook();
-            const ws = wb.addWorksheet('Historial de formaciones');
+            const ws = wb.addWorksheet('Historial de actividades');
 
             // Información general del colaborador
-            ws.addRow(['Reporte individual de formación']).font = { bold: true, size: 14 };
+            ws.addRow(['Reporte individual de actividad']).font = { bold: true, size: 14 };
             ws.addRow(['']);
             ws.addRow(['Nombre del colaborador:', p.nombre]);
             ws.addRow(['Cédula:', p.cedula]);
@@ -109,13 +109,13 @@ export const useSeguimientoData = (esAdministrador, userEmail) => {
                 return [
                     item.tema,
                     item.sesion_nro ? `Sesión ${item.sesion_nro}` : 'Única',
-                    formatters.fechaCorta(item.fecha_formacion),
+                    formatters.fechaCorta(item.fecha_actividad || item.fecha_formacion),
                     item.hora_inicio || 'N/A',
                     item.hora_fin || 'N/A',
                     horasDecimal > 0 ? parseFloat(horasDecimal.toFixed(2)) : 0,
-                    item.facilitador || 'N/A',
-                    item.modalidad || item.tipo_formacion,
-                    item.tipo_formacion || 'Interna',
+                    item.facilitador_entidad || item.facilitador || 'N/A',
+                    item.modalidad || 'N/A',
+                    item.actividad || item.tipo_formacion || 'Interna',
                     fechaReg,
                     horaReg
                 ];
@@ -131,15 +131,15 @@ export const useSeguimientoData = (esAdministrador, userEmail) => {
                     showRowStripes: true,
                 },
                 columns: [
-                    { name: 'Tema de formación', filterButton: true },
+                    { name: 'Tema de actividad', filterButton: true },
                     { name: 'Sesión', filterButton: true },
-                    { name: 'Fecha capacitación', filterButton: true },
+                    { name: 'Fecha de actividad', filterButton: true },
                     { name: 'Hora inicio', filterButton: true },
                     { name: 'Hora fin', filterButton: true },
-                    { name: 'Horas de formación', filterButton: true },
+                    { name: 'Horas de actividad', filterButton: true },
                     { name: 'Facilitador', filterButton: true },
                     { name: 'Modalidad', filterButton: true },
-                    { name: 'Tipo de formación', filterButton: true },
+                    { name: 'Actividad', filterButton: true },
                     { name: 'Fecha registro', filterButton: true },
                     { name: 'Hora registro', filterButton: true }
                 ],
@@ -148,13 +148,13 @@ export const useSeguimientoData = (esAdministrador, userEmail) => {
 
             // Estilos adicionales (Bordes y Alineación)
             const encabezados = [
-                'Tema de formación', 'Sesión', 'Fecha capacitación', 'Hora inicio', 'Hora fin',
-                'Horas de formación', 'Facilitador', 'Modalidad', 'Tipo de formación',
+                'Tema de actividad', 'Sesión', 'Fecha de actividad', 'Hora inicio', 'Hora fin',
+                'Horas de actividad', 'Facilitador', 'Modalidad', 'Tipo de actividad',
                 'Fecha registro', 'Hora registro'
             ];
             const cabecerasCentradas = [
-                'Sesión', 'Fecha capacitación', 'Hora inicio', 'Hora fin', 'Horas de formación',
-                'Modalidad', 'Tipo de formación', 'Fecha registro', 'Hora registro'
+                'Sesión', 'Fecha de actividad', 'Hora inicio', 'Hora fin', 'Horas de actividad',
+                'Modalidad', 'Tipo de actividad', 'Fecha registro', 'Hora registro'
             ];
 
             ws.eachRow((row, rowNumber) => {
@@ -181,7 +181,7 @@ export const useSeguimientoData = (esAdministrador, userEmail) => {
                         }
 
                         // Formato de número para horas
-                        if (headerName === 'Horas de formación') {
+                        if (headerName === 'Horas de actividad') {
                             cell.numFmt = '0.00';
                         }
                     } else {

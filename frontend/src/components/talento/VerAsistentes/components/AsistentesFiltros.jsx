@@ -24,13 +24,13 @@ const AsistentesFiltros = ({
 
             {/* Selector de formación */}
             <div className="va-filtro-campo va-filtro-nombre">
-                <label className="va-filtro-label">Formación</label>
+                <label className="va-filtro-label">Actividad</label>
                 <select
                     className="va-select"
                     value={sesionSeleccionada}
                     onChange={(e) => handleSeleccionarSesion(e.target.value)}
                 >
-                    <option value="">Elige una formación…</option>
+                    <option value="">Elige una actividad…</option>
                     {sesiones.map(s => (
                         <option key={s.id} value={s.id}>{s.tema}</option>
                     ))}
@@ -54,7 +54,7 @@ const AsistentesFiltros = ({
             </div>
 
             {/* Facilitador */}
-            <div className="va-filtro-campo va-filtro-facilitador">
+            <div className="va-filtro-campo va-filtro-facilitador_entidad">
                 <label className="va-filtro-label">Facilitador</label>
                 <div className="va-input-readonly" title={facilitadorMostrado}>
                     {facilitadorMostrado || '—'}
@@ -70,10 +70,9 @@ const AsistentesFiltros = ({
                         value={ocurrenciaSeleccionada}
                         onChange={(e) => setOcurrenciaSeleccionada(e.target.value)}
                     >
-                        <option value="__principal__">Sesión 1 — {formatters.fechaCorta(sesionActual.fecha)}</option>
                         {(sesionActual.ocurrencias || []).map((oc, idx) => (
-                            <option key={oc.id} value={oc.id}>
-                                Sesión {idx + 2} — {formatters.fechaCorta(oc.fecha)}
+                            <option key={oc.id} value={idx === 0 ? '__principal__' : oc.id}>
+                                Sesión {idx + 1} — {formatters.fechaCorta(oc.fecha)}
                             </option>
                         ))}
                     </select>

@@ -1,11 +1,12 @@
 import React from 'react';
+import BrandSpinner from '../BrandSpinner/BrandSpinner';
 import './Loading.css';
 
 const Loading = ({ size = 'md', fullScreen = false, text }) => {
   if (fullScreen) {
     return (
       <div className="loading-fullscreen">
-        <div className={`loading-spinner loading-${size}`}></div>
+        <BrandSpinner size={size} />
         {text && <p className="loading-text">{text}</p>}
       </div>
     );
@@ -13,7 +14,7 @@ const Loading = ({ size = 'md', fullScreen = false, text }) => {
 
   return (
     <div className="loading-container">
-      <div className={`loading-spinner loading-${size}`}></div>
+      <BrandSpinner size={size} />
       {text && <p className="loading-text">{text}</p>}
     </div>
   );

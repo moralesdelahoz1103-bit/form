@@ -21,7 +21,7 @@ const KpiCards = ({ metrics }) => {
 
     const cards = [
         {
-            label: 'Total formaciones',
+            label: 'Total actividades',
             value: metrics.totalFormaciones,
             delta: deltas.formaciones,
             color: 'blue'

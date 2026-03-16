@@ -5,7 +5,7 @@ import { sesionesService } from '../../../../services/sesiones';
 import './SessionDetailModal.css';
 
 const modalidades = ['Virtual', 'Presencial', 'Híbrida'];
-const tiposFormacion = ['Interna', 'Externa'];
+const tiposFormacionBase = ['Personal FSD', 'Personal Externo'];
 
 const SessionDetailModal = ({
     modalDetalles, setModalDetalles,
@@ -28,15 +28,20 @@ const SessionDetailModal = ({
     onCloseModal
 }) => {
     const tabsRef = useRef(null);
-    const userEmail = JSON.parse(localStorage.getItem('userInfo') || '{}').email;
+    const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}');
+    const userEmail = userInfo.email;
+    const esAdmin = userInfo.role === 'Administrador' || userInfo.rol === 'Administrador';
     const esCreador = modalDetalles?.created_by === userEmail;
+    const puedeEditar = esCreador || esAdmin;
 
     if (!modalDetalles) return null;
 
-    // Preparar datos de sesiones
+    // Preparar datos de sesiones de forma que no se duplique la principal
+    const ocurrenciasAdicionales = (modalDetalles.ocurrencias || []).filter(oc => oc.token !== modalDetalles.token);
+    
     let todasSesiones = [
-        { id: '__principal__', label: 'Sesión 1', fecha: modalDetalles.fecha, hora_inicio: modalDetalles.hora_inicio, hora_fin: modalDetalles.hora_fin, facilitador: modalDetalles.facilitador, contenido: modalDetalles.contenido, total_asistentes: modalDetalles.total_asistentes_principal || 0, link: modalDetalles.link, token: modalDetalles.token, _esPrincipal: true },
-        ...(modalDetalles.ocurrencias || []).map((oc) => ({ ...oc, _esPrincipal: false }))
+        { id: '__principal__', label: 'Sesión 1', fecha: modalDetalles.fecha, hora_inicio: modalDetalles.hora_inicio, hora_fin: modalDetalles.hora_fin, facilitador_entidad: modalDetalles.facilitador_entidad, contenido: modalDetalles.contenido, total_asistentes: modalDetalles.total_asistentes_principal || 0, link: modalDetalles.link, token: modalDetalles.token, _esPrincipal: true },
+        ...ocurrenciasAdicionales.map((oc) => ({ ...oc, _esPrincipal: false }))
     ];
 
     todasSesiones.sort((a, b) => new Date(a.fecha) - new Date(b.fecha));
@@ -55,7 +60,7 @@ const SessionDetailModal = ({
         <Modal
             isOpen={!!modalDetalles}
             onClose={onCloseModal}
-            title={modoEdicion ? "Editar formación" : "Detalles de la formación"}
+            title={modoEdicion ? "Editar actividad" : "Detalles de la actividad"}
             size="md"
         >
             <div className="modal-ver-detalle-content">
@@ -65,7 +70,7 @@ const SessionDetailModal = ({
                         <div className="modal-detalle-header">
                             <h2 className="modal-detalle-tema">{tabActual.tema || modalDetalles.tema}</h2>
                             <div className="modal-detalle-subinfo">
-                                <span className="badge-neutral">{tabActual.tipo_actividad || modalDetalles.tipo_actividad}</span>
+                                <span className="badge-neutral">{tabActual.actividad || modalDetalles.actividad}</span>
                                 <span className="badge-neutral">{tabActual.modalidad || modalDetalles.modalidad}</span>
                                 <span className="badge-asistentes">
                                     <strong>{tabActual.total_asistentes || 0}</strong> asistentes
@@ -84,6 +89,11 @@ const SessionDetailModal = ({
                                     <div className="card-stat"><label>Fecha</label><span>{formatters.fechaCorta(tabActual.fecha)}</span></div>
                                     <div className="card-stat"><label>Horario</label><span>{tabActual.hora_inicio || '--:--'} - {tabActual.hora_fin || '--:--'}</span></div>
                                     <div className="card-stat"><label>Duración</label><span>{formatters.calcularDuracion(tabActual.hora_inicio, tabActual.hora_fin)}</span></div>
+                                    <div className="card-stat"><label>Dirigido a</label><span>{tabActual.dirigido_a || modalDetalles.dirigido_a}</span></div>
+                                    <div className="card-stat"><label>Tipo de actividad</label><span>{tabActual.tipo_actividad || modalDetalles.tipo_actividad}</span></div>
+                                    {(tabActual.actividad === 'Otros (eventos)' || modalDetalles.actividad === 'Otros (eventos)') && (
+                                        <div className="card-stat"><label>Especificación</label><span>{tabActual.actividad_custom || modalDetalles.actividad_custom}</span></div>
+                                    )}
                                 </div>
                             </div>
                             <div className="detalle-card">
@@ -92,9 +102,14 @@ const SessionDetailModal = ({
                                     <span>Equipo</span>
                                 </div>
                                 <div className="card-body">
-                                    <div className="card-stat"><label>Facilitador</label><span className="text-highlight">{tabActual.facilitador || modalDetalles.facilitador}</span></div>
+                                    <div className="card-stat">
+                                        <label>Facilitador</label>
+                                        <div style={{ display: 'flex', flexDirection: 'column' }}>
+                                            <span className="text-highlight">{tabActual.facilitador_entidad || modalDetalles.facilitador_entidad}</span>
+                                        </div>
+                                    </div>
                                     <div className="card-stat"><label>Responsable</label><span>{tabActual.responsable || modalDetalles.responsable}</span></div>
-                                    <div className="card-stat"><label>Cargo</label><span>{tabActual.cargo || modalDetalles.cargo}</span></div>
+                                    <div className="card-stat"><label>Cargo</label><span>{tabActual.cargo_responsable || modalDetalles.cargo_responsable}</span></div>
                                     <div className="card-stat" style={{ borderTop: '1px dashed #e2e8f0', marginTop: '4px', paddingTop: '4px' }}>
                                         <label>Creado por</label>
                                         <span style={{ color: '#64748b', fontSize: '12px' }}>
@@ -107,7 +122,7 @@ const SessionDetailModal = ({
 
                         {/* ── Contenido ── */}
                         <div className="modal-detalle-section">
-                            <div className="section-title-clean">Contenido de la formación</div>
+                            <div className="section-title-clean">Contenido de la actividad</div>
                             <div className="content-box-clean">{tabActual.contenido || modalDetalles.contenido}</div>
                         </div>
 
@@ -125,7 +140,7 @@ const SessionDetailModal = ({
                                     <button className="btn-footer-action" title="Ver QR" onClick={() => tabActual._esPrincipal ? setModalQR(modalDetalles) : setModalQR({ ...modalDetalles, id: modalDetalles.id, _ocurrencia: tabActual })}>
                                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="3" width="7" height="7" /><rect x="14" y="3" width="7" height="7" /><rect x="14" y="14" width="7" height="7" /><rect x="3" y="14" width="7" height="7" /></svg>
                                     </button>
-                                    {esCreador && !tabActual._esPrincipal && (
+                                    {puedeEditar && !tabActual._esPrincipal && (
                                         <button className="btn-footer-action delete" title="Eliminar sesión" onClick={() => setModalEliminarOcurrencia({ sesionId: modalDetalles.id, ocurrenciaId: tabActual.id, fecha: tabActual.fecha })}>
                                             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="3 6 5 6 21 6" /><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" /></svg>
                                         </button>
@@ -150,8 +165,8 @@ const SessionDetailModal = ({
                             <button className="btn-carousel-nav right" onClick={() => scrollTabs('right')}>
                                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="9 18 15 12 9 6" /></svg>
                             </button>
-                            {esCreador && (
-                                <button className={`modal-sesion-tab modal-sesion-tab-add ${mostrarFormOcurrencia ? 'active' : ''}`} onClick={() => { setMostrarFormOcurrencia(true); setMostrarContenidoNuevaOc(false); setNuevaOcurrencia({ fecha: '', hora_inicio: '', hora_fin: '', facilitador: '', contenido: '' }); }}>
+                            {puedeEditar && (
+                                <button className={`modal-sesion-tab modal-sesion-tab-add ${mostrarFormOcurrencia ? 'active' : ''}`} onClick={() => { setMostrarFormOcurrencia(true); setMostrarContenidoNuevaOc(false); setNuevaOcurrencia({ fecha: '', hora_inicio: '', hora_fin: '', facilitador_entidad: '', contenido: '' }); }}>
                                     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" /></svg>
                                     Añadir
                                 </button>
@@ -179,8 +194,15 @@ const SessionDetailModal = ({
                                         <input type="time" value={nuevaOcurrencia.hora_fin} onChange={e => setNuevaOcurrencia(p => ({ ...p, hora_fin: e.target.value }))} />
                                     </div>
                                     <div className="form-group-inline">
-                                        <label>Facilitador</label>
-                                        <input type="text" placeholder="Nombre..." value={nuevaOcurrencia.facilitador || ''} onChange={e => setNuevaOcurrencia(p => ({ ...p, facilitador: e.target.value }))} />
+                                        <label>
+                                            {(nuevaOcurrencia.dirigido_a?.includes('Externo') || (!nuevaOcurrencia.dirigido_a && modalDetalles.dirigido_a?.includes('Externo'))) ? 'Entidad / Empresa' : 'Facilitador'}
+                                        </label>
+                                        <input 
+                                            type="text" 
+                                            placeholder={(nuevaOcurrencia.dirigido_a?.includes('Externo') || (!nuevaOcurrencia.dirigido_a && modalDetalles.dirigido_a?.includes('Externo'))) ? '¿Cuál es la entidad o empresa que imparte la actividad?' : '¿Quién imparte la actividad?'} 
+                                            value={nuevaOcurrencia.facilitador_entidad || ''} 
+                                            onChange={e => setNuevaOcurrencia(p => ({ ...p, facilitador_entidad: e.target.value }))} 
+                                        />
                                     </div>
                                     <div className="form-group-inline" style={{ gridColumn: '1 / -1' }}>
                                         {mostrarContenidoNuevaOc ? (
@@ -204,7 +226,8 @@ const SessionDetailModal = ({
                                                 fecha: nuevaOcurrencia.fecha,
                                                 hora_inicio: nuevaOcurrencia.hora_inicio || null,
                                                 hora_fin: nuevaOcurrencia.hora_fin || null,
-                                                facilitador: nuevaOcurrencia.facilitador || null,
+                                                facilitador_entidad: nuevaOcurrencia.facilitador_entidad || null,
+                                                tipo_actividad: nuevaOcurrencia.tipo_actividad || null,
                                                 contenido: nuevaOcurrencia.contenido || null
                                             });
                                             const sesionActualizada = { ...modalDetalles, es_recurrente: true, ocurrencias: [...(modalDetalles.ocurrencias || []), { ...oc, total_asistentes: 0 }] };
@@ -229,7 +252,7 @@ const SessionDetailModal = ({
                         )}
 
                         <div className="modal-ver-detalle-actions">
-                            {esCreador && (
+                            {puedeEditar && (
                                 <Button onClick={handleEditar} variant="secondary">
                                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ marginRight: '6px' }}>
                                         <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
@@ -245,9 +268,15 @@ const SessionDetailModal = ({
                     // Modo edición
                     <>
                         <div className="modal-edicion-grid">
-                            <div className="modal-edicion-field">
-                                <label className="modal-edicion-label">Tema / Título <span style={{ fontSize: 11, color: '#9ca3af' }}>(No modificable)</span></label>
-                                <input type="text" value={modalDetalles.tema || ''} disabled className="modal-edicion-input" style={{ backgroundColor: '#f3f4f6', cursor: 'not-allowed', color: '#6b7280' }} />
+                            <div className="modal-edicion-field modal-edicion-field-full">
+                                <label className="modal-edicion-label">Tema / Título <span style={{ fontSize: 11, color: '#9ca3af' }}>(Cambia en todas las sesiones)</span></label>
+                                <input 
+                                    type="text" 
+                                    value={datosEdicion.tema || ''} 
+                                    onChange={(e) => handleCambioEdicion('tema', e.target.value)}
+                                    className="modal-edicion-input" 
+                                    placeholder="Nombre de la actividad" 
+                                />
                             </div>
 
                             <div className="modal-edicion-field">
@@ -269,47 +298,52 @@ const SessionDetailModal = ({
                             </div>
 
                             <div className="modal-edicion-field">
-                                <label className="modal-edicion-label">Tipo de actividad {sesionTabActiva !== '__principal__' && <span style={{ fontSize: 11, color: '#9ca3af' }}>(opcional)</span>}</label>
-                                <select value={datosEdicion.tipo_actividad || ''} onChange={(e) => handleCambioEdicion('tipo_actividad', e.target.value)} className={`modal-edicion-input ${erroresEdicion.tipo_actividad ? 'input-error' : ''}`}>
-                                    <option value="">{sesionTabActiva === '__principal__' ? 'Seleccionar...' : 'Heredar principal'}</option>
+                                <label className="modal-edicion-label">Actividad <span style={{ fontSize: 11, color: '#9ca3af' }}>(Cambia en todas las sesiones)</span></label>
+                                <select value={datosEdicion.actividad || ''} onChange={(e) => handleCambioEdicion('actividad', e.target.value)} className={`modal-edicion-input ${erroresEdicion.actividad ? 'input-error' : ''}`}>
                                     <option value="Capacitación">Capacitación</option>
                                     <option value="Inducción">Inducción</option>
                                     <option value="Formación">Formación</option>
                                     <option value="Otros (eventos)">Otros (eventos)</option>
                                 </select>
-                                {erroresEdicion.tipo_actividad && <span className="error-message">{erroresEdicion.tipo_actividad}</span>}
+                                {erroresEdicion.actividad && <span className="error-message">{erroresEdicion.actividad}</span>}
                             </div>
 
+                            {datosEdicion.actividad === 'Otros (eventos)' && (
+                                <div className="modal-edicion-field">
+                                    <label className="modal-edicion-label">Especificar tipo *</label>
+                                    <input type="text" value={customTipoEdicion} onChange={(e) => handleCambioEdicion('actividad_custom', e.target.value)} className={`modal-edicion-input ${erroresEdicion.actividad_custom ? 'input-error' : ''}`} placeholder="Ej: Taller, Conferencia, etc." />
+                                    {erroresEdicion.actividad_custom && <span className="error-message">{erroresEdicion.actividad_custom}</span>}
+                                </div>
+                            )}
+
                             <div className="modal-edicion-field">
-                                <label className="modal-edicion-label">Tipo de formación {sesionTabActiva !== '__principal__' && <span style={{ fontSize: 11, color: '#9ca3af' }}>(opcional)</span>}</label>
-                                <select value={datosEdicion.tipo_formacion || ''} onChange={(e) => handleCambioEdicion('tipo_formacion', e.target.value)} className={`modal-edicion-input ${erroresEdicion.tipo_formacion ? 'input-error' : ''}`}>
-                                    <option value="">{sesionTabActiva === '__principal__' ? 'Seleccionar...' : 'Heredar principal'}</option>
-                                    {tiposFormacion.map(tipo => (<option key={tipo} value={tipo}>{tipo}</option>))}
+                                <label className="modal-edicion-label">Dirigido a <span style={{ fontSize: 11, color: '#9ca3af' }}>(Cambia en todas las sesiones)</span></label>
+                                <select value={datosEdicion.dirigido_a || ''} onChange={(e) => handleCambioEdicion('dirigido_a', e.target.value)} className={`modal-edicion-input ${erroresEdicion.dirigido_a ? 'input-error' : ''}`}>
+                                    {(datosEdicion.actividad === 'Otros (eventos)' ? [...tiposFormacionBase, 'Personal FSD y externo'] : tiposFormacionBase).map(tipo => (<option key={tipo} value={tipo}>{tipo}</option>))}
                                 </select>
-                                {erroresEdicion.tipo_formacion && <span className="error-message">{erroresEdicion.tipo_formacion}</span>}
+                                {erroresEdicion.dirigido_a && <span className="error-message">{erroresEdicion.dirigido_a}</span>}
                             </div>
 
                             <div className="modal-edicion-field">
                                 <label className="modal-edicion-label">Modalidad {sesionTabActiva !== '__principal__' && <span style={{ fontSize: 11, color: '#9ca3af' }}>(opcional)</span>}</label>
                                 <select value={datosEdicion.modalidad || ''} onChange={(e) => handleCambioEdicion('modalidad', e.target.value)} className={`modal-edicion-input ${erroresEdicion.modalidad ? 'input-error' : ''}`}>
-                                    <option value="">{sesionTabActiva === '__principal__' ? 'Seleccionar...' : 'Heredar principal'}</option>
                                     {modalidades.map(mod => (<option key={mod} value={mod}>{mod}</option>))}
                                 </select>
                                 {erroresEdicion.modalidad && <span className="error-message">{erroresEdicion.modalidad}</span>}
                             </div>
 
-                            {datosEdicion.tipo_actividad === 'Otros' && (
-                                <div className="modal-edicion-field">
-                                    <label className="modal-edicion-label">Especificar tipo *</label>
-                                    <input type="text" value={customTipoEdicion} onChange={(e) => handleCambioEdicion('custom_tipo', e.target.value)} className={`modal-edicion-input ${erroresEdicion.custom_tipo ? 'input-error' : ''}`} placeholder="Ej: Taller, Conferencia, etc." />
-                                    {erroresEdicion.custom_tipo && <span className="error-message">{erroresEdicion.custom_tipo}</span>}
-                                </div>
-                            )}
-
                             <div className="modal-edicion-field">
-                                <label className="modal-edicion-label">Facilitador *</label>
-                                <input type="text" value={datosEdicion.facilitador || ''} onChange={(e) => handleCambioEdicion('facilitador', e.target.value)} className={`modal-edicion-input ${erroresEdicion.facilitador ? 'input-error' : ''}`} placeholder="Nombre del facilitador" />
-                                {erroresEdicion.facilitador && <span className="error-message">{erroresEdicion.facilitador}</span>}
+                                <label className="modal-edicion-label">
+                                    {(datosEdicion.dirigido_a?.includes('Externo') || (!datosEdicion.dirigido_a && modalDetalles.dirigido_a?.includes('Externo'))) ? 'Entidad / Empresa *' : 'Facilitador *'}
+                                </label>
+                                <input 
+                                    type="text" 
+                                    value={datosEdicion.facilitador_entidad || ''} 
+                                    onChange={(e) => handleCambioEdicion('facilitador_entidad', e.target.value)} 
+                                    className={`modal-edicion-input ${erroresEdicion.facilitador_entidad ? 'input-error' : ''}`} 
+                                    placeholder={(datosEdicion.dirigido_a?.includes('Externo') || (!datosEdicion.dirigido_a && modalDetalles.dirigido_a?.includes('Externo'))) ? '¿Cuál es la entidad o empresa que imparte la actividad?' : '¿Quién imparte la actividad?'} 
+                                />
+                                {erroresEdicion.facilitador_entidad && <span className="error-message">{erroresEdicion.facilitador_entidad}</span>}
                             </div>
 
                             <div className="modal-edicion-field">
@@ -320,13 +354,13 @@ const SessionDetailModal = ({
 
                             <div className="modal-edicion-field">
                                 <label className="modal-edicion-label">Cargo {sesionTabActiva !== '__principal__' && <span style={{ fontSize: 11, color: '#9ca3af' }}>(opcional)</span>}</label>
-                                <input type="text" value={datosEdicion.cargo || ''} onChange={(e) => handleCambioEdicion('cargo', e.target.value)} className={`modal-edicion-input ${erroresEdicion.cargo ? 'input-error' : ''}`} placeholder="Cargo del responsable" />
-                                {erroresEdicion.cargo && <span className="error-message">{erroresEdicion.cargo}</span>}
+                                <input type="text" value={datosEdicion.cargo_responsable || ''} onChange={(e) => handleCambioEdicion('cargo_responsable', e.target.value)} className={`modal-edicion-input ${erroresEdicion.cargo_responsable ? 'input-error' : ''}`} placeholder="Cargo del responsable" />
+                                {erroresEdicion.cargo_responsable && <span className="error-message">{erroresEdicion.cargo_responsable}</span>}
                             </div>
 
                             <div className="modal-edicion-field modal-edicion-field-full">
                                 <label className="modal-edicion-label">Contenido *</label>
-                                <textarea value={datosEdicion.contenido || ''} onChange={(e) => handleCambioEdicion('contenido', e.target.value)} className={`modal-edicion-textarea ${erroresEdicion.contenido ? 'input-error' : ''}`} placeholder="Descripción del contenido de la formación" rows={4} />
+                                <textarea value={datosEdicion.contenido || ''} onChange={(e) => handleCambioEdicion('contenido', e.target.value)} className={`modal-edicion-textarea ${erroresEdicion.contenido ? 'input-error' : ''}`} placeholder="Descripción del contenido de la actividad" rows={4} />
                                 {erroresEdicion.contenido && <span className="error-message">{erroresEdicion.contenido}</span>}
                             </div>
                         </div>

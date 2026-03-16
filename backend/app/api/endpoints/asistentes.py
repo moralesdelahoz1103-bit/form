@@ -31,15 +31,16 @@ async def obtener_info_sesion(token: str, request: Request):
         return {
             "tema": sesion['tema'],
             "fecha": sesion['fecha'],
-            "facilitador": sesion['facilitador'],
+            "facilitador_entidad": sesion.get('facilitador_entidad'),
             "responsable": sesion.get('responsable'),
-            "cargo": sesion.get('cargo'),
+            "cargo_responsable": sesion.get('cargo_responsable'),
             "contenido": sesion['contenido'],
             "hora_inicio": sesion['hora_inicio'],
             "hora_fin": sesion['hora_fin'],
-            "tipo_actividad": sesion['tipo_actividad'],
-            "tipo_formacion": sesion.get('tipo_formacion', 'Interna'),
-            "modalidad": sesion.get('modalidad', 'Presencial')
+            "actividad": sesion.get('actividad'),
+            "tipo_actividad": sesion.get('tipo_actividad'),
+            "dirigido_a": sesion.get('dirigido_a'),
+            "modalidad": sesion.get('modalidad')
         }
     except (TokenNotFoundException, TokenExpiredException, TokenInactiveException) as e:
         raise e

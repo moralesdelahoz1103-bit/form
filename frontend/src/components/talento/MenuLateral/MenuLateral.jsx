@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { logout } from '../../../utils/auth';
 import { tienePermiso } from '../../../utils/permisos';
 import './MenuLateral.css';
@@ -26,7 +26,7 @@ const MenuLateral = ({ activeView, onViewChange, onConfigClick }) => {
     try {
       const confirmLogout = window.confirm('¿Estás seguro que deseas cerrar sesión?');
       if (confirmLogout) {
-        console.log('Cerrando sesión...');
+// Cerrando sesión...
         await logout();
       }
     } catch (error) {
@@ -38,7 +38,7 @@ const MenuLateral = ({ activeView, onViewChange, onConfigClick }) => {
   const menuItems = [
     {
       id: 'crear',
-      label: 'Crear formación',
+      label: 'Crear actividad',
       icon: (
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
           <circle cx="12" cy="12" r="10" />
@@ -49,7 +49,7 @@ const MenuLateral = ({ activeView, onViewChange, onConfigClick }) => {
     },
     {
       id: 'sesiones',
-      label: 'Formaciones registradas',
+      label: 'Actividades registradas',
       icon: (
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
           <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />

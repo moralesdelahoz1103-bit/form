@@ -79,8 +79,8 @@ def obtener_resumen_participantes(user_email: str = None) -> List[Dict[str, Any]
 
 def obtener_detalle_participante(cedula: str, user_email: str = None) -> Dict[str, Any]:
     """
-    Obtiene el historial detallado de formaciones de un participante por su cédula.
-    Si user_email está presente, solo devuelve el historial de formaciones de ese usuario.
+    Obtiene el historial detallado de actividades de un participante por su cédula.
+    Si user_email está presente, solo devuelve el historial de actividades de ese usuario.
     """
     asistentes_match = []
     todas_sesiones = []
@@ -115,9 +115,9 @@ def obtener_detalle_participante(cedula: str, user_email: str = None) -> Dict[st
         
         # Si tiene ocurrencia_id, buscar el tema y facilitador específico
         tema = sesion_info.get('tema', 'Desconocido')
-        facilitador = sesion_info.get('facilitador', 'N/A')
+        facilitador_entidad = sesion_info.get('facilitador_entidad', 'N/A')
         modalidad = sesion_info.get('modalidad', 'Presencial')
-        fecha_formacion = sesion_info.get('fecha', 'N/A')
+        fecha_actividad = sesion_info.get('fecha', 'N/A')
         hora_inicio = sesion_info.get('hora_inicio', 'N/A')
         hora_fin = sesion_info.get('hora_fin', 'N/A')
         
@@ -135,25 +135,28 @@ def obtener_detalle_participante(cedula: str, user_email: str = None) -> Dict[st
                 for idx, oc in enumerate(ocurrencias):
                     if oc['id'] == oc_id:
                         tema = oc.get('tema') or tema
-                        facilitador = oc.get('facilitador') or facilitador
+                        facilitador_entidad = oc.get('facilitador_entidad') or facilitador_entidad
                         modalidad = oc.get('modalidad') or modalidad
-                        fecha_formacion = oc.get('fecha') or fecha_formacion
+                        fecha_actividad = oc.get('fecha') or fecha_actividad
                         hora_inicio = oc.get('hora_inicio') or hora_inicio
                         hora_fin = oc.get('hora_fin') or hora_fin
-                        sesion_nro = idx + 2 # +1 por índice 0, +1 porque la principal es la 1
+                        sesion_nro = idx + 1 # Simplemente el índice + 1
                         break
 
         historial.append({
             "sesion_id": sid,
             "tema": tema,
             "fecha_registro": am.get('fecha_registro'),
-            "fecha_formacion": fecha_formacion,
+            "fecha_actividad": fecha_actividad,
             "hora_inicio": hora_inicio,
             "hora_fin": hora_fin,
             "sesion_nro": sesion_nro,
-            "tipo_formacion": sesion_info.get('tipo_formacion', 'Interna'),
-            "facilitador": facilitador,
+            "actividad": sesion_info.get('actividad', 'N/A'),
             "modalidad": modalidad,
+            "actividad": sesion_info.get('actividad', 'N/A'),
+            "tipo_actividad": sesion_info.get('tipo_actividad', 'Interno'),
+            "dirigido_a": sesion_info.get('dirigido_a', 'N/A'),
+            "facilitador_entidad": facilitador_entidad,
             "responsable": sesion_info.get('responsable', 'N/A'),
             "empresa": am.get('participante', {}).get('empresa'),
             "telefono": am.get('participante', {}).get('telefono')
@@ -205,13 +208,16 @@ def obtener_reporte_completo() -> List[Dict[str, Any]]:
         
         # Datos base de la sesión
         tema = sesion_info.get('tema', 'Desconocido')
-        facilitador = sesion_info.get('facilitador', 'N/A')
+        facilitador_entidad = sesion_info.get('facilitador_entidad', 'N/A')
         modalidad = sesion_info.get('modalidad', 'Presencial')
-        tipo_formacion = sesion_info.get('tipo_formacion', 'Interna')
+        actividad = sesion_info.get('actividad', 'N/A')
         responsable = sesion_info.get('responsable', 'N/A')
-        fecha_formacion = sesion_info.get('fecha', 'N/A')
+        cargo_responsable = sesion_info.get('cargo_responsable', 'N/A')
+        fecha_actividad = sesion_info.get('fecha', 'N/A')
         hora_inicio = sesion_info.get('hora_inicio', 'N/A')
         hora_fin = sesion_info.get('hora_fin', 'N/A')
+        tipo_actividad = sesion_info.get('tipo_actividad', 'Interno')
+        dirigido_a = sesion_info.get('dirigido_a', 'N/A')
         
         oc_id = a.get('ocurrencia_id')
         ocurrencias = sesion_info.get('ocurrencias', [])
@@ -226,23 +232,28 @@ def obtener_reporte_completo() -> List[Dict[str, Any]]:
                 sesion_nro = "Desconocida"
                 for idx, oc in enumerate(ocurrencias):
                     if oc['id'] == oc_id:
-                        sesion_nro = f"{idx + 2}"
+                        sesion_nro = f"{idx + 1}"
                         tema = oc.get('tema') or tema
-                        facilitador = oc.get('facilitador') or facilitador
+                        facilitador_entidad = oc.get('facilitador_entidad') or facilitador_entidad
                         modalidad = oc.get('modalidad') or modalidad
-                        fecha_formacion = oc.get('fecha') or fecha_formacion
+                        fecha_actividad = oc.get('fecha') or fecha_actividad
                         hora_inicio = oc.get('hora_inicio') or hora_inicio
                         hora_fin = oc.get('hora_fin') or hora_fin
+                        tipo_actividad = oc.get('tipo_actividad') or tipo_actividad
+                        dirigido_a = oc.get('dirigido_a') or dirigido_a
                         break
 
         reporte.append({
             "tema": tema,
             "sesion_nro": sesion_nro,
-            "facilitador": facilitador,
+            "facilitador_entidad": facilitador_entidad,
             "modalidad": modalidad,
-            "tipo_formacion": tipo_formacion,
+            "actividad": actividad,
+            "tipo_actividad": tipo_actividad,
+            "dirigido_a": dirigido_a,
             "responsable": responsable,
-            "fecha": fecha_formacion,
+            "cargo_responsable": cargo_responsable,
+            "fecha": fecha_actividad,
             "hora_inicio": hora_inicio,
             "hora_fin": hora_fin,
             "asistente": a.get('nombre', 'Anónimo'),

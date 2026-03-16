@@ -11,7 +11,7 @@ import os
 # Añadir el directorio padre al path
 sys.path.append(str(Path(__file__).parent))
 
-from api.endpoints import sesiones, asistentes, auth, usuarios, permisos, ayuda, proxy, seguimiento
+from api.endpoints import auth, usuarios, permisos, ayuda, proxy, seguimiento, asistentes, sesiones
 from core.config import settings
 
 # Crear directorio de datos

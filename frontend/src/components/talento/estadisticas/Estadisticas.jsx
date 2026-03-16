@@ -35,7 +35,7 @@ const Estadisticas = () => {
         {
             id: 1,
             title: 'Análisis detallado',
-            dimension: 'facilitador',
+            dimension: 'facilitador_entidad',
             metric: 'horas',
             type: 'bar-vertical',
             year: 'Todos',
@@ -262,21 +262,23 @@ const Estadisticas = () => {
 
             // Definir columnas (para el ancho principalmente)
             ws.columns = [
-                { header: 'Necesidad de formación', key: 'tema', width: 40 },
+                { header: 'Tema de actividad', key: 'tema', width: 40 },
                 { header: 'Sesión', key: 'sesion_nro', width: 12 },
-                { header: 'Dirigido a', key: 'asistente', width: 30 },
+                { header: 'Asistente', key: 'asistente', width: 30 },
                 { header: 'Cédula', key: 'cedula', width: 15 },
                 { header: 'Correo', key: 'correo', width: 30 },
                 { header: 'Dirección', key: 'direccion', width: 30 },
-                { header: 'Formación', key: 'tipo_formacion', width: 15 },
+                { header: 'Actividad', key: 'actividad', width: 20 },
+                { header: 'Tipo de actividad', key: 'tipo_actividad', width: 18 },
+                { header: 'Dirigido a', key: 'dirigido_a', width: 18 },
                 { header: 'Modalidad', key: 'modalidad', width: 15 },
-                { header: 'Facilitador', key: 'facilitador', width: 25 },
+                { header: 'Facilitador / Entidad', key: 'facilitador_entidad', width: 25 },
                 { header: 'Responsable', key: 'responsable', width: 25 },
                 { header: 'Hora inicio', key: 'hora_inicio', width: 12 },
-                { header: 'Hora final', key: 'hora_fin', width: 12 },
-                { header: 'Horas de formación', key: 'horas', width: 18 },
+                { header: 'Hora fin', key: 'hora_fin', width: 12 },
+                { header: 'Horas de actividad', key: 'horas', width: 18 },
                 { header: 'Fecha', key: 'fecha', width: 14 },
-                { header: 'Mes de ejecución', key: 'mes', width: 18 }
+                { header: 'Mes', key: 'mes', width: 12 }
             ];
 
             // Preparar filas para la tabla
@@ -296,11 +298,13 @@ const Estadisticas = () => {
                     item.sesion_nro,
                     toSentence(item.asistente),
                     item.cedula,
-                    item.correo.toLowerCase(),
+                    item.correo?.toLowerCase() || 'n/a',
                     toSentence(item.unidad),
-                    toSentence(item.tipo_formacion),
+                    toSentence(item.actividad),
+                    toSentence(item.tipo_actividad) || 'Interno',
+                    toSentence(item.dirigido_a),
                     toSentence(item.modalidad),
-                    toSentence(item.facilitador),
+                    toSentence(item.facilitador_entidad),
                     toSentence(item.responsable),
                     item.hora_inicio,
                     item.hora_fin,
@@ -321,34 +325,36 @@ const Estadisticas = () => {
                     showRowStripes: true,
                 },
                 columns: [
-                    { name: 'Necesidad de formación', filterButton: true },
+                    { name: 'Tema de actividad', filterButton: true },
                     { name: 'Sesión', filterButton: true },
-                    { name: 'Dirigido a', filterButton: true },
+                    { name: 'Asistente', filterButton: true },
                     { name: 'Cédula', filterButton: true },
                     { name: 'Correo', filterButton: true },
                     { name: 'Dirección', filterButton: true },
-                    { name: 'Formación', filterButton: true },
+                    { name: 'Actividad', filterButton: true },
+                    { name: 'Tipo de actividad', filterButton: true },
+                    { name: 'Dirigido a', filterButton: true },
                     { name: 'Modalidad', filterButton: true },
-                    { name: 'Facilitador', filterButton: true },
+                    { name: 'Facilitador / Entidad', filterButton: true },
                     { name: 'Responsable', filterButton: true },
                     { name: 'Hora inicio', filterButton: true },
-                    { name: 'Hora final', filterButton: true },
-                    { name: 'Horas de formación', filterButton: true },
+                    { name: 'Hora fin', filterButton: true },
+                    { name: 'Horas de actividad', filterButton: true },
                     { name: 'Fecha', filterButton: true },
-                    { name: 'Mes de ejecución', filterButton: true }
+                    { name: 'Mes', filterButton: true }
                 ],
                 rows: tableRows,
             });
 
             // Nombres de los encabezados (en orden)
             const encabezadosActivos = [
-                'Necesidad de formación', 'Sesión', 'Dirigido a', 'Cédula', 'Correo',
-                'Dirección', 'Formación', 'Modalidad', 'Facilitador', 'Responsable',
-                'Hora inicio', 'Hora final', 'Horas de formación', 'Fecha', 'Mes de ejecución'
+                'Tema de actividad', 'Sesión', 'Asistente', 'Cédula', 'Correo',
+                'Dirección', 'Actividad', 'Tipo de actividad', 'Dirigido a', 'Modalidad', 'Facilitador / Entidad', 'Responsable',
+                'Hora inicio', 'Hora fin', 'Horas de actividad', 'Fecha', 'Mes'
             ];
             const columnasCentradas = [
-                'Sesión', 'Cédula', 'Formación', 'Modalidad', 'Hora inicio', 'Hora final',
-                'Horas de formación', 'Fecha', 'Mes de ejecución'
+                'Sesión', 'Cédula', 'Actividad', 'Tipo de actividad', 'Dirigido a', 'Modalidad', 'Hora inicio', 'Hora fin',
+                'Horas de actividad', 'Fecha', 'Mes'
             ];
 
             // Personalización adicional de estilos (Bordes y Alineación)
@@ -394,7 +400,7 @@ const Estadisticas = () => {
         } finally {
             setExportLoading(false);
         }
-        // Plan de formaciones y capacitaciones ejecutadas 
+        // Plan de actividades y capacitaciones ejecutadas 
     };
 
     const handleExportJPG = async (containerId, slot) => {

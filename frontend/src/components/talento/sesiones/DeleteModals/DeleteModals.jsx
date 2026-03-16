@@ -11,7 +11,7 @@ export const DeleteSessionModal = ({ modalEliminar, setModalEliminar, handleElim
         <div className="modal-eliminar-content">
             <p>Esta acción no se puede deshacer. Se eliminarán:</p>
             <ul>
-                <li>La formación: <strong>{modalEliminar?.tema}</strong></li>
+                <li>La actividad: <strong>{modalEliminar?.tema}</strong></li>
                 <li>Todos los asistentes registrados ({modalEliminar?.total_asistentes || 0})</li>
             </ul>
             <div className="modal-actions">

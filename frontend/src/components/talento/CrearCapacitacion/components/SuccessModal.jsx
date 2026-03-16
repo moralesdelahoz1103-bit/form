@@ -23,7 +23,7 @@ const SuccessModal = ({
                 </button>
 
                 <div className="modal-header">
-                    <h2>Formación creada exitosamente</h2>
+                    <h2>Actividad creada exitosamente</h2>
                 </div>
 
                 <div className="modal-body">
@@ -63,7 +63,7 @@ const SuccessModal = ({
                         </div>
                     </div>
 
-                    {nuevaSesion?.ocurrencias?.length > 0 && (
+                    {nuevaSesion?.ocurrencias?.length > 1 && (
                         <div className="modal-info-alert">
                             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                                 <circle cx="12" cy="12" r="10"></circle>
@@ -71,7 +71,7 @@ const SuccessModal = ({
                                 <line x1="12" y1="8" x2="12.01" y2="8"></line>
                             </svg>
                             <p>
-                                Las URL y QR de las <strong>{nuevaSesion.ocurrencias.length} sesiones adicionales</strong> se encuentran en el menú Formaciones registradas.
+                                Las URL y QR de las <strong>{nuevaSesion.ocurrencias.length - 1} {nuevaSesion.ocurrencias.length - 1 === 1 ? 'sesión adicional' : 'sesiones adicionales'}</strong> se encuentran en el menú Actividades registradas.
                             </p>
                         </div>
                     )}

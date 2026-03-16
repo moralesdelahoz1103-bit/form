@@ -1,0 +1,41 @@
+.brand-spinner {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  animation: brand-spin 1.2s linear infinite;
+  transform-origin: center;
+}
+
+.brand-spinner img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.brand-spinner-xs {
+  width: 14px;
+  height: 14px;
+}
+
+.brand-spinner-sm {
+  width: 20px;
+  height: 20px;
+}
+
+.brand-spinner-md {
+  width: 48px;
+  height: 48px;
+}
+
+.brand-spinner-lg {
+  width: 64px;
+  height: 64px;
+}
+
+@keyframes brand-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}

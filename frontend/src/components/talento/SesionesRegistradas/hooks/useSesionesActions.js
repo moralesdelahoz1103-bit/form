@@ -14,10 +14,10 @@ export const useSesionesActions = (setSesiones, setToast) => {
             await sesionesService.eliminar(modalEliminar.id);
             setSesiones(prev => prev.filter(s => s.id !== modalEliminar.id));
             setModalEliminar(null);
-            setToast({ message: 'Formación eliminada exitosamente', type: 'success' });
+            setToast({ message: 'Actividad eliminada exitosamente', type: 'success' });
         } catch (error) {
             console.error('Error al eliminar:', error);
-            setToast({ message: 'Error al eliminar la formación', type: 'error' });
+            setToast({ message: 'Error al eliminar la actividad', type: 'error' });
         } finally {
             setEliminando(false);
         }
@@ -42,7 +42,7 @@ export const useSesionesActions = (setSesiones, setToast) => {
 
     const descargarQR = async (qrUrl, nombreSesion) => {
         try {
-            const nombreArchivo = nombreSesion ? `QR-${nombreSesion.replace(/[^a-zA-Z0-9]/g, '_')}` : 'QR-formación';
+            const nombreArchivo = nombreSesion ? `QR-${nombreSesion.replace(/[^a-zA-Z0-9]/g, '_')}` : 'QR-actividad';
             const response = await fetch(qrUrl, { mode: 'cors' });
             const blob = await response.blob();
             const blobUrl = window.URL.createObjectURL(blob);

@@ -12,7 +12,7 @@ const SeguimientoFiltros = ({
         <>
             <div className="page-header">
                 <div>
-                    <h1 className="page-title">Seguimiento personal fundación</h1>
+                    <h1 className="page-title">Seguimiento personal FSD</h1>
                     <p className="page-subtitle">Consulta el historial completo de asistencias del personal de la fundación</p>
 
                     {esAdministrador && (
@@ -21,7 +21,7 @@ const SeguimientoFiltros = ({
                                 className={`admin-view-btn ${!verGlobal ? 'active' : ''}`}
                                 onClick={() => setVerGlobal(false)}
                             >
-                                Mis formaciones
+                                Mis actividades
                             </button>
                             <button
                                 className={`admin-view-btn ${verGlobal ? 'active' : ''}`}

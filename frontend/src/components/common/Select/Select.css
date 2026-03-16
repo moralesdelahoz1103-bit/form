@@ -6,9 +6,17 @@
 }
 
 .select-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  flex-wrap: wrap;
   font-size: 14px;
   font-weight: normal;
   color: var(--text-dark);
+}
+
+.select-label .required {
+  margin-left: 2px;
 }
 
 .select {

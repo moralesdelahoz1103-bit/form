@@ -1,5 +1,9 @@
 import { useState, useEffect, useMemo } from 'react';
 import { sesionesService, hayCacheValida } from '../../../../services/sesiones';
+// Normaliza el campo dirigido_a para evitar valores nulos o inconsistentes
+function normalizarDirigidoA(valor) {
+    return valor || '';
+}
 
 export const useSesionesData = (esAdministrador, userEmail, setToast) => {
     const [sesiones, setSesiones] = useState([]);
@@ -15,22 +19,12 @@ export const useSesionesData = (esAdministrador, userEmail, setToast) => {
         tipo: '',
         facilitador: '',
         responsable: '',
-        tipo_formacion: '',
+        dirigido_a: '',
         modalidad: ''
     });
 
     useEffect(() => {
         loadSesiones();
-    }, []);
-
-    useEffect(() => {
-        const mediaQuery = window.matchMedia('(max-width: 768px)');
-        const handleTabletChange = (e) => {
-            if (e.matches) setViewMode('cards');
-        };
-        mediaQuery.addEventListener('change', handleTabletChange);
-        handleTabletChange(mediaQuery);
-        return () => mediaQuery.removeEventListener('change', handleTabletChange);
     }, []);
 
     const loadSesiones = async () => {
@@ -39,7 +33,7 @@ export const useSesionesData = (esAdministrador, userEmail, setToast) => {
             setSesiones(data);
         } catch (error) {
             console.error('Error cargando sesiones:', error);
-            setToast({ message: 'Error al cargar las formaciones', type: 'error' });
+            setToast({ message: 'Error al cargar las actividades', type: 'error' });
         } finally {
             setLoading(false);
         }
@@ -53,7 +47,7 @@ export const useSesionesData = (esAdministrador, userEmail, setToast) => {
     const limpiarFiltros = () => {
         setFiltros({
             busqueda: '', fecha: '', tipo: '', facilitador: '',
-            responsable: '', tipo_formacion: '', modalidad: ''
+            responsable: '', dirigido_a: '', modalidad: ''
         });
         setCurrentPage(1);
     };
@@ -64,20 +58,25 @@ export const useSesionesData = (esAdministrador, userEmail, setToast) => {
             : sesiones;
 
         return sesionesAMapear.map(s => {
-            let total_asistentes = s.total_asistentes_principal || 0;
+            let total_asistentes = 0;
             let tiene_ocurrencias = false;
             let total_fechas = 1;
 
             if (s.ocurrencias && s.ocurrencias.length > 0) {
-                tiene_ocurrencias = true;
-                total_fechas += s.ocurrencias.length;
-                s.ocurrencias.forEach(oc => {
-                    total_asistentes += (oc.total_asistentes || 0);
-                });
+                total_fechas = s.ocurrencias.length;
+                tiene_ocurrencias = total_fechas > 1;
+                total_asistentes = s.ocurrencias.reduce((acc, oc) => acc + (oc.total_asistentes || 0), 0);
+            } else {
+                total_asistentes = s.total_asistentes || 0;
             }
 
             return {
                 ...s,
+                dirigido_a: normalizarDirigidoA(s.dirigido_a),
+                ocurrencias: (s.ocurrencias || []).map(oc => ({
+                    ...oc,
+                    dirigido_a: normalizarDirigidoA(oc.dirigido_a)
+                })),
                 uid: s.id,
                 tiene_ocurrencias,
                 total_fechas,
@@ -89,12 +88,12 @@ export const useSesionesData = (esAdministrador, userEmail, setToast) => {
     const sesionesFiltradas = sesionesAgrupadas.filter(sesion => {
         const cumpleBusqueda = !filtros.busqueda || sesion.tema?.toLowerCase().includes(filtros.busqueda.toLowerCase());
         const cumpleFecha = !filtros.fecha || sesion.fecha === filtros.fecha;
-        const cumpleTipo = !filtros.tipo || sesion.tipo_actividad === filtros.tipo;
-        const cumpleFacilitador = !filtros.facilitador || sesion.facilitador === filtros.facilitador;
+        const cumpleTipo = !filtros.tipo || sesion.actividad === filtros.tipo;
+        const cumpleFacilitador = !filtros.facilitador || sesion.facilitador_entidad === filtros.facilitador;
         const cumpleResponsable = !filtros.responsable || sesion.responsable === filtros.responsable;
-        const cumpleTipoFormacion = !filtros.tipo_formacion || sesion.tipo_formacion === filtros.tipo_formacion;
+        const cumpleDirigidoA = !filtros.dirigido_a || sesion.dirigido_a === filtros.dirigido_a;
         const cumpleModalidad = !filtros.modalidad || sesion.modalidad === filtros.modalidad;
-        return cumpleBusqueda && cumpleFecha && cumpleTipo && cumpleFacilitador && cumpleResponsable && cumpleTipoFormacion && cumpleModalidad;
+        return cumpleBusqueda && cumpleFecha && cumpleTipo && cumpleFacilitador && cumpleResponsable && cumpleDirigidoA && cumpleModalidad;
     });
 
     const totalPages = Math.ceil(sesionesFiltradas.length / ITEMS_PER_PAGE);
@@ -104,10 +103,10 @@ export const useSesionesData = (esAdministrador, userEmail, setToast) => {
 
     // Opciones únicas para filtros
     const uniqueOptions = useMemo(() => ({
-        tipos: [...new Set(sesionesAgrupadas.map(s => s.tipo_actividad).filter(Boolean))],
-        facilitadores: [...new Set(sesionesAgrupadas.map(s => s.facilitador).filter(Boolean))],
+        tipos: [...new Set(sesionesAgrupadas.map(s => s.actividad).filter(Boolean))],
+        facilitadores: [...new Set(sesionesAgrupadas.map(s => s.facilitador_entidad).filter(Boolean))],
         responsables: [...new Set(sesionesAgrupadas.map(s => s.responsable).filter(Boolean))],
-        tiposFormacion: [...new Set(sesionesAgrupadas.map(s => s.tipo_formacion).filter(Boolean))],
+        dirigido_a: [...new Set(sesionesAgrupadas.map(s => s.dirigido_a).filter(Boolean))],
         modalidades: [...new Set(sesionesAgrupadas.map(s => s.modalidad).filter(Boolean))]
     }), [sesionesAgrupadas]);
 

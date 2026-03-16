@@ -2,7 +2,8 @@ import os
 import random
 import re
 from pathlib import Path
-from app.storage.adapter import StorageAdapter
+from core.config import settings
+from storage.adapter import StorageAdapter
 import logging
 
 logger = logging.getLogger(__name__)

@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from typing import List, Dict, Any
-from app.api.endpoints.auth import get_current_user
-from app.services.ayuda import ayuda_service
+from api.endpoints.auth import get_current_user
+from services.ayuda import ayuda_service
 
 router = APIRouter()
 
@@ -10,7 +10,7 @@ async def obtener_ayuda(
     current_user: dict = Depends(get_current_user)
 ):
     """Obtener el contenido completo del centro de ayuda filtrado por rol del usuario"""
-    from app.services.usuarios import usuario_service
+    from services.usuarios import usuario_service
     
     try:
         ayuda = ayuda_service.obtener_ayuda()
@@ -50,7 +50,7 @@ async def actualizar_ayuda(
     current_user: dict = Depends(get_current_user)
 ):
     """Actualizar el contenido del centro de ayuda (solo administradores)"""
-    from app.services.usuarios import usuario_service
+    from services.usuarios import usuario_service
     
     # Verificar que el usuario sea administrador
     user_id = current_user.get("oid") or current_user.get("sub")

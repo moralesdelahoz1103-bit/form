@@ -8,10 +8,10 @@ const SessionsFilters = ({
     tiposUnicos,
     facilitadoresUnicos,
     responsablesUnicos,
-    tiposFormacionUnicas,
+    dirigido_a_Unicos,
     modalidadesUnicas
 }) => {
-    const hayFiltrosActivos = filtros.busqueda || filtros.fecha || filtros.tipo || filtros.facilitador || filtros.responsable || filtros.tipo_formacion || filtros.modalidad;
+    const hayFiltrosActivos = filtros.busqueda || filtros.fecha || filtros.tipo || filtros.facilitador_entidad || filtros.responsable || filtros.dirigido_a || filtros.modalidad;
 
     return (
         <div className="filters-container">
@@ -23,7 +23,7 @@ const SessionsFilters = ({
                         value={filtros.busqueda}
                         onChange={(e) => handleFiltroChange('busqueda', e.target.value)}
                         className="filter-input"
-                        placeholder="Buscar formación..."
+                        placeholder="Buscar actividad..."
                     />
                 </div>
 
@@ -38,13 +38,13 @@ const SessionsFilters = ({
                 </div>
 
                 <div className="filter-field">
-                    <label className="filter-label">Tipo de actividad</label>
+                    <label className="filter-label">Actividad</label>
                     <select
                         value={filtros.tipo}
                         onChange={(e) => handleFiltroChange('tipo', e.target.value)}
                         className="filter-select"
                     >
-                        <option value="">Todos los tipos</option>
+                        <option value="">Todas las actividades</option>
                         {tiposUnicos.map(tipo => (
                             <option key={tipo} value={tipo}>{tipo}</option>
                         ))}
@@ -52,15 +52,15 @@ const SessionsFilters = ({
                 </div>
 
                 <div className="filter-field">
-                    <label className="filter-label">Facilitador</label>
+                    <label className="filter-label">Facilitador / Empresa o entidad</label>
                     <select
-                        value={filtros.facilitador}
-                        onChange={(e) => handleFiltroChange('facilitador', e.target.value)}
+                        value={filtros.facilitador_entidad}
+                        onChange={(e) => handleFiltroChange('facilitador_entidad', e.target.value)}
                         className="filter-select"
                     >
-                        <option value="">Todos los facilitadores</option>
-                        {facilitadoresUnicos.map(facilitador => (
-                            <option key={facilitador} value={facilitador}>{facilitador}</option>
+                        <option value="">Todos los facilitadores/entidades</option>
+                        {facilitadoresUnicos.map(facilitador_entidad => (
+                            <option key={facilitador_entidad} value={facilitador_entidad}>{facilitador_entidad}</option>
                         ))}
                     </select>
                 </div>
@@ -80,14 +80,14 @@ const SessionsFilters = ({
                 </div>
 
                 <div className="filter-field">
-                    <label className="filter-label">Tipo de formación</label>
+                    <label className="filter-label">Tipo de actividad</label>
                     <select
-                        value={filtros.tipo_formacion || ''}
-                        onChange={(e) => handleFiltroChange('tipo_formacion', e.target.value)}
+                        value={filtros.dirigido_a || ''}
+                        onChange={(e) => handleFiltroChange('dirigido_a', e.target.value)}
                         className="filter-select"
                     >
                         <option value="">Todas</option>
-                        {tiposFormacionUnicas.map(tipo => (
+                        {dirigido_a_Unicos.map(tipo => (
                             <option key={tipo} value={tipo}>{tipo}</option>
                         ))}
                     </select>

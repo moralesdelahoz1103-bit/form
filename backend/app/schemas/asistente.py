@@ -16,10 +16,6 @@ class AsistenteInternoCreate(BaseModel):
             raise ValueError('Contiene caracteres no permitidos')
         return v.strip()
     
-    @validator('correo')
-    def validate_email_lowercase(cls, v):
-        return v.lower().strip()
-    
     @validator('cedula')
     def validate_cedula_clean(cls, v):
         return v.strip()
@@ -29,19 +25,15 @@ class AsistenteExternoCreate(BaseModel):
     cedula: str = Field(..., pattern=r'^\d{6,15}$')
     nombre: str = Field(..., min_length=2, max_length=100)
     empresa: str = Field(..., min_length=2, max_length=100)
-    correo: str = Field(..., pattern=r'^[^\s@]+@[^\s@]+\.[^\s@]+$')
     cargo: str = Field(..., min_length=2, max_length=100)
     telefono: str = Field(..., pattern=r'^\d{7,15}$')
+    correo: str = Field(..., pattern=r'^[^\s@]+@[^\s@]+\.[^\s@]+$')
     
     @validator('nombre', 'empresa', 'cargo')
     def validate_only_letters(cls, v):
         if not re.match(r'^[a-zA-ZáéíóúÁÉÍÓÚñÑ0-9\s.,-]+$', v):
             raise ValueError('Contiene caracteres no permitidos')
         return v.strip()
-    
-    @validator('correo')
-    def validate_email_lowercase(cls, v):
-        return v.lower().strip()
     
     @validator('cedula', 'telefono')
     def validate_clean(cls, v):
@@ -59,7 +51,7 @@ class AsistenteResponse(BaseModel):
     unidad: Optional[str] = None
     empresa: Optional[str] = None
     telefono: Optional[str] = None
-    correo: str
+    correo: Optional[str] = None
     fecha_registro: str
     
     class Config:

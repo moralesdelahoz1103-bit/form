@@ -1,7 +1,8 @@
 from typing import Dict, Any
 from datetime import datetime
 from fastapi import HTTPException
-from app.db.cosmos_client import get_cosmos_db
+from db.cosmos_client import cosmos_db, get_cosmos_db
+from core.config import settings
 
 
 async def verificar_permiso(user_email: str, permiso: str) -> bool:

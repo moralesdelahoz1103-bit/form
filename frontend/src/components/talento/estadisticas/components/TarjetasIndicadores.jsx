@@ -5,7 +5,7 @@ const TarjetasIndicadores = ({ metrics }) => {
         <div className="strategic-kpi-row">
             <div className="intel-kpi-card">
                 <div>
-                    <span className="kpi-label-discreet">Total formaciones</span>
+                    <span className="kpi-label-discreet">Total actividades</span>
                     <span className="kpi-value-hero">{metrics.totalFormaciones}</span>
                 </div>
             </div>
@@ -23,13 +23,13 @@ const TarjetasIndicadores = ({ metrics }) => {
             </div>
             <div className="intel-kpi-card">
                 <div>
-                    <span className="kpi-label-discreet">Horas de formaciones internas</span>
+                    <span className="kpi-label-discreet">Horas de actividades internas</span>
                     <span className="kpi-value-hero">{metrics.horasInternas}h</span>
                 </div>
             </div>
             <div className="intel-kpi-card">
                 <div>
-                    <span className="kpi-label-discreet">Horas de formaciones externas</span>
+                    <span className="kpi-label-discreet">Horas de actividades externas</span>
                     <span className="kpi-value-hero">{metrics.horasExternas}h</span>
                 </div>
             </div>

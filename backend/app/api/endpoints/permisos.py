@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from typing import Dict, Any
-from app.api.endpoints.auth import get_current_user
-from app.services.permisos import permisos_service
+from api.endpoints.auth import get_current_user
+from services.permisos import permisos_service
 
 router = APIRouter()
 
@@ -22,7 +22,7 @@ async def actualizar_permisos(
     current_user: dict = Depends(get_current_user)
 ):
     """Actualizar la configuración de permisos (solo administradores)"""
-    from app.services.usuarios import usuario_service
+    from services.usuarios import usuario_service
     
     # Verificar que el usuario sea administrador
     user_id = current_user.get("oid") or current_user.get("sub")

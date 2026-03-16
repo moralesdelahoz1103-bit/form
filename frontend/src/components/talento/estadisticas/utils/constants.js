@@ -4,11 +4,11 @@ export const MESES = [
 ];
 
 export const DIMENSION_LABELS = {
-    facilitador: 'Facilitador',
+    facilitador_entidad: 'Facilitador',
     responsable: 'Responsable',
-    cargo: 'Cargo del responsable',
-    tipo_formacion: 'Tipo de formación',
-    tipo_actividad: 'Tipo de actividad',
+    cargo_responsable: 'Cargo del responsable',
+    dirigido_a: 'Tipo de formación',
+    actividad: 'Tipo de actividad',
     modalidad: 'Modalidad',
     mes: 'Análisis mensual'
 };
@@ -21,7 +21,7 @@ export const METRIC_LABELS = {
 };
 
 export const DIMENSION_METRICS_MAP = {
-    facilitador: [
+    facilitador_entidad: [
         { label: METRIC_LABELS.horas, value: 'horas' },
         { label: METRIC_LABELS.cantidad, value: 'cantidad' },
         { label: METRIC_LABELS.asistentes, value: 'asistentes' },
@@ -31,16 +31,16 @@ export const DIMENSION_METRICS_MAP = {
         { label: METRIC_LABELS.cantidad, value: 'cantidad' },
         { label: METRIC_LABELS.asistentes, value: 'asistentes' }
     ],
-    cargo: [
+    cargo_responsable: [
         { label: METRIC_LABELS.asistentes, value: 'asistentes' },
         { label: METRIC_LABELS.cantidad, value: 'cantidad' }
     ],
-    tipo_formacion: [
+    dirigido_a: [
         { label: METRIC_LABELS.asistentes, value: 'asistentes' },
         { label: METRIC_LABELS.horas, value: 'horas' },
         { label: METRIC_LABELS.cantidad, value: 'cantidad' }
     ],
-    tipo_actividad: [
+    actividad: [
         { label: METRIC_LABELS.cantidad, value: 'cantidad' },
         { label: METRIC_LABELS.asistentes, value: 'asistentes' }
     ],

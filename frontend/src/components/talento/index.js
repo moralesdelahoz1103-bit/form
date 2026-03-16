@@ -1,12 +1,7 @@
-export { default as AyudaModal } from './AyudaModal/AyudaModal';
-export { default as ConfiguracionModal } from './ConfiguracionModal/ConfiguracionModal';
 export { default as Configuracion } from './Configuracion/Configuracion';
 export { default as CrearCapacitacion } from './CrearCapacitacion/CrearCapacitacion';
 export { default as MenuLateral } from './MenuLateral/MenuLateral';
 export { default as SesionesRegistradas } from './SesionesRegistradas/SesionesRegistradas';
-export { default as TabAyuda } from './TabAyuda/TabAyuda';
-export { default as TabCambiarRoles } from './TabCambiarRoles/TabCambiarRoles';
-export { default as TabPermisos } from './TabPermisos/TabPermisos';
 export { default as TabUsuarios } from './TabUsuarios/TabUsuarios';
 export { default as VerAsistentes } from './VerAsistentes/VerAsistentes';
 

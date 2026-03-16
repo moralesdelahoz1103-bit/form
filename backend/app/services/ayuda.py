@@ -1,6 +1,6 @@
 from typing import Dict, Any, List
 from datetime import datetime
-from app.db.cosmos_client import get_cosmos_db
+from db.cosmos_client import cosmos_db, get_cosmos_db
 
 
 class AyudaService:
@@ -92,23 +92,23 @@ class AyudaService:
             "tipo": "configuracion_ayuda",
             "categorias": [
                 {
-                    "id": "crear_formacion",
-                    "nombre": "Crear Formación o Evento",
+                    "id": "crear_actividad",
+                    "nombre": "Crear Actividad o Evento",
                     "icono": "calendar",
                     "orden": 1,
                     "tarjetas": [
                         {
                             "id": "acceso_crear",
-                            "pregunta": "¿Quién puede crear formaciones o eventos?",
-                            "respuesta": "Solo los administradores pueden crear formaciones o eventos.\n\nSi no ves el formulario de creación, contacta a un administrador para que te asigne los permisos necesarios.",
+                            "pregunta": "¿Quién puede crear actividades o eventos?",
+                            "respuesta": "Solo los administradores pueden crear actividades o eventos.\n\nSi no ves el formulario de creación, contacta a un administrador para que te asigne los permisos necesarios.",
                             "orden": 1,
                             "visible": True,
                             "roles_permitidos": ["Usuario", "Administrador"]
                         },
                         {
-                            "id": "crear_formacion",
-                            "pregunta": "¿Cómo crear una nueva formación o evento?",
-                            "respuesta": "En la sección 'Crear formación o evento':\n\n1. Completa el Tema (título de la actividad)\n2. Selecciona la Fecha\n3. Elige el Tipo de actividad: Capacitación, Inducción, Formación u Otros (eventos)\n4. Si eliges 'Otros (eventos)', escribe el tipo personalizado\n5. Ingresa el Facilitador y Responsable\n6. Especifica el Cargo del responsable\n7. Describe el Contenido de la actividad\n8. Define la Hora inicio y Hora final\n9. Haz clic en 'Crear Formación o Evento'\n\nSe generará automáticamente un link de registro para compartir con los asistentes.",
+                            "id": "crear_actividad",
+                            "pregunta": "¿Cómo crear una nueva actividad o evento?",
+                            "respuesta": "En la sección 'Crear actividad o evento':\n\n1. Completa el Tema (título de la actividad)\n2. Selecciona la Fecha\n3. Elige el Tipo de actividad: Capacitación, Inducción, Actividad u Otros (eventos)\n4. Si eliges 'Otros (eventos)', escribe el tipo personalizado\n5. Ingresa el Facilitador y Responsable\n6. Especifica el Cargo del responsable\n7. Describe el Contenido de la actividad\n8. Define la Hora inicio y Hora final\n9. Haz clic en 'Crear Actividad o Evento'\n\nSe generará automáticamente un link de registro para compartir con los asistentes.",
                             "orden": 2,
                             "visible": True,
                             "roles_permitidos": ["Administrador"]
@@ -116,7 +116,7 @@ class AyudaService:
                         {
                             "id": "link_registro",
                             "pregunta": "¿Cómo funciona el link de registro?",
-                            "respuesta": "Al crear una formación o evento, el sistema genera un link único que puedes:\n\n• Copiar haciendo clic en el botón 'Copiar Link'\n• Compartir por correo, WhatsApp o redes sociales\n• Enviar a los participantes para que se registren de forma autónoma\n\nCada link es único por formación o evento y no expira.",
+                            "respuesta": "Al crear una actividad o evento, el sistema genera un link único que puedes:\n\n• Copiar haciendo clic en el botón 'Copiar Link'\n• Compartir por correo, WhatsApp o redes sociales\n• Enviar a los participantes para que se registren de forma autónoma\n\nCada link es único por actividad o evento y no expira.",
                             "orden": 3,
                             "visible": True,
                             "roles_permitidos": ["Usuario", "Administrador"]
@@ -124,39 +124,39 @@ class AyudaService:
                     ]
                 },
                 {
-                    "id": "gestionar_formaciones",
-                    "nombre": "Formaciones o Eventos Registrados",
+                    "id": "gestionar_actividades",
+                    "nombre": "Actividades o Eventos Registrados",
                     "icono": "list",
                     "orden": 2,
                     "tarjetas": [
                         {
-                            "id": "ver_formaciones",
-                            "pregunta": "¿Cómo consultar las formaciones o eventos creados?",
-                            "respuesta": "En 'Formaciones o eventos registrados' verás:\n\n• Lista completa de todas las actividades creadas\n• Información de cada una: Tema, Fecha, Tipo de actividad, Facilitador\n• Cantidad de asistentes registrados\n• Opciones para ver detalles, editar o eliminar\n\nUsa los filtros de búsqueda para encontrar formaciones específicas.",
+                            "id": "ver_actividades",
+                            "pregunta": "¿Cómo consultar las actividades o eventos creados?",
+                            "respuesta": "En 'Actividades o eventos registrados' verás:\n\n• Lista completa de todas las actividades creadas\n• Inactividad de cada una: Tema, Fecha, Tipo de actividad, Facilitador\n• Cantidad de asistentes registrados\n• Opciones para ver detalles, editar o eliminar\n\nUsa los filtros de búsqueda para encontrar actividades específicas.",
                             "orden": 1,
                             "visible": True,
                             "roles_permitidos": ["Usuario", "Administrador"]
                         },
                         {
-                            "id": "editar_formacion",
-                            "pregunta": "¿Puedo editar una formación después de crearla?",
-                            "respuesta": "Sí, si tienes permisos de Administrador:\n\n1. En la lista de formaciones, haz clic en 'Ver detalles'\n2. Modifica los campos necesarios\n3. Haz clic en 'Guardar cambios'\n\nNota: Los cambios no afectan a los asistentes ya registrados, solo la información de la formación.",
+                            "id": "editar_actividad",
+                            "pregunta": "¿Puedo editar una actividad después de crearla?",
+                            "respuesta": "Sí, si tienes permisos de Administrador:\n\n1. En la lista de actividades, haz clic en 'Ver detalles'\n2. Modifica los campos necesarios\n3. Haz clic en 'Guardar cambios'\n\nNota: Los cambios no afectan a los asistentes ya registrados, solo la inactividad de la actividad.",
                             "orden": 2,
                             "visible": True,
                             "roles_permitidos": ["Administrador"]
                         },
                         {
-                            "id": "eliminar_formacion",
-                            "pregunta": "¿Cómo eliminar una formación o evento?",
-                            "respuesta": "Solo usuarios con permiso pueden eliminar:\n\n1. En la lista, haz clic en el botón de eliminar (ícono de papelera)\n2. Confirma la acción\n\n⚠️ ADVERTENCIA: Al eliminar una formación se borrarán TODOS los asistentes registrados y sus datos de forma PERMANENTE. Esta acción no se puede deshacer.",
+                            "id": "eliminar_actividad",
+                            "pregunta": "¿Cómo eliminar una actividad o evento?",
+                            "respuesta": "Solo usuarios con permiso pueden eliminar:\n\n1. En la lista, haz clic en el botón de eliminar (ícono de papelera)\n2. Confirma la acción\n\n⚠️ ADVERTENCIA: Al eliminar una actividad se borrarán TODOS los asistentes registrados y sus datos de forma PERMANENTE. Esta acción no se puede deshacer.",
                             "orden": 3,
                             "visible": True,
                             "roles_permitidos": ["Administrador"]
                         },
                         {
-                            "id": "exportar_formaciones",
-                            "pregunta": "¿Cómo exportar el listado de formaciones?",
-                            "respuesta": "En 'Formaciones o eventos registrados':\n\n1. Usa los filtros si deseas exportar solo algunas formaciones\n2. Haz clic en 'Exportar a Excel'\n3. Se descargará un archivo .xlsx con:\n   - Tema\n   - Fecha\n   - Tipo de actividad\n   - Facilitador\n   - Hora inicio y final\n   - Cantidad de asistentes\n\nEl archivo está formateado como tabla nativa de Excel.",
+                            "id": "exportar_actividades",
+                            "pregunta": "¿Cómo exportar el listado de actividades?",
+                            "respuesta": "En 'Actividades o eventos registrados':\n\n1. Usa los filtros si deseas exportar solo algunas actividades\n2. Haz clic en 'Exportar a Excel'\n3. Se descargará un archivo .xlsx con:\n   - Tema\n   - Fecha\n   - Tipo de actividad\n   - Facilitador\n   - Hora inicio y final\n   - Cantidad de asistentes\n\nEl archivo está formateado como tabla nativa de Excel.",
                             "orden": 4,
                             "visible": True,
                             "roles_permitidos": ["Administrador"]
@@ -171,16 +171,16 @@ class AyudaService:
                     "tarjetas": [
                         {
                             "id": "consultar_asistentes",
-                            "pregunta": "¿Cómo ver los asistentes de una formación?",
-                            "respuesta": "En la sección 'Ver asistentes':\n\n1. Selecciona una formación o evento del menú desplegable\n2. El sistema mostrará la información de la formación:\n   - Tema, Facilitador, Tipo de actividad\n   - Hora inicio y final\n   - Total de asistentes\n3. Verás la tabla completa con todos los participantes registrados",
+                            "pregunta": "¿Cómo ver los asistentes de una actividad?",
+                            "respuesta": "En la sección 'Ver asistentes':\n\n1. Selecciona una actividad o evento del menú desplegable\n2. El sistema mostrará la inactividad de la actividad:\n   - Tema, Facilitador, Tipo de actividad\n   - Hora inicio y final\n   - Total de asistentes\n3. Verás la tabla completa con todos los participantes registrados",
                             "orden": 1,
                             "visible": True,
                             "roles_permitidos": ["Usuario", "Administrador"]
                         },
                         {
                             "id": "datos_asistente",
-                            "pregunta": "¿Qué información se registra de cada asistente?",
-                            "respuesta": "El sistema almacena:\n\n• Cédula de identidad\n• Nombre completo\n• Cargo\n• Unidad organizacional\n• Correo electrónico\n• Fecha y hora de registro\n• Código QR único\n\nToda esta información está disponible para exportación.",
+                            "pregunta": "¿Qué inactividad se registra de cada asistente?",
+                            "respuesta": "El sistema almacena:\n\n• Cédula de identidad\n• Nombre completo\n• Cargo\n• Unidad organizacional\n• Correo electrónico\n• Fecha y hora de registro\n• Código QR único\n\nToda esta inactividad está disponible para exportación.",
                             "orden": 2,
                             "visible": True,
                             "roles_permitidos": ["Usuario", "Administrador"]
@@ -189,7 +189,7 @@ class AyudaService:
                         {
                             "id": "exportar_asistentes",
                             "pregunta": "¿Cómo exportar la lista de asistentes?",
-                            "respuesta": "Con una formación seleccionada:\n\n1. Haz clic en 'Exportar a Excel'\n2. Se descargará un archivo .xlsx que incluye:\n   - Información de la formación (encabezado)\n   - Tabla con todos los asistentes y sus datos\n   - Cédula, Nombre, Cargo, Unidad, Correo, Fecha\n\nEl formato es nativo de Excel y está listo para usar.",
+                            "respuesta": "Con una actividad seleccionada:\n\n1. Haz clic en 'Exportar a Excel'\n2. Se descargará un archivo .xlsx que incluye:\n   - Inactividad de la actividad (encabezado)\n   - Tabla con todos los asistentes y sus datos\n   - Cédula, Nombre, Cargo, Unidad, Correo, Fecha\n\nEl formato es nativo de Excel y está listo para usar.",
                             "orden": 4,
                             "visible": True,
                             "roles_permitidos": ["Administrador"]
@@ -230,7 +230,7 @@ class AyudaService:
                         {
                             "id": "roles",
                             "pregunta": "¿Qué roles existen en el sistema?",
-                            "respuesta": "Hay 2 roles con diferentes niveles de acceso:\n\n👤 Usuario: Solo puede consultar formaciones y asistentes\n\n✏️ Editor: Puede crear, editar y exportar formaciones. Puede consultar asistentes\n\n👑 Administrador: Acceso total, incluye gestión de usuarios y permisos\n\nLos roles son asignados por un Administrador.",
+                            "respuesta": "Hay 2 roles con diferentes niveles de acceso:\n\n👤 Usuario: Solo puede consultar actividades y asistentes\n\n✏️ Editor: Puede crear, editar y exportar actividades. Puede consultar asistentes\n\n👑 Administrador: Acceso total, incluye gestión de usuarios y permisos\n\nLos roles son asignados por un Administrador.",
                             "orden": 1,
                             "visible": True,
                             "roles_permitidos": ["Usuario", "Administrador"]

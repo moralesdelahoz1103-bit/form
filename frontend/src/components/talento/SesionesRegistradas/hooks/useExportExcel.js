@@ -17,9 +17,9 @@ export const useExportExcel = (sesiones, filtros, userEmail, setToast) => {
             const cumpleTipo = !filtros.tipo || sesion.tipo_actividad === filtros.tipo;
             const cumpleFacilitador = !filtros.facilitador || sesion.facilitador === filtros.facilitador;
             const cumpleResponsable = !filtros.responsable || sesion.responsable === filtros.responsable;
-            const cumpleTipoFormacion = !filtros.tipo_formacion || sesion.tipo_formacion === filtros.tipo_formacion;
+            const cumpleDirigidoA = !filtros.dirigido_a || sesion.dirigido_a === filtros.dirigido_a;
             const cumpleModalidad = !filtros.modalidad || sesion.modalidad === filtros.modalidad;
-            return cumpleBusqueda && cumpleFecha && cumpleTipo && cumpleFacilitador && cumpleResponsable && cumpleTipoFormacion && cumpleModalidad;
+            return cumpleBusqueda && cumpleFecha && cumpleTipo && cumpleFacilitador && cumpleResponsable && cumpleDirigidoA && cumpleModalidad;
         });
 
         if (datosFiltradosFinales.length === 0) {
@@ -29,7 +29,7 @@ export const useExportExcel = (sesiones, filtros, userEmail, setToast) => {
         }
 
         const wb = new ExcelJS.Workbook();
-        const ws = wb.addWorksheet('Formaciones');
+        const ws = wb.addWorksheet('Actividades');
 
         ws.columns = [
             { header: 'Tema', key: 'tema', width: 40 },
@@ -37,62 +37,69 @@ export const useExportExcel = (sesiones, filtros, userEmail, setToast) => {
             { header: 'Fecha', key: 'fecha', width: 14 },
             { header: 'Hora inicio', key: 'hora_inicio', width: 12 },
             { header: 'Hora fin', key: 'hora_fin', width: 12 },
-            { header: 'Horas de formación', key: 'horas_formacion', width: 18 },
-            { header: 'Tipo de actividad', key: 'tipo_actividad', width: 20 },
-            { header: 'Tipo de formación', key: 'tipo_formacion', width: 18 },
+            { header: 'Horas de actividad', key: 'horas_actividad', width: 18 },
+            { header: 'Actividad', key: 'actividad', width: 20 },
+            { header: 'Tipo de actividad', key: 'tipo_actividad', width: 18 },
+            { header: 'Dirigido a', key: 'dirigido_a', width: 18 },
             { header: 'Modalidad', key: 'modalidad', width: 14 },
-            { header: 'Facilitador', key: 'facilitador', width: 26 },
+            { header: 'Facilitador / Entidad', key: 'facilitador_entidad', width: 26 },
             { header: 'Responsable', key: 'responsable', width: 26 },
-            { header: 'Cargo responsable', key: 'cargo', width: 26 },
+            { header: 'Cargo responsable', key: 'cargo_responsable', width: 26 },
             { header: 'Creado por', key: 'created_by_name', width: 26 },
             { header: 'Descripción / Contenido', key: 'contenido', width: 40 },
-            { header: 'Asistentes', key: 'total_asistentes', width: 12 },
+            { header: 'Total asistentes', key: 'total_asistentes', width: 14 },
         ];
 
         datosFiltradosFinales.forEach(s => {
-            ws.addRow({
-                tema: s.tema,
-                nro_sesion: s.es_recurrente ? 'Sesión 1' : 'Única',
-                fecha: formatters.fecha(s.fecha),
-                hora_inicio: s.hora_inicio,
-                hora_fin: s.hora_fin,
-                horas_formacion: s.hora_inicio && s.hora_fin ? parseFloat(((s.hora_fin.split(':').map(Number)[0] * 60 + s.hora_fin.split(':').map(Number)[1] - (s.hora_inicio.split(':').map(Number)[0] * 60 + s.hora_inicio.split(':').map(Number)[1])) / 60).toFixed(2)) : 0,
-                tipo_actividad: s.tipo_actividad,
-                tipo_formacion: s.tipo_formacion || '',
-                modalidad: s.modalidad || '',
-                facilitador: s.facilitador,
-                responsable: s.responsable || '',
-                cargo: s.cargo || '',
-                created_by_name: s.created_by_name || s.created_by || '',
-                contenido: s.contenido || '',
-                total_asistentes: s.total_asistentes_principal || 0,
-            });
-
-            if (s.es_recurrente && s.ocurrencias && s.ocurrencias.length > 0) {
+            const hasOcurrencias = s.ocurrencias && s.ocurrencias.length > 0;
+            
+            if (!hasOcurrencias) {
+                ws.addRow({
+                    tema: s.tema,
+                    nro_sesion: 'Única',
+                    fecha: formatters.fecha(s.fecha),
+                    hora_inicio: s.hora_inicio,
+                    hora_fin: s.hora_fin,
+                    horas_actividad: s.hora_inicio && s.hora_fin ? parseFloat(((s.hora_fin.split(':').map(Number)[0] * 60 + s.hora_fin.split(':').map(Number)[1] - (s.hora_inicio.split(':').map(Number)[0] * 60 + s.hora_inicio.split(':').map(Number)[1])) / 60).toFixed(2)) : 0,
+                    actividad: s.actividad,
+                    tipo_actividad: s.tipo_actividad || 'Interno',
+                    dirigido_a: s.dirigido_a || '',
+                    modalidad: s.modalidad || '',
+                    facilitador_entidad: s.facilitador_entidad,
+                    responsable: s.responsable || '',
+                    cargo_responsable: s.cargo_responsable || '',
+                    created_by_name: s.created_by_name || s.created_by || '',
+                    contenido: s.contenido || '',
+                    total_asistentes: s.total_asistentes_principal || 0,
+                });
+            } else {
                 const ocurrenciasOrdenadas = [...s.ocurrencias].sort((a, b) => new Date(a.fecha) - new Date(b.fecha));
+                const esUnica = ocurrenciasOrdenadas.length === 1;
+                
                 ocurrenciasOrdenadas.forEach((oc, index) => {
                     ws.addRow({
                         tema: oc.tema || s.tema,
-                        nro_sesion: `Sesión ${index + 2}`,
+                        nro_sesion: esUnica ? 'Única' : `Sesión ${index + 1}`,
                         fecha: formatters.fecha(oc.fecha),
                         hora_inicio: oc.hora_inicio || s.hora_inicio,
                         hora_fin: oc.hora_fin || s.hora_fin,
-                        horas_formacion: (oc.hora_inicio || s.hora_inicio) && (oc.hora_fin || s.hora_fin) ? parseFloat((((oc.hora_fin || s.hora_fin).split(':').map(Number)[0] * 60 + (oc.hora_fin || s.hora_fin).split(':').map(Number)[1] - ((oc.hora_inicio || s.hora_inicio).split(':').map(Number)[0] * 60 + (oc.hora_inicio || s.hora_inicio).split(':').map(Number)[1])) / 60).toFixed(2)) : 0,
-                        tipo_actividad: oc.tipo_actividad || s.tipo_actividad,
-                        tipo_formacion: oc.tipo_formacion || s.tipo_formacion || '',
+                        horas_actividad: (oc.hora_inicio || s.hora_inicio) && (oc.hora_fin || s.hora_fin) ? parseFloat((((oc.hora_fin || s.hora_fin).split(':').map(Number)[0] * 60 + (oc.hora_fin || s.hora_fin).split(':').map(Number)[1] - ((oc.hora_inicio || s.hora_inicio).split(':').map(Number)[0] * 60 + (oc.hora_inicio || s.hora_inicio).split(':').map(Number)[1])) / 60).toFixed(2)) : 0,
+                        actividad: oc.actividad || s.actividad,
+                        tipo_actividad: oc.tipo_actividad || s.tipo_actividad || 'Interno',
+                        dirigido_a: oc.dirigido_a || s.dirigido_a || '',
                         modalidad: oc.modalidad || s.modalidad || '',
-                        facilitador: oc.facilitador || s.facilitador,
+                        facilitador_entidad: oc.facilitador_entidad || s.facilitador_entidad,
                         responsable: oc.responsable || s.responsable || '',
-                        cargo: oc.cargo || s.cargo || '',
+                        cargo_responsable: oc.cargo_responsable || s.cargo_responsable || '',
                         created_by_name: s.created_by_name || s.created_by || '',
                         contenido: oc.contenido || s.contenido || '',
-                        total_asistentes: oc.total_asistentes || 0,
+                        total_asistentes: oc.total_asistentes || (index === 0 ? s.total_asistentes_principal : 0),
                     });
                 });
             }
         });
 
-        const columnasCentradas = ['nro_sesion', 'fecha', 'hora_inicio', 'hora_fin', 'horas_formacion', 'tipo_formacion', 'modalidad', 'total_asistentes'];
+        const columnasCentradas = ['nro_sesion', 'fecha', 'hora_inicio', 'hora_fin', 'horas_actividad', 'tipo_actividad', 'dirigido_a', 'modalidad', 'total_asistentes'];
 
         ws.eachRow((row, rowNumber) => {
             row.eachCell((cell, colNumber) => {
@@ -127,7 +134,7 @@ export const useExportExcel = (sesiones, filtros, userEmail, setToast) => {
             to: { row: ws.rowCount, column: ws.columnCount }
         };
 
-        const nombreArchivo = tipo === 'mine' ? 'Mis formaciones.xlsx' : 'Todas las formaciones.xlsx';
+        const nombreArchivo = tipo === 'mine' ? 'Mis actividades.xlsx' : 'Todas las actividades.xlsx';
         const buffer = await wb.xlsx.writeBuffer();
         saveAs(new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }), nombreArchivo);
         setToast({ message: '¡Archivo exportado!', type: 'success' });

@@ -643,31 +643,9 @@
 /* Loading */
 .tab-usuarios-loading {
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 80px 24px;
-  gap: 16px;
-}
-
-.loading-spinner {
-  width: 48px;
-  height: 48px;
-  border: 4px solid white;
-  border-top-color: #26BC58;
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-.tab-usuarios-loading p {
-  font-size: 14px;
-  color: var(--text-light);
+  padding: 24px 0;
 }
 
 /* Responsive */

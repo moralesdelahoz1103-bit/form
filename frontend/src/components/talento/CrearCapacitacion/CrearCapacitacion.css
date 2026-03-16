@@ -45,6 +45,12 @@
   gap: 20px;
 }
 
+.form-row-3 {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 20px;
+}
+
 .form-group {
   display: flex;
   flex-direction: column;
@@ -158,7 +164,7 @@
     font-size: 28px;
   }
 
-  .form-row {
+  .form-row, .form-row-3 {
     grid-template-columns: 1fr;
   }
 
@@ -167,10 +173,14 @@
   }
 }
 
-/* For inputs that should span the full row inside .form-row */
-.form-row .full-width {
+/* For inputs that should span the full row inside .form-row or .form-row-3 */
+.form-row .full-width, .form-row-3 .full-width {
   grid-column: 1 / -1;
-  margin-top: 12px;
+  margin-top: -16px; /* Compensar el gap de la grid superior */
+}
+
+.form-row .full-width .form-group, .form-row-3 .full-width .form-group {
+  margin-bottom: 0px;
 }
 
 .form-row .full-width .input {

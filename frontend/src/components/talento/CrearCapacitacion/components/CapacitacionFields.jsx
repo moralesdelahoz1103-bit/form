@@ -1,9 +1,11 @@
 import React from 'react';
-import { Input, Select, Radio as RadioGroup } from '../../../common';
+import { Input, Select, Radio as RadioGroup, HelpTooltip } from '../../../common';
+import { ACTIVITY_HELP_ITEMS } from '../constants/activityDescriptions';
 
 const TIPOS_ACTIVIDAD = ['Capacitación', 'Inducción', 'Formación', 'Otros (eventos)'];
 const MODALIDADES = ['Virtual', 'Presencial', 'Híbrida'];
-const TIPOS_FORMACION = ['Interna', 'Externa'];
+const DIRIGIDO_A_OPTIONS = ['Personal FSD', 'Personal Externo'];
+const TIPO_ACTIVIDAD_OPTIONS = ['Interno', 'Externo'];
 
 const CapacitacionFields = ({ formData, handleChange, errors, customTipo }) => {
     return (
@@ -14,11 +16,34 @@ const CapacitacionFields = ({ formData, handleChange, errors, customTipo }) => {
                 value={formData.tema}
                 onChange={handleChange}
                 error={errors.tema}
-                placeholder="Ej: Inducción a la organización"
+                placeholder="¿Cuál es el tema o título de la actividad?"
                 required
             />
 
-            <div className="form-row">
+            <div className="form-row-3">
+                <Select
+                    label={
+                        <>
+                            Actividad
+                            <HelpTooltip title="Descripcion de actividades" items={ACTIVITY_HELP_ITEMS} />
+                        </>
+                    }
+                    name="actividad"
+                    value={formData.actividad}
+                    onChange={handleChange}
+                    options={TIPOS_ACTIVIDAD}
+                    error={errors.actividad}
+                    required
+                />
+                <RadioGroup
+                    label="Tipo de actividad"
+                    name="tipo_actividad"
+                    options={TIPO_ACTIVIDAD_OPTIONS}
+                    value={formData.tipo_actividad}
+                    onChange={handleChange}
+                    error={errors.tipo_actividad}
+                    required
+                />
                 <Input
                     label="Fecha"
                     type="date"
@@ -28,6 +53,22 @@ const CapacitacionFields = ({ formData, handleChange, errors, customTipo }) => {
                     error={errors.fecha}
                     required
                 />
+                {formData.actividad === 'Otros (eventos)' && (
+                    <div className="full-width">
+                        <Input
+                            label="Especifica la actividad"
+                            name="actividad_custom"
+                            value={customTipo}
+                            onChange={handleChange}
+                            error={errors.actividad_custom}
+                            placeholder="Ej: Taller, Conferencia, Feria..."
+                            required
+                        />
+                    </div>
+                )}
+            </div>
+
+            <div className="form-row">
                 <Select
                     label="Modalidad"
                     name="modalidad"
@@ -37,50 +78,25 @@ const CapacitacionFields = ({ formData, handleChange, errors, customTipo }) => {
                     error={errors.modalidad}
                     required
                 />
-            </div>
-
-            <div className="form-row" style={{ alignItems: 'center' }}>
-                <Select
-                    label="Actividad"
-                    name="tipo_actividad"
-                    value={formData.tipo_actividad}
-                    onChange={handleChange}
-                    options={TIPOS_ACTIVIDAD}
-                    error={errors.tipo_actividad}
-                    required
-                />
                 <RadioGroup
-                    label="Tipo de formación"
-                    name="tipo_formacion"
-                    options={TIPOS_FORMACION}
-                    value={formData.tipo_formacion}
+                    label="Dirigido a"
+                    name="dirigido_a"
+                    options={formData.actividad === 'Otros (eventos)' ? [...DIRIGIDO_A_OPTIONS, 'Personal FSD y externo'] : DIRIGIDO_A_OPTIONS}
+                    value={formData.dirigido_a}
                     onChange={handleChange}
-                    error={errors.tipo_formacion}
+                    error={errors.dirigido_a}
                     required
                 />
             </div>
 
-            {formData.tipo_actividad === 'Otros (eventos)' && (
-                <div style={{ marginBottom: '20px' }}>
-                    <Input
-                        label="Especificar tipo de actividad"
-                        name="custom_tipo"
-                        value={customTipo}
-                        onChange={handleChange}
-                        error={errors.custom_tipo}
-                        placeholder="Escribe el tipo de actividad"
-                        required
-                    />
-                </div>
-            )}
 
             <Input
-                label="Facilitador"
-                name="facilitador"
-                value={formData.facilitador}
+                label={formData.tipo_actividad === 'Externo' ? 'Entidad / Empresa' : 'Facilitador'}
+                name="facilitador_entidad"
+                value={formData.facilitador_entidad}
                 onChange={handleChange}
-                error={errors.facilitador}
-                placeholder="Ej: Nicolas Ojeda"
+                error={errors.facilitador_entidad}
+                placeholder={formData.tipo_actividad === 'Externo' ? '¿Cuál es la entidad o empresa que imparte la actividad?' : '¿Quién imparte la actividad?'}
                 required
             />
 
@@ -91,33 +107,18 @@ const CapacitacionFields = ({ formData, handleChange, errors, customTipo }) => {
                     value={formData.responsable}
                     onChange={handleChange}
                     error={errors.responsable}
-                    placeholder="¿Quién organiza la formación?"
+                    placeholder="¿Quién organiza la actividad por parte de la FSD?"
                     required
                 />
                 <Input
                     label="Cargo del responsable"
-                    name="cargo"
-                    value={formData.cargo}
+                    name="cargo_responsable"
+                    value={formData.cargo_responsable}
                     onChange={handleChange}
-                    error={errors.cargo}
+                    error={errors.cargo_responsable}
                     placeholder="Ej: Coordinador de Talento Humano"
                     required
                 />
-            </div>
-
-            <div className="form-group">
-                <label className="input-label">
-                    Contenido (mínimo 10 caracteres)<span className="required">*</span>
-                </label>
-                <textarea
-                    name="contenido"
-                    value={formData.contenido}
-                    onChange={handleChange}
-                    className={`textarea ${errors.contenido ? 'input-error' : ''}`}
-                    placeholder="Escribe aquí los temas principales (mínimo 10 caracteres)..."
-                    rows={5}
-                />
-                {errors.contenido && <span className="error-message">{errors.contenido}</span>}
             </div>
 
             <div className="form-row">
@@ -139,6 +140,21 @@ const CapacitacionFields = ({ formData, handleChange, errors, customTipo }) => {
                     error={errors.hora_fin}
                     required
                 />
+            </div>
+
+            <div className="form-group">
+                <label className="input-label">
+                    Contenido (mínimo 100 caracteres)<span className="required">*</span>
+                </label>
+                <textarea
+                    name="contenido"
+                    value={formData.contenido}
+                    onChange={handleChange}
+                    className={`textarea ${errors.contenido ? 'input-error' : ''}`}
+                    placeholder="Escribe aquí los temas o puntos principales a tratar en la actividad"
+                    rows={5}
+                />
+                {errors.contenido && <span className="error-message">{errors.contenido}</span>}
             </div>
         </>
     );

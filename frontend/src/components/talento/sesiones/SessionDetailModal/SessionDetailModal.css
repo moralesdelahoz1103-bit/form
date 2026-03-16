@@ -21,11 +21,14 @@
     font-weight: 500;
     color: #111827;
     line-height: 1.25;
+    word-break: break-word;
+    overflow-wrap: break-word;
 }
 
 .modal-detalle-subinfo {
     display: flex;
     gap: 8px;
+    flex-wrap: wrap; /* Permite que las etiquetas bajen si no caben */
 }
 
 .badge-neutral {
@@ -138,8 +141,11 @@
     color: #334155;
     line-height: 1.6;
     white-space: pre-wrap;
+    word-break: break-all; /* Fuerza el quiebre de palabras incluso sin espacios */
+    overflow-wrap: anywhere; /* Asegura quiebre en cualquier punto si es necesario */
     padding: 4px 0;
     min-height: 60px;
+    width: 100%;
 }
 
 /* Access Footer */

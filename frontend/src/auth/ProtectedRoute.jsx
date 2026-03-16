@@ -52,7 +52,7 @@ const ProtectedRoute = ({ children }) => {
 
   // Mostrar loading durante verificación
   if (isLoading) {
-    return <Loading size="lg" fullScreen text="Verificando autenticación..." />;
+    return <Loading size="lg" fullScreen text="Verificando autenticación" />;
   }
 
   // Si hay una redirección específica (acceso denegado)
@@ -62,7 +62,7 @@ const ProtectedRoute = ({ children }) => {
 
   // Si no está autenticado, redirigir al login
   if (!isAuthenticated) {
-    console.log('Usuario no autenticado, redirigiendo al login');
+    // Usuario no autenticado, redirigiendo al login
     return <Navigate to="/login" replace />;
   }
 

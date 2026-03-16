@@ -52,13 +52,8 @@
   width: 100% !important;
 }
 
-.spinner {
-  width: 16px;
-  height: 16px;
-  border: 2px solid rgba(255, 255, 255, 0.3);
-  border-top-color: white;
-  border-radius: 50%;
-  animation: spin 0.6s linear infinite;
+.btn-loading-spinner {
+  filter: brightness(0) invert(1);
 }
 
 .btn-loading-overlay {

@@ -12,7 +12,7 @@ router = APIRouter(prefix="/api/seguimiento", tags=["seguimiento"])
 
 @router.get("/participantes", response_model=List[Dict[str, Any]])
 async def listar_resumen_participantes(
-    user_email: Optional[str] = Query(None, description="Email del usuario para filtrar 'Mis formaciones'"),
+    user_email: Optional[str] = Query(None, description="Email del usuario para filtrar 'Mis actividades'"),
     current_user: dict = Depends(get_current_user)
     ):
     """
@@ -27,7 +27,7 @@ async def listar_resumen_participantes(
 @router.get("/participantes/{cedula}", response_model=Dict[str, Any])
 async def obtener_detalle_participante(
     cedula: str,
-    user_email: Optional[str] = Query(None, description="Email del usuario para filtrar 'Mis formaciones'"),
+    user_email: Optional[str] = Query(None, description="Email del usuario para filtrar 'Mis actividades'"),
     current_user: dict = Depends(get_current_user)
     ):
     """

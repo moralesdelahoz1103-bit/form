@@ -116,7 +116,7 @@ export const calculateKPIs = (sesiones, sesionesPasadas = []) => {
             minutos = parseInt(duracionStr);
         }
 
-        const tipo = (s.tipo_formacion || '').toLowerCase();
+        const tipo = (s.dirigido_a || '').toLowerCase();
         if (tipo.includes('interna')) {
             minutosInternos += minutos;
         } else if (tipo.includes('externa')) {

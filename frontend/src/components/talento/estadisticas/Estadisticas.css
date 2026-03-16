@@ -260,6 +260,9 @@
     opacity: 1;
     transform: translateY(-1px);
 }
+.estadisticas-export-spinner {
+     filter: brightness(0) invert(1);
+}
 
 .btn-export-intel svg {
     width: 20px;

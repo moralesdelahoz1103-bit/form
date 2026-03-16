@@ -1,5 +1,5 @@
-from app.core.config import settings
-from app.storage.adapter import StorageAdapter
+from core.config import settings
+from storage.adapter import StorageAdapter
 
 
 def get_storage_adapter() -> StorageAdapter:
@@ -10,10 +10,10 @@ def get_storage_adapter() -> StorageAdapter:
     storage_mode = settings.BLOB_STORAGE_MODE.lower()
     
     if storage_mode == "azure":
-        from app.storage.azure_blob import AzureBlobStorage
-        return AzureBlobStorage()
+        from storage.azure_blob import AzureBlobAdapter
+        return AzureBlobAdapter()
     elif storage_mode == "local":
-        from app.storage.local import LocalStorage
-        return LocalStorage()
+        from storage.local import LocalStorageAdapter
+        return LocalStorageAdapter()
     else:
         raise ValueError(f"Invalid BLOB_STORAGE_MODE: {storage_mode}. Must be 'local' or 'azure'")

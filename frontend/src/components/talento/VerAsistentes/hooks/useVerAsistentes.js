@@ -33,7 +33,7 @@ export const useVerAsistentes = () => {
             const data = await sesionesService.listar();
             setSesiones(data);
         } catch {
-            setToast({ message: 'Error al cargar formaciones registradas', type: 'error' });
+            setToast({ message: 'Error al cargar actividades registradas', type: 'error' });
         } finally {
             setLoading(false);
         }
@@ -56,6 +56,8 @@ export const useVerAsistentes = () => {
     const handleSeleccionarSesion = (id) => {
         setSesionSeleccionada(id);
         setOcurrenciaSeleccionada('__principal__');
+        // Limpiar asistentes al cambiar de actividad para evitar que persistan datos de la tabla anterior
+        setAsistentes([]);
     };
 
     // ── Datos derivados para el panel de información ──────────────────────────
@@ -72,19 +74,21 @@ export const useVerAsistentes = () => {
             : 'Por definir')
         : (sesionActual ? `${sesionActual.hora_inicio} – ${sesionActual.hora_fin}` : '');
 
-    const facilitadorMostrado = ocurrenciaActual?.facilitador || sesionActual?.facilitador;
-    const totalSesiones = sesionActual ? 1 + (sesionActual.ocurrencias?.length || 0) : 0;
+    const facilitadorMostrado = ocurrenciaActual?.facilitador_entidad || sesionActual?.facilitador_entidad;
+    const totalSesiones = sesionActual 
+        ? (sesionActual.ocurrencias && sesionActual.ocurrencias.length > 0 
+            ? sesionActual.ocurrencias.length 
+            : 1) 
+        : 0;
 
     // ── Exportar XLSX ─────────────────────────────────────────────────────────
     const exportarXLSX = async () => {
         if (!sesionActual) return;
 
         const workbook = new ExcelJS.Workbook();
-        const esInterna = sesionActual.tipo_formacion === 'Interna';
+        const esInterna = sesionActual.dirigido_a === 'Interna';
 
-        const encabezados = esInterna
-            ? ['Cédula', 'Nombre completo', 'Cargo', 'Dirección', 'Correo electrónico', 'Fecha de registro', 'Hora de registro']
-            : ['Cédula', 'Nombre completo', 'Empresa / Entidad', 'Cargo', 'Teléfono de contacto', 'Correo electrónico', 'Fecha de registro', 'Hora de registro'];
+        const encabezados = ['Cédula', 'Nombre completo', 'Cargo', 'Dirección', 'Correo electrónico', 'Fecha de registro', 'Hora de registro'];
 
         // Helper para crear hojas
         const crearHoja = async (datosSesionRef, nombreHoja, identificador) => {
@@ -101,9 +105,7 @@ export const useVerAsistentes = () => {
 
             const datos = asistentesHojas.map(a => {
                 const [fechaStr = '', horaStr = ''] = formatters.fechaHora(a.fecha_registro).split(', ');
-                return esInterna
-                    ? [a.cedula || '', a.nombre || '', a.cargo || '', a.unidad || '', a.correo || '', fechaStr, horaStr]
-                    : [a.cedula || '', a.nombre || '', a.empresa || '', a.cargo || '', a.telefono || '', a.correo || '', fechaStr, horaStr];
+                return [a.cedula || '', a.nombre || '', a.cargo || '', a.unidad || '', a.correo || '', fechaStr, horaStr];
             });
 
             // Reemplazar caracteres no válidos para nombres de hoja en Excel
@@ -111,35 +113,38 @@ export const useVerAsistentes = () => {
             const ws = workbook.addWorksheet(safeSheetName);
 
             const ref = (field) => datosSesionRef[field] || sesionActual[field];
-            ws.addRow(['Formación:', ref('tema')]);
+            ws.addRow(['Tema de actividad:', ref('tema')]);
             ws.addRow(['Responsable:', ref('responsable')]);
-            ws.addRow(['Cargo responsable:', ref('cargo')]);
-            ws.addRow(['Facilitador:', ref('facilitador')]);
+            ws.addRow(['Cargo responsable:', ref('cargo_responsable')]);
+            ws.addRow(['Facilitador / Entidad:', ref('facilitador_entidad')]);
+            ws.addRow(['Actividad:', ref('actividad')]);
+            ws.addRow(['Tipo de actividad:', ref('tipo_actividad')]); // Interno / Externo
+            ws.addRow(['Dirigido a:', ref('dirigido_a')]); // Personal FSD / Externo
             ws.addRow(['Fecha sesión:', formatters.fechaCorta(datosSesionRef.fecha)]);
             ws.addRow(['Horario:', `${ref('hora_inicio')} - ${ref('hora_fin')}`]);
 
             const [h1, m1] = (ref('hora_inicio') || '0:0').split(':').map(Number);
             const [h2, m2] = (ref('hora_fin') || '0:0').split(':').map(Number);
             const horasDec = parseFloat(((h2 * 60 + m2 - (h1 * 60 + m1)) / 60).toFixed(2));
-            const rowHoras = ws.addRow(['Horas de formación:', horasDec]);
+            const rowHoras = ws.addRow(['Horas de actividad:', isNaN(horasDec) ? 0 : horasDec]);
             rowHoras.getCell(2).numFmt = '0.00';
             rowHoras.getCell(2).alignment = { horizontal: 'left' };
 
-            ws.addRow(['Tipo de actividad:', ref('tipo_actividad')]);
-            ws.addRow(['Tipo de formación:', ref('tipo_formacion')]);
             ws.addRow(['Modalidad:', ref('modalidad')]);
             ws.addRow(['Cantidad de asistentes:', asistentesHojas.length]);
             if (ref('contenido')) ws.addRow(['Descripción:', ref('contenido')]);
 
             ws.addRow([]);
             const rowTabla = ws.rowCount + 1;
+            
+            // CORRECCIÓN CORRUPCIÓN: Asegurar que los datos estén antes o se manejen fuera de la tabla si hay conflictos
             ws.addTable({
-                name: `AsistentesTable_${safeSheetName.replace(/\s+/g, '_')}`,
+                name: `AsistentesTable_${safeSheetName.replace(/[^a-zA-Z0-9]/g, '_')}_${Math.floor(Math.random()*1000)}`,
                 ref: `A${rowTabla}`,
                 headerRow: true,
                 style: { theme: 'TableStyleMedium9', showRowStripes: true },
                 columns: encabezados.map(h => ({ name: h, filterButton: true })),
-                rows: datos.length > 0 ? datos : [Array(encabezados.length).fill('')] // Asegurar que hay al menos una fila vacía para que la tabla no se rompa
+                rows: datos.length > 0 ? datos : [Array(encabezados.length).fill('')]
             });
 
             // Estilos de cabecera
@@ -170,15 +175,18 @@ export const useVerAsistentes = () => {
 
         // Lógica de exportación según selección
         if (sesionActual.es_recurrente && ocurrenciaSeleccionada === '__principal__') {
-            // Exportar la sesión principal primero
-            await crearHoja(sesionActual, `Sesión 1 (${formatters.fechaCorta(sesionActual.fecha)})`, '__principal__');
-
-            // Luego cada ocurrencia
-            if (sesionActual.ocurrencias && sesionActual.ocurrencias.length > 0) {
+            const hasOcurrenciasFinal = sesionActual.ocurrencias && sesionActual.ocurrencias.length > 0;
+            
+            if (!hasOcurrenciasFinal) {
+                // Caso raro: marcada como recurrente pero sin ocurrencias
+                await crearHoja(sesionActual, 'Sesión 1', '__principal__');
+            } else {
                 const ocurrenciasOrdenadas = [...sesionActual.ocurrencias].sort((a, b) => new Date(a.fecha) - new Date(b.fecha));
                 for (let i = 0; i < ocurrenciasOrdenadas.length; i++) {
                     const oc = ocurrenciasOrdenadas[i];
-                    await crearHoja(oc, `Sesión ${i + 2} (${formatters.fechaCorta(oc.fecha)})`, oc.id);
+                    // Si i === 0, es la principal (puedo usar __principal__ para los asistentes)
+                    const idHoja = i === 0 ? '__principal__' : oc.id;
+                    await crearHoja(oc, `Sesión ${i + 1} (${formatters.fechaCorta(oc.fecha)})`, idHoja);
                 }
             }
         } else {
@@ -188,7 +196,7 @@ export const useVerAsistentes = () => {
         }
 
         const buffer = await workbook.xlsx.writeBuffer();
-        saveAs(new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }), `asistentes_${sesionActual.tema || 'formación'}.xlsx`);
+        saveAs(new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }), `asistentes_${sesionActual.tema || 'actividad'}.xlsx`);
     };
 
     const exportarConsolidadoXLSX = async () => {
@@ -197,32 +205,31 @@ export const useVerAsistentes = () => {
         const workbook = new ExcelJS.Workbook();
         let asistentesConsolidados = [];
 
-        try {
-            const asisPrincipal = await sesionesService.obtenerAsistentes(sesionActual.id, null);
-            asisPrincipal.forEach(a => asistentesConsolidados.push({ ...a, nombre_sesion: 'Sesión 1' }));
-        } catch { }
+        const hasOcurrenciasConsol = sesionActual.ocurrencias && sesionActual.ocurrencias.length > 0;
 
-        if (sesionActual.ocurrencias && sesionActual.ocurrencias.length > 0) {
+        if (!hasOcurrenciasConsol) {
+            try {
+                const asisPrincipal = await sesionesService.obtenerAsistentes(sesionActual.id, null);
+                asisPrincipal.forEach(a => asistentesConsolidados.push({ ...a, nombre_sesion: 'Sesión 1' }));
+            } catch { }
+        } else {
             for (let i = 0; i < sesionActual.ocurrencias.length; i++) {
                 try {
                     const oc = sesionActual.ocurrencias[i];
-                    const asisOc = await sesionesService.obtenerAsistentes(sesionActual.id, oc.id);
-                    asisOc.forEach(a => asistentesConsolidados.push({ ...a, nombre_sesion: `Sesión ${i + 2}` }));
+                    const ocId = i === 0 ? null : oc.id;
+                    const asisOc = await sesionesService.obtenerAsistentes(sesionActual.id, ocId);
+                    asisOc.forEach(a => asistentesConsolidados.push({ ...a, nombre_sesion: `Sesión ${i + 1}` }));
                 } catch { }
             }
         }
 
-        const esInterna = sesionActual.tipo_formacion === 'Interna';
+        const esInterna = sesionActual.dirigido_a === 'Interna';
 
-        const encabezados = esInterna
-            ? ['Sesión', 'Cédula', 'Nombre completo', 'Cargo', 'Dirección', 'Correo electrónico', 'Fecha de registro', 'Hora de registro']
-            : ['Sesión', 'Cédula', 'Nombre completo', 'Empresa / Entidad', 'Cargo', 'Teléfono de contacto', 'Correo electrónico', 'Fecha de registro', 'Hora de registro'];
+        const encabezados = ['Sesión', 'Cédula', 'Nombre completo', 'Cargo', 'Dirección', 'Correo electrónico', 'Fecha de registro', 'Hora de registro'];
 
         const datos = asistentesConsolidados.map(a => {
             const [fechaStr = '', horaStr = ''] = formatters.fechaHora(a.fecha_registro).split(', ');
-            return esInterna
-                ? [a.nombre_sesion || '', a.cedula || '', a.nombre || '', a.cargo || '', a.unidad || '', a.correo || '', fechaStr, horaStr]
-                : [a.nombre_sesion || '', a.cedula || '', a.nombre || '', a.empresa || '', a.cargo || '', a.telefono || '', a.correo || '', fechaStr, horaStr];
+            return [a.nombre_sesion || '', a.cedula || '', a.nombre || '', a.cargo || '', a.unidad || '', a.correo || '', fechaStr, horaStr];
         });
 
         const ws = workbook.addWorksheet('Todos los Asistentes');
@@ -238,19 +245,22 @@ export const useVerAsistentes = () => {
             return parseFloat(((h2 * 60 + m2 - (h1 * 60 + m1)) / 60).toFixed(2));
         };
 
-        // Sumar sesión principal
-        if (sesionActual.hora_inicio && sesionActual.hora_fin) {
-            totalHorasFormacion += calcularHoras(sesionActual.hora_inicio, sesionActual.hora_fin);
-        }
-        if (sesionActual.fecha) fechasTodas.push(new Date(sesionActual.fecha));
+        const hasOcurrenciasHoras = sesionActual.ocurrencias && sesionActual.ocurrencias.length > 0;
 
-        // Sumar ocurrencias
-        if (sesionActual.ocurrencias && sesionActual.ocurrencias.length > 0) {
+        if (!hasOcurrenciasHoras) {
+            if (sesionActual.hora_inicio && sesionActual.hora_fin) {
+                totalHorasFormacion += calcularHoras(sesionActual.hora_inicio, sesionActual.hora_fin);
+            }
+            if (sesionActual.fecha) fechasTodas.push(new Date(sesionActual.fecha));
+        } else {
             sesionActual.ocurrencias.forEach(oc => {
-                if (oc.hora_inicio && oc.hora_fin) {
-                    totalHorasFormacion += calcularHoras(oc.hora_inicio, oc.hora_fin);
+                const hIni = oc.hora_inicio || sesionActual.hora_inicio;
+                const hFin = oc.hora_fin || sesionActual.hora_fin;
+                if (hIni && hFin) {
+                    totalHorasFormacion += calcularHoras(hIni, hFin);
                 }
-                if (oc.fecha) fechasTodas.push(new Date(oc.fecha));
+                const f = oc.fecha || sesionActual.fecha;
+                if (f) fechasTodas.push(new Date(f));
             });
         }
         totalHorasFormacion = parseFloat(totalHorasFormacion.toFixed(2));
@@ -267,18 +277,19 @@ export const useVerAsistentes = () => {
         }
 
         const ref = (field) => sesionActual[field];
-        ws.addRow(['Formación:', ref('tema')]);
+        ws.addRow(['Tema de actividad:', ref('tema')]);
         ws.addRow(['Responsable:', ref('responsable')]);
-        ws.addRow(['Cargo responsable:', ref('cargo')]);
-        ws.addRow(['Facilitador:', ref('facilitador')]);
+        ws.addRow(['Cargo responsable:', ref('cargo_responsable')]);
+        ws.addRow(['Facilitador / Entidad:', ref('facilitador_entidad')]);
+        ws.addRow(['Actividad:', ref('actividad')]);
+        ws.addRow(['Tipo de actividad:', ref('tipo_actividad')]);
+        ws.addRow(['Dirigido a:', ref('dirigido_a')]);
         ws.addRow(['Rango de fechas:', rangoFechasStr]);
 
-        const rowHoras = ws.addRow(['Horas de formación (Total):', totalHorasFormacion]);
+        const rowHoras = ws.addRow(['Horas de actividad (Total):', totalHorasFormacion]);
         rowHoras.getCell(2).numFmt = '0.00';
         rowHoras.getCell(2).alignment = { horizontal: 'left' };
 
-        ws.addRow(['Tipo de actividad:', ref('tipo_actividad')]);
-        ws.addRow(['Tipo de formación:', ref('tipo_formacion')]);
         ws.addRow(['Modalidad:', ref('modalidad')]);
         ws.addRow(['Total registros:', asistentesConsolidados.length]);
         if (ref('contenido')) ws.addRow(['Descripción:', ref('contenido')]);
@@ -305,7 +316,7 @@ export const useVerAsistentes = () => {
                 row.eachCell((cell, colNum) => {
                     cell.border = { top: { style: 'thin', color: { argb: 'FFD1D5DB' } }, left: { style: 'thin', color: { argb: 'FFD1D5DB' } }, bottom: { style: 'thin', color: { argb: 'FFD1D5DB' } }, right: { style: 'thin', color: { argb: 'FFD1D5DB' } } };
                     const headerName = encabezados[colNum - 1];
-                    const cabecerasCentradas = ['Sesión', 'Cédula', 'Cargo', 'Teléfono de contacto', 'Fecha de registro', 'Hora de registro'];
+                    const cabecerasCentradas = ['Sesión', 'Cédula', 'Cargo', 'Fecha de registro', 'Hora de registro'];
                     if (cabecerasCentradas.includes(headerName)) {
                         cell.alignment = { vertical: 'middle', horizontal: 'center' };
                     } else {
@@ -317,7 +328,7 @@ export const useVerAsistentes = () => {
         encabezados.forEach((h, i) => { ws.getColumn(i + 1).width = Math.max(h.length + 2, 18); });
 
         const buffer = await workbook.xlsx.writeBuffer();
-        saveAs(new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }), `asistentes_consolidado_${sesionActual.tema || 'formacion'}.xlsx`);
+        saveAs(new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }), `asistentes_consolidado_${sesionActual.tema || 'actividad'}.xlsx`);
     };
 
     return {

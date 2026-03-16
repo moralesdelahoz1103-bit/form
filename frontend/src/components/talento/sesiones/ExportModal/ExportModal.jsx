@@ -19,7 +19,7 @@ const ExportModal = ({ isOpen, onClose, onExport }) => {
                             </svg>
                         </div>
                         <div className="option-details">
-                            <span className="option-title">Todas las formaciones</span>
+                            <span className="option-title">Todas las actividades</span>
                             <span className="option-desc">Exporta el consolidado completo de todas las áreas y responsables.</span>
                         </div>
                         <div className="option-arrow">
@@ -37,7 +37,7 @@ const ExportModal = ({ isOpen, onClose, onExport }) => {
                             </svg>
                         </div>
                         <div className="option-details">
-                            <span className="option-title">Solo mis formaciones</span>
+                            <span className="option-title">Solo mis actividades</span>
                             <span className="option-desc">Genera un reporte filtrado únicamente con las sesiones de tu autoría.</span>
                         </div>
                         <div className="option-arrow">

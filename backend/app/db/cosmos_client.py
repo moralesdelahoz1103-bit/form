@@ -1,426 +1,92 @@
 from azure.cosmos import CosmosClient, PartitionKey, exceptions
-from azure.core.exceptions import ServiceResponseError
-from typing import List, Optional, Dict, Any
-import sys
-from pathlib import Path
+from typing import Optional, Dict, Any
 import time
-sys.path.append(str(Path(__file__).parent.parent))
 
 from core.config import settings
-
-def _cosmos_retry(fn, max_retries: int = 3, base_delay: float = 1.0):
-    """Ejecuta fn con reintentos ante errores transitorios de red (ej. ConnectionResetError)."""
-    delay = base_delay
-    last_error = None
-    for attempt in range(max_retries):
-        try:
-            return fn()
-        except (ServiceResponseError, Exception) as e:
-            # Reintentar solo en errores de red / conexión
-            err_str = str(e).lower()
-            is_network_err = (
-                isinstance(e, ServiceResponseError) or
-                'connection' in err_str or
-                'aborted' in err_str or
-                'reset' in err_str or
-                'timeout' in err_str
-            )
-            if not is_network_err:
-                raise  # Error de lógica (404, 403, etc.) → no reintentar
-            last_error = e
-            if attempt < max_retries - 1:
-                print(f"⚠️  CosmosDB error transitorio (intento {attempt+1}/{max_retries}): {e}. Reintentando en {delay}s...")
-                time.sleep(delay)
-                delay *= 2
-            else:
-                print(f"❌ CosmosDB error tras {max_retries} intentos: {e}")
-    raise last_error
-
+from .repositories.sesiones_repo import SesionesRepository
+from .repositories.asistentes_repo import AsistentesRepository
+from .repositories.usuarios_repo import UsuariosRepository, ConfiguracionRepository
 
 class CosmosDBClient:
     def __init__(self):
-        # Configurar cliente de CosmosDB
-        self.client = CosmosClient(
-            settings.COSMOS_ENDPOINT, 
-            settings.COSMOS_KEY
-        )
+        self.client = CosmosClient(settings.COSMOS_ENDPOINT, settings.COSMOS_KEY)
         self.database_name = settings.COSMOS_DATABASE_NAME
         self.database = None
-        self.sesiones_container = None
-        self.asistentes_container = None
+        
+        # Repositorios
+        self.sesiones = None
+        self.asistentes = None
+        self.usuarios = None
+        self.configuracion = None
+        
         self._initialize_database()
     
     def _initialize_database(self):
-        """Inicializar base de datos y contenedores con reintentos"""
         max_retries = 3
         retry_delay = 2
-        
         for attempt in range(max_retries):
             try:
-                # Crear base de datos si no existe
                 self.database = self.client.create_database_if_not_exists(id=self.database_name)
                 
-                # Crear contenedor de sesiones (sin throughput para cuentas serverless)
-                self.sesiones_container = self.database.create_container_if_not_exists(
-                    id="sesiones",
-                    partition_key=PartitionKey(path="/id")
-                )
+                self.sesiones_container = self.database.create_container_if_not_exists(id="sesiones", partition_key=PartitionKey(path="/id"))
+                self.sesiones = SesionesRepository(self.sesiones_container)
                 
-                # Crear contenedor de asistentes (sin throughput para cuentas serverless)
-                self.asistentes_container = self.database.create_container_if_not_exists(
-                    id="asistentes",
-                    partition_key=PartitionKey(path="/sesion_id")
-                )
+                self.asistentes_container = self.database.create_container_if_not_exists(id="asistentes", partition_key=PartitionKey(path="/sesion_id"))
+                self.asistentes = AsistentesRepository(self.asistentes_container)
                 
-                # Crear contenedor de usuarios del sistema
-                self.usuarios_container = self.database.create_container_if_not_exists(
-                    id="usuarios",
-                    partition_key=PartitionKey(path="/id")
-                )
+                self.usuarios_container = self.database.create_container_if_not_exists(id="usuarios", partition_key=PartitionKey(path="/id"))
+                self.usuarios = UsuariosRepository(self.usuarios_container)
                 
-                # Crear contenedor de configuración (permisos, etc.)
-                self.configuracion_container = self.database.create_container_if_not_exists(
-                    id="configuracion",
-                    partition_key=PartitionKey(path="/id")
-                )
+                self.config_container = self.database.create_container_if_not_exists(id="configuracion", partition_key=PartitionKey(path="/id"))
+                self.configuracion = ConfiguracionRepository(self.config_container)
                 
-                print("✅ CosmosDB inicializado correctamente")
+                print("✅ CosmosDB inicializado correctamente con repositorios")
                 return
-                
-            except (exceptions.CosmosHttpResponseError, Exception) as e:
+            except Exception as e:
                 if attempt < max_retries - 1:
-                    print(f"⚠️  Intento {attempt + 1}/{max_retries} fallido. Reintentando en {retry_delay}s...")
                     time.sleep(retry_delay)
-                    retry_delay *= 2  # Exponential backoff
+                    retry_delay *= 2
                 else:
-                    print(f"❌ Error inicializando CosmosDB después de {max_retries} intentos: {e}")
                     raise
-    
-    # ========== OPERACIONES SESIONES ==========
-    
-    def crear_sesion(self, sesion_data: Dict[str, Any]) -> Dict[str, Any]:
-        """Crear una nueva sesión"""
-        try:
-            return self.sesiones_container.create_item(body=sesion_data)
-        except exceptions.CosmosHttpResponseError as e:
-            print(f"Error creando sesión: {e}")
-            raise
-    
-    def obtener_sesion(self, sesion_id: str) -> Optional[Dict[str, Any]]:
-        """Obtener sesión por ID"""
-        try:
-            return self.sesiones_container.read_item(item=sesion_id, partition_key=sesion_id)
-        except exceptions.CosmosResourceNotFoundError:
-            return None
-        except exceptions.CosmosHttpResponseError as e:
-            print(f"Error obteniendo sesión: {e}")
-            raise
-    
-    def listar_sesiones(self, owner_email: Optional[str] = None, tipos_actividad: Optional[List[str]] = None) -> List[Dict[str, Any]]:
-        """Listar sesiones con reintentos ante errores transitorios de red."""
-        def _query():
-            parameters = []
-            where_clauses = []
-            
-            if owner_email:
-                where_clauses.append("c.created_by = @owner")
-                parameters.append({"name": "@owner", "value": owner_email})
-            
-            if tipos_actividad:
-                # Construir cláusula IN dinámicamente
-                placeholders = []
-                for i, tipo in enumerate(tipos_actividad):
-                    p_name = f"@tipo{i}"
-                    placeholders.append(p_name)
-                    parameters.append({"name": p_name, "value": tipo})
-                where_clauses.append(f"c.tipo_actividad IN ({', '.join(placeholders)})")
 
-            query = "SELECT * FROM c"
-            if where_clauses:
-                query += " WHERE " + " AND ".join(where_clauses)
-            
-            query += " ORDER BY c.created_at DESC"
-            
-            return list(self.sesiones_container.query_items(
-                query=query,
-                parameters=parameters,
-                enable_cross_partition_query=True
-            ))
-            
-        try:
-            return _cosmos_retry(_query)
-        except exceptions.CosmosHttpResponseError as e:
-            print(f"Error listando sesiones: {e}")
-            raise
+    # Proxies para compatibilidad
+    def crear_sesion(self, data): return self.sesiones.crear(data)
+    def obtener_sesion(self, id): return self.sesiones.obtener_por_id(id)
+    def listar_sesiones(self, owner=None, tipos=None): return self.sesiones.listar(owner, tipos)
+    def listar_sesiones_admin(self, email): return self.sesiones.listar_admin(email)
+    def obtener_sesion_por_token(self, token): return self.sesiones.obtener_por_token(token)
+    def actualizar_sesion(self, id, data): return self.sesiones.actualizar(id, data)
+    def eliminar_sesion(self, id): return self.sesiones.eliminar(id)
+    
+    def crear_asistente(self, data): return self.asistentes.crear(data)
+    def obtener_asistente(self, id, s_id): return self.asistentes.obtener_por_id(id, s_id)
+    def listar_asistentes_por_sesion(self, s_id): return self.asistentes.listar_por_sesion(s_id)
+    def verificar_asistente_duplicado(self, c, t): return self.asistentes.verificar_duplicado(c, t)
+    def eliminar_asistentes_por_sesion(self, s_id): return self.asistentes.eliminar_por_sesion(s_id)
+    
+    def crear_usuario(self, data): return self.usuarios.crear(data)
+    def listar_usuarios(self): return self.usuarios.listar()
+    def obtener_usuario_por_id(self, id): return self.usuarios.obtener_por_id(id)
+    def obtener_usuario_por_email(self, e): return self.usuarios.obtener_por_email(e)
+    def actualizar_usuario(self, id, data): return self.usuarios.actualizar(id, data)
+    def eliminar_usuario(self, id): return self.usuarios.eliminar(id)
+    
+    def obtener_permisos(self): return self.configuracion.obtener_por_id("permisos_roles")
+    def crear_permisos(self, d): return self.configuracion.crear("permisos_roles", d)
+    def actualizar_permisos(self, d): return self.configuracion.actualizar("permisos_roles", d)
+    
+    def obtener_ayuda(self): return self.configuracion.obtener_por_id("centro_ayuda")
+    def crear_ayuda(self, d): return self.configuracion.crear("centro_ayuda", d)
+    def actualizar_ayuda(self, d): return self.configuracion.actualizar("centro_ayuda", d)
 
-    def listar_sesiones_admin(self, admin_email: str) -> List[Dict[str, Any]]:
-        """Listar sesiones para admin: las propias + todas las de tipo Inducción/Formación."""
-        def _query():
-            query = """
-                SELECT * FROM c 
-                WHERE c.created_by = @admin 
-                OR c.tipo_actividad IN ('Inducción', 'Formación', 'Capacitación') 
-                ORDER BY c.created_at DESC
-            """
-            parameters = [{"name": "@admin", "value": admin_email}]
-            return list(self.sesiones_container.query_items(
-                query=query,
-                parameters=parameters,
-                enable_cross_partition_query=True
-            ))
-
-        try:
-            return _cosmos_retry(_query)
-        except exceptions.CosmosHttpResponseError as e:
-            print(f"Error listando sesiones admin: {e}")
-            raise
-    
-    def obtener_sesion_por_token(self, token: str) -> Optional[Dict[str, Any]]:
-        """Obtener sesión por token. Busca en la raíz y en el arreglo de ocurrencias."""
-        try:
-            # Query que busca el token en la raíz O dentro de cualquier objeto del array 'ocurrencias'
-            query = """
-                SELECT * FROM c 
-                WHERE c.token = @token 
-                OR EXISTS(SELECT VALUE oc FROM oc IN c.ocurrencias WHERE oc.token = @token)
-            """
-            parameters = [{"name": "@token", "value": token}]
-            items = list(self.sesiones_container.query_items(
-                query=query,
-                parameters=parameters,
-                enable_cross_partition_query=True
-            ))
-            return items[0] if items else None
-        except exceptions.CosmosHttpResponseError as e:
-            print(f"Error obteniendo sesión por token: {e}")
-            raise
-    
-    def actualizar_sesion(self, sesion_id: str, sesion_data: Dict[str, Any]) -> Dict[str, Any]:
-        """Actualizar sesión"""
-        try:
-            return self.sesiones_container.replace_item(item=sesion_id, body=sesion_data)
-        except exceptions.CosmosHttpResponseError as e:
-            print(f"Error actualizando sesión: {e}")
-            raise
-    
-    def eliminar_sesion(self, sesion_id: str) -> None:
-        """Eliminar sesión"""
-        try:
-            self.sesiones_container.delete_item(item=sesion_id, partition_key=sesion_id)
-        except exceptions.CosmosHttpResponseError as e:
-            print(f"Error eliminando sesión: {e}")
-            raise
-    
-    # ========== OPERACIONES ASISTENTES ==========
-    
-    def crear_asistente(self, asistente_data: Dict[str, Any]) -> Dict[str, Any]:
-        """Crear un nuevo asistente"""
-        try:
-            return self.asistentes_container.create_item(body=asistente_data)
-        except exceptions.CosmosHttpResponseError as e:
-            print(f"Error creando asistente: {e}")
-            raise
-    
-    def obtener_asistente(self, asistente_id: str, sesion_id: str) -> Optional[Dict[str, Any]]:
-        """Obtener asistente por ID"""
-        try:
-            return self.asistentes_container.read_item(item=asistente_id, partition_key=sesion_id)
-        except exceptions.CosmosResourceNotFoundError:
-            return None
-        except exceptions.CosmosHttpResponseError as e:
-            print(f"Error obteniendo asistente: {e}")
-            raise
-    
-    def listar_asistentes_por_sesion(self, sesion_id: str) -> List[Dict[str, Any]]:
-        """Listar asistentes de una sesión"""
-        try:
-            query = "SELECT * FROM c WHERE c.sesion_id = @sesion_id ORDER BY c.fecha_registro ASC"
-            parameters = [{"name": "@sesion_id", "value": sesion_id}]
-            items = list(self.asistentes_container.query_items(
-                query=query,
-                parameters=parameters,
-                partition_key=sesion_id
-            ))
-            return items
-        except exceptions.CosmosHttpResponseError as e:
-            print(f"Error listando asistentes: {e}")
-            raise
-    
-
-    def verificar_asistente_duplicado(self, cedula: str, token: str) -> bool:
-        """Verificar si un asistente ya está registrado"""
-        try:
-            query = "SELECT * FROM c WHERE c.cedula = @cedula AND c.token = @token"
-            parameters = [
-                {"name": "@cedula", "value": cedula},
-                {"name": "@token", "value": token}
-            ]
-            items = list(self.asistentes_container.query_items(
-                query=query,
-                parameters=parameters,
-                enable_cross_partition_query=True
-            ))
-            return len(items) > 0
-        except exceptions.CosmosHttpResponseError as e:
-            print(f"Error verificando duplicado: {e}")
-            raise
-    
-    def eliminar_asistentes_por_sesion(self, sesion_id: str) -> None:
-        """Eliminar todos los asistentes de una sesión"""
-        try:
-            asistentes = self.listar_asistentes_por_sesion(sesion_id)
-            for asistente in asistentes:
-                self.asistentes_container.delete_item(
-                    item=asistente['id'],
-                    partition_key=sesion_id
-                )
-        except exceptions.CosmosHttpResponseError as e:
-            print(f"Error eliminando asistentes: {e}")
-            raise
-    
-    # ========== OPERACIONES USUARIOS DEL SISTEMA ==========
-    
-    def crear_usuario(self, usuario_data: Dict[str, Any]) -> Dict[str, Any]:
-        """Crear un nuevo usuario del sistema"""
-        try:
-            return self.usuarios_container.create_item(body=usuario_data)
-        except exceptions.CosmosHttpResponseError as e:
-            print(f"Error creando usuario: {e}")
-            raise
-    
-    def listar_usuarios(self) -> List[Dict[str, Any]]:
-        """Listar todos los usuarios del sistema"""
-        try:
-            query = "SELECT * FROM c ORDER BY c.fecha_ingreso DESC"
-            items = list(self.usuarios_container.query_items(
-                query=query,
-                enable_cross_partition_query=True
-            ))
-            return items
-        except exceptions.CosmosHttpResponseError as e:
-            print(f"Error listando usuarios: {e}")
-            raise
-    
-    def obtener_usuario_por_id(self, usuario_id: str) -> Optional[Dict[str, Any]]:
-        """Obtener un usuario por ID"""
-        try:
-            return self.usuarios_container.read_item(item=usuario_id, partition_key=usuario_id)
-        except exceptions.CosmosResourceNotFoundError:
-            return None
-        except exceptions.CosmosHttpResponseError as e:
-            print(f"Error obteniendo usuario: {e}")
-            raise
-    
-    def obtener_usuario_por_email(self, email: str) -> Optional[Dict[str, Any]]:
-        """Obtener un usuario por email (mantener para compatibilidad)"""
-        try:
-            query = "SELECT * FROM c WHERE LOWER(c.email) = LOWER(@email)"
-            parameters = [{"name": "@email", "value": email}]
-            items = list(self.usuarios_container.query_items(
-                query=query,
-                parameters=parameters,
-                enable_cross_partition_query=True
-            ))
-            return items[0] if items else None
-        except exceptions.CosmosHttpResponseError as e:
-            print(f"Error obteniendo usuario: {e}")
-            raise
-    
-    def actualizar_usuario(self, usuario_id: str, usuario_data: Dict[str, Any]) -> Dict[str, Any]:
-        """Actualizar un usuario del sistema"""
-        try:
-            existing = self.usuarios_container.read_item(item=usuario_id, partition_key=usuario_id)
-            existing.update(usuario_data)
-            return self.usuarios_container.replace_item(item=usuario_id, body=existing)
-        except exceptions.CosmosHttpResponseError as e:
-            print(f"Error actualizando usuario: {e}")
-            raise
-    
-    def eliminar_usuario(self, usuario_id: str) -> None:
-        """Eliminar un usuario del sistema"""
-        try:
-            self.usuarios_container.delete_item(item=usuario_id, partition_key=usuario_id)
-        except exceptions.CosmosHttpResponseError as e:
-            print(f"Error eliminando usuario: {e}")
-            raise
-    
-    # Métodos para gestión de permisos
-    def obtener_permisos(self) -> dict:
-        """Obtener configuración de permisos de roles"""
-        try:
-            return self.configuracion_container.read_item(
-                item="permisos_roles",
-                partition_key="permisos_roles"
-            )
-        except exceptions.CosmosResourceNotFoundError:
-            return None
-        except exceptions.CosmosHttpResponseError as e:
-            print(f"Error obteniendo permisos: {e}")
-            raise
-    
-    def crear_permisos(self, permisos_data: dict) -> dict:
-        """Crear configuración inicial de permisos"""
-        try:
-            permisos_data["id"] = "permisos_roles"
-            return self.configuracion_container.create_item(body=permisos_data)
-        except exceptions.CosmosHttpResponseError as e:
-            print(f"Error creando permisos: {e}")
-            raise
-    
-    def actualizar_permisos(self, permisos_data: dict) -> dict:
-        """Actualizar configuración de permisos"""
-        try:
-            permisos_data["id"] = "permisos_roles"
-            return self.configuracion_container.upsert_item(body=permisos_data)
-        except exceptions.CosmosHttpResponseError as e:
-            print(f"Error actualizando permisos: {e}")
-            raise
-    
-    # Métodos para gestión de centro de ayuda
-    def obtener_ayuda(self) -> dict:
-        """Obtener configuración del centro de ayuda"""
-        try:
-            return self.configuracion_container.read_item(
-                item="centro_ayuda",
-                partition_key="centro_ayuda"
-            )
-        except exceptions.CosmosResourceNotFoundError:
-            return None
-        except exceptions.CosmosHttpResponseError as e:
-            print(f"Error obteniendo centro de ayuda: {e}")
-            raise
-    
-    def crear_ayuda(self, ayuda_data: dict) -> dict:
-        """Crear configuración inicial del centro de ayuda"""
-        try:
-            ayuda_data["id"] = "centro_ayuda"
-            return self.configuracion_container.create_item(body=ayuda_data)
-        except exceptions.CosmosHttpResponseError as e:
-            print(f"Error creando centro de ayuda: {e}")
-            raise
-    
-    def actualizar_ayuda(self, ayuda_data: dict) -> dict:
-        """Actualizar configuración del centro de ayuda"""
-        try:
-            ayuda_data["id"] = "centro_ayuda"
-            return self.configuracion_container.upsert_item(body=ayuda_data)
-        except exceptions.CosmosHttpResponseError as e:
-            print(f"Error actualizando centro de ayuda: {e}")
-            raise
-
-# Instancia global con lazy initialization
 _cosmos_db_instance = None
-
 def get_cosmos_db():
-    """Obtener instancia de CosmosDB con lazy initialization"""
     global _cosmos_db_instance
     if _cosmos_db_instance is None:
         try:
             _cosmos_db_instance = CosmosDBClient()
-        except Exception as e:
-            print(f"⚠️ CosmosDB no disponible: {e}")
+        except Exception:
             _cosmos_db_instance = None
     return _cosmos_db_instance
 
-# Para compatibilidad con código existente - devuelve la instancia
 cosmos_db = get_cosmos_db()

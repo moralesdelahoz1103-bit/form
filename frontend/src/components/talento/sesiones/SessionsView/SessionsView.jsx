@@ -61,11 +61,11 @@ const SessionsView = ({
                                     </div>
                                     <div className="sesion-info-item">
                                         <span className="info-label">Actividad:</span>
-                                        <span className="info-value">{sesion.tipo_actividad}</span>
+                                        <span className="info-value">{sesion.actividad}</span>
                                     </div>
                                     <div className="sesion-info-item">
-                                        <span className="info-label">Tipo:</span>
-                                        <span className="info-value">{sesion.tipo_formacion || 'N/A'}</span>
+                                        <span className="info-label">Dirigido a:</span>
+                                        <span className="info-value">{sesion.dirigido_a || 'N/A'}</span>
                                     </div>
                                     <div className="sesion-info-item">
                                         <span className="info-label">Asistentes:</span>
@@ -73,13 +73,13 @@ const SessionsView = ({
                                     </div>
                                 </div>
 
-                                <div className="sesion-facilitador-row">
-                                    <span className="info-label">Facilitador:</span>
-                                    <span className="info-value">{sesion.facilitador}</span>
+                                <div className="sesion-facilitador_entidad-row">
+                                    <span className="info-label">Facilitador / Empresa o entidad:</span>
+                                    <span className="info-value">{sesion.facilitador_entidad} <span style={{ fontSize: '10px', color: '#94a3b8' }}>({sesion.tipo_actividad || 'Interno'})</span></span>
                                 </div>
 
                                 {verGlobal && sesion.created_by !== userEmail && (
-                                    <div className="sesion-facilitador-row" style={{ marginTop: '4px' }}>
+                                    <div className="sesion-facilitador_entidad-row" style={{ marginTop: '4px' }}>
                                         <span className="info-label">Creado por:</span>
                                         <span className="info-value" style={{ color: '#64748b' }} title={sesion.created_by}>
                                             {sesion.created_by_name || sesion.created_by?.split('@')[0]}
@@ -149,8 +149,8 @@ const SessionsView = ({
                             <th>Fecha</th>
                             <th>Actividad</th>
                             <th>Horario</th>
-                            <th>Tipo</th>
-                            <th>Facilitador</th>
+                            <th>Dirigido a</th>
+                            <th>Facilitador / Empresa o entidad</th>
                             <th>Asistentes</th>
                             {verGlobal && <th>Creado por</th>}
                             <th>Acciones</th>
@@ -167,8 +167,8 @@ const SessionsView = ({
                                 className="sesion-row-clickable"
                             >
                                 <td className="col-tema" title={sesion.tema}>
-                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
-                                        <span>{sesion.tema}</span>
+                                    <div className="col-tema-content" style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                                        <span className="col-tema-title">{sesion.tema}</span>
                                         {sesion.tiene_ocurrencias && (
                                             <span className="badge-recurrent-pro">
                                                 {sesion.total_fechas} sesiones
@@ -176,14 +176,19 @@ const SessionsView = ({
                                         )}
                                     </div>
                                 </td>
-                                <td style={{ minWidth: 100 }}>
+                                <td>
                                     {formatters.fechaCorta(sesion.fecha)}
                                     {sesion.tiene_ocurrencias && <span className="fecha-plus"> (+{sesion.total_fechas - 1})</span>}
                                 </td>
-                                <td>{sesion.tipo_actividad}</td>
+                                <td>{sesion.actividad}</td>
                                 <td className="whitespace-nowrap">{sesion.hora_inicio} - {sesion.hora_fin}</td>
-                                <td>{sesion.tipo_formacion}</td>
-                                <td className="col-facilitador" title={sesion.facilitador}>{sesion.facilitador}</td>
+                                <td>{sesion.dirigido_a}</td>
+                                <td className="col-facilitador_entidad" title={`${sesion.facilitador_entidad} (${sesion.tipo_actividad || 'Interno'})`}>
+                                    <div style={{ display: 'flex', flexDirection: 'column' }}>
+                                        <span>{sesion.facilitador_entidad}</span>
+                                        <span style={{ fontSize: '10px', color: '#94a3b8' }}>{sesion.tipo_actividad || 'Interno'}</span>
+                                    </div>
+                                </td>
                                 <td>
                                     <span className="badge-count-table">{sesion.total_asistentes_view || 0}</span>
                                 </td>

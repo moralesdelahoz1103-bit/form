@@ -1,9 +1,9 @@
 import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import RegistroMain from './pages/registro/RegistroMain';
-import TalentoHumano from './pages/TalentoHumano';
-import Login from './pages/Login';
-import AccesoDenegado from './pages/AccesoDenegado';
+import RegistroMain from './pages/asistente/registro/RegistroMain';
+import TalentoHumano from './pages/talento/TalentoHumano';
+import Login from './pages/auth/Login';
+import AccesoDenegado from './pages/auth/AccesoDenegado';
 import ProtectedRoute from './auth/ProtectedRoute';
 import './assets/styles/global.css';
 

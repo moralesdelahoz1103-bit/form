@@ -32,20 +32,6 @@ export const validations = {
     return null;
   },
 
-  empresa: (value) => {
-    const regex = /^[a-zA-ZáéíóúÁÉÍÓÚñÑ0-9\s.,-]+$/;
-    if (!value) return 'La empresa es obligatoria';
-    if (value.trim().length < 2) return 'El nombre de la empresa debe tener al menos 2 caracteres';
-    if (!regex.test(value)) return 'Contiene caracteres no permitidos';
-    return null;
-  },
-
-  telefono: (value) => {
-    const regex = /^\d{7,15}$/;
-    if (!value) return 'El número de teléfono es obligatorio';
-    if (!regex.test(value)) return 'El teléfono debe tener entre 7 y 15 dígitos';
-    return null;
-  },
 
   correo: (value) => {
     const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -92,13 +78,13 @@ export const validations = {
 
   contenido: (value) => {
     if (!value) return 'El contenido es obligatorio';
-    if (value.trim().length < 10) return 'El contenido debe tener al menos 10 caracteres';
+    if (value.trim().length < 100) return 'El contenido debe tener al menos 100 caracteres';
     return null;
   },
 
-  tipo_formacion: (value) => {
-    if (!value) return 'El tipo de formación es obligatorio';
-    if (!['Interna', 'Externa'].includes(value)) return 'Tipo de formación inválido';
+  dirigido_a: (value) => {
+    if (!value) return 'El campo dirigido a es obligatorio';
+    if (!['Personal FSD', 'Personal Fundación', 'Personal Externo', 'Personal FSD y externo'].includes(value)) return 'Valor inválido para dirigido a';
     return null;
   },
 

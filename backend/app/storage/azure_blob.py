@@ -1,10 +1,10 @@
-﻿import random
+import random
 import re
 import os
 from typing import Optional
 from azure.storage.blob import BlobServiceClient, ContentSettings
-from app.core.config import settings
-from app.storage.adapter import StorageAdapter
+from core.config import settings
+from storage.adapter import StorageAdapter
 
 
 def sanitize_filename(filename: str, max_length: int = 100) -> str:

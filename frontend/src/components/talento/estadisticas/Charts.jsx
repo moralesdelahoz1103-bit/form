@@ -8,7 +8,7 @@ const COLORS = ['#26BC58', '#0C2719', '#244C26', '#257137', '#259547', '#51CB75'
 
 export const ActividadChart = ({ data }) => (
     <div className="chart-card">
-        <h3>Formaciones por tipo de actividad</h3>
+        <h3>Actividades por tipo de actividad</h3>
         <div className="chart-container">
             <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={data}>
