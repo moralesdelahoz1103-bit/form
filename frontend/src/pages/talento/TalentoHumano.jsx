@@ -14,7 +14,15 @@ import { sesionesService } from '../../services/sesiones';
 import './TalentoHumano.css';
 
 const TalentoHumano = () => {
-  const [activeView, setActiveView] = useState('crear');
+  // Inicializar vista activa desde localStorage para persistencia tras recarga
+  const [activeView, setActiveView] = useState(() => {
+    return localStorage.getItem('th_active_view') || 'crear';
+  });
+
+  // Guardar vista activa en localStorage cada vez que cambie
+  useEffect(() => {
+    localStorage.setItem('th_active_view', activeView);
+  }, [activeView]);
 
   // Prefetch de sesiones al cargar la app para que el módulo no tenga que esperar
   useEffect(() => {

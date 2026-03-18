@@ -4,7 +4,7 @@ import './Header.css';
 import logoFSD from '../../../assets/img/logo_fsd.png';
 import { logout } from '../../../utils/auth';
 import { tienePermiso } from '../../../utils/permisos';
-import { Modal } from '../';
+import { Modal, Button } from '../';
 
 const Header = ({ activeView, onModuleChange, onConfigClick }) => {
   const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}');
@@ -165,10 +165,7 @@ const Header = ({ activeView, onModuleChange, onConfigClick }) => {
                     <div className="dropdown-section profile-info-mobile">
                       <div className="mobile-profile-header">
                         <div className="header-avatar-circle large">{getInitials(name)}</div>
-                        <div className="mobile-user-details">
-                          <div className="mobile-user-name">{name}</div>
-                          <div className="mobile-user-email">{email}</div>
-                        </div>
+                        <div className="mobile-user-name">{name}</div>
                       </div>
                     </div>
 
@@ -231,8 +228,8 @@ const Header = ({ activeView, onModuleChange, onConfigClick }) => {
         <div className="logout-confirm-modal">
           <p>¿Estás seguro que deseas cerrar sesión?</p>
           <div className="modal-actions">
-            <button className="btn-secondary" onClick={() => setConfirmOpen(false)}>Cancelar</button>
-            <button className="btn-primary" onClick={confirmLogout}>Cerrar sesión</button>
+            <Button variant="secondary" onClick={() => setConfirmOpen(false)}>Cancelar</Button>
+            <Button variant="primary" onClick={confirmLogout}>Cerrar sesión</Button>
           </div>
         </div>
       </Modal>

@@ -57,30 +57,64 @@ def crear_asistente(asistente_data: dict, sesion_id: str, ip_address: Optional[s
     from services import sesiones as sesion_service
 
     cedula = asistente_data['cedula']
-    nombre_persona = asistente_data.get('nombre', cedula)
     
     if settings.STORAGE_MODE == "cosmosdb" and COSMOS_AVAILABLE:
-        # Verificar duplicados en CosmosDB
-        if cosmos_db.verificar_asistente_duplicado(asistente_data['cedula'], asistente_data['token']):
+        import time
+        t0 = time.time()
+        # Obtener sesión completa para tener acceso a _actividad_id y metadatos
+        sesion = sesion_service.get_sesion_by_token(asistente_data['token'])
+        t1 = time.time()
+        print(f"⏱️ [crear_asistente] Obtener sesión: {t1-t0:.4f}s")
+        
+        # ID específico de la sesión (ocurrencia o maestro)
+        id_especifico = asistente_data.get('ocurrencia_id') or sesion['id']
+        # ID de la actividad principal (maestro)
+        id_actividad = sesion.get('_actividad_id', sesion['id'])
+
+        # Verificar duplicados en CosmosDB (por cédula y sesión específica)
+        t2 = time.time()
+        if cosmos_db.asistentes.verificar_duplicado(cedula, id_especifico):
+            print(f"⏱️ [crear_asistente] Verificar duplicado tardó {time.time()-t2:.4f}s (ENCONTRADO)")
             raise DuplicateRegistrationException()
+        t3 = time.time()
+        print(f"⏱️ [crear_asistente] Verificar duplicado tardó {t3-t2:.4f}s (NO encontrado)")
         
-        nuevo_asistente = {
-            "id": str(uuid.uuid4()),
-            "sesion_id": sesion_id,
-            "token": asistente_data['token'],
-            "cedula": asistente_data['cedula'],
-            "nombre": asistente_data['nombre'],
-            "cargo": asistente_data.get('cargo'),
-            "unidad": asistente_data.get('unidad'),
-            "empresa": asistente_data.get('empresa'),
-            "telefono": asistente_data.get('telefono'),
-            "correo": asistente_data.get('correo'),
-            "fecha_registro": datetime.now(pytz.timezone(settings.TIMEZONE)).isoformat()
+        # Preparar datos para el registro
+        asistente_data['fecha_registro'] = datetime.now(pytz.timezone(settings.TIMEZONE)).isoformat()
+
+        # Crear/Actualizar registro en base de datos
+        t4 = time.time()
+        nuevo_asistente = cosmos_db.asistentes.crear_o_actualizar(
+            asistente_data,
+            id_actividad
+        )
+        t5 = time.time()
+        print(f"⏱️ [crear_asistente] Crear/Actualizar persona tardó {t5-t4:.4f}s")
+        
+        # Incrementar contador de asistentes en la sesión/ocurrencia
+        try:
+            # Usar id_actividad para encontrar el documento maestro de la sesión
+            # y pasar asistente_data.get('ocurrencia_id') para el contador de la sesión específica
+            sesion_service.increment_asistentes(id_actividad, asistente_data.get('ocurrencia_id'))
+        except Exception as e:
+            print(f"⚠️ No se pudo incrementar el contador de asistentes: {e}")
+
+        print(f"⏱️ [crear_asistente] TOTAL: {time.time()-t0:.4f}s")
+        
+        # Devolver el formato aplanado para compatibilidad con el frontend
+        return {
+            "id": cedula,
+            "actividad_id": id_actividad,
+            "sesion_id": id_especifico,
+            "cedula": cedula,
+            "nombre": nuevo_asistente.get('nombre'),
+            "cargo": nuevo_asistente.get('cargo'),
+            "unidad": nuevo_asistente.get('unidad'),
+            "empresa": nuevo_asistente.get('empresa'),
+            "telefono": nuevo_asistente.get('telefono'),
+            "correo": nuevo_asistente.get('correo'),
+            "fecha_registro": asistente_data['fecha_registro']
         }
-        if asistente_data.get('ocurrencia_id'):
-            nuevo_asistente['ocurrencia_id'] = asistente_data['ocurrencia_id']
-        
-        return cosmos_db.crear_asistente(nuevo_asistente)
     else:
         # Modo JSON (original)
         asistentes = load_asistentes()
@@ -127,3 +161,30 @@ def delete_asistentes_by_sesion(sesion_id: str):
         asistentes = load_asistentes()
         new_asistentes = [a for a in asistentes if a['sesion_id'] != sesion_id]
         save_asistentes(new_asistentes)
+
+def obtener_asistente_por_cedula(cedula: str) -> Optional[dict]:
+    """Buscar un asistente por su cédula"""
+    if settings.STORAGE_MODE == "cosmosdb" and COSMOS_AVAILABLE:
+        return cosmos_db.asistentes.obtener_por_cedula(cedula)
+    else:
+        asistentes = load_asistentes()
+        for a in asistentes:
+            if a['cedula'] == cedula:
+                return a
+    return None
+
+def actualizar_asistente(cedula: str, asistente_data: dict) -> Optional[dict]:
+    """Actualizar datos de un asistente"""
+    if settings.STORAGE_MODE == "cosmosdb" and COSMOS_AVAILABLE:
+        return cosmos_db.asistentes.actualizar_campos(cedula, asistente_data)
+    else:
+        asistentes = load_asistentes()
+        for i, a in enumerate(asistentes):
+            if a['cedula'] == cedula:
+                # Actualizar campos
+                for k, v in asistente_data.items():
+                    if v is not None:
+                        asistentes[i][k] = v
+                save_asistentes(asistentes)
+                return asistentes[i]
+    return None

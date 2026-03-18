@@ -72,12 +72,17 @@ const Login = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const [isLoggingIn, setIsLoggingIn] = useState(false);
+  const [checkingInitialAuth, setCheckingInitialAuth] = useState(!!getAuthToken());
   const [error, setError] = useState(null);
 
   /* ── Auto-login if token exists ─── */
   useEffect(() => {
     const token = getAuthToken();
-    if (token) verifyToken(token);
+    if (token) {
+      verifyToken(token);
+    } else {
+      setCheckingInitialAuth(false);
+    }
   }, []);
 
   /* ── Handle callback token ─── */
@@ -96,16 +101,20 @@ const Login = () => {
       });
       if (res.ok) {
         navigate('/talento-humano', { replace: true });
+        // No quitamos el loading para evitar flash antes de que el router cambie
       } else {
         clearAuth();
+        setCheckingInitialAuth(false);
       }
     } catch {
       clearAuth();
+      setCheckingInitialAuth(false);
     }
   };
 
   const fetchUserInfo = async (token) => {
     try {
+      setIsLoggingIn(true);
       const res = await fetch(`${config.apiUrl}/api/auth/me`, {
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -119,6 +128,7 @@ const Login = () => {
           help: 'Por favor, intenta iniciar sesión nuevamente.',
         });
         clearAuth();
+        setIsLoggingIn(false);
       }
     } catch {
       setError({
@@ -126,6 +136,7 @@ const Login = () => {
         help: 'No se pudo conectar con el servidor. Verifica tu conexión a internet.',
       });
       clearAuth();
+      setIsLoggingIn(false);
     }
   };
 
@@ -143,9 +154,9 @@ const Login = () => {
     }
   };
 
-  /* ── Full-screen loading while authenticating ─── */
-  if (isLoggingIn) {
-    return <Loading size="lg" fullScreen text="Conectando con Microsoft" />;
+  /* ── Full-screen loading while authenticating or checking initial session ─── */
+  if (isLoggingIn || checkingInitialAuth) {
+    return <Loading size="lg" fullScreen text={checkingInitialAuth ? "Verificando sesión" : "Conectando con Microsoft"} />;
   }
 
   return (

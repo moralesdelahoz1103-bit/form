@@ -31,7 +31,7 @@ class CosmosDBClient:
                 self.sesiones_container = self.database.create_container_if_not_exists(id="sesiones", partition_key=PartitionKey(path="/id"))
                 self.sesiones = SesionesRepository(self.sesiones_container)
                 
-                self.asistentes_container = self.database.create_container_if_not_exists(id="asistentes", partition_key=PartitionKey(path="/sesion_id"))
+                self.asistentes_container = self.database.create_container_if_not_exists(id="asistentes", partition_key=PartitionKey(path="/id"))
                 self.asistentes = AsistentesRepository(self.asistentes_container)
                 
                 self.usuarios_container = self.database.create_container_if_not_exists(id="usuarios", partition_key=PartitionKey(path="/id"))
@@ -58,10 +58,10 @@ class CosmosDBClient:
     def actualizar_sesion(self, id, data): return self.sesiones.actualizar(id, data)
     def eliminar_sesion(self, id): return self.sesiones.eliminar(id)
     
-    def crear_asistente(self, data): return self.asistentes.crear(data)
+    def crear_o_actualizar_asistente(self, data, s_id): return self.asistentes.crear_o_actualizar(data, s_id)
     def obtener_asistente(self, id, s_id): return self.asistentes.obtener_por_id(id, s_id)
     def listar_asistentes_por_sesion(self, s_id): return self.asistentes.listar_por_sesion(s_id)
-    def verificar_asistente_duplicado(self, c, t): return self.asistentes.verificar_duplicado(c, t)
+    def verificar_asistente_duplicado(self, c, s_id): return self.asistentes.verificar_duplicado(c, s_id)
     def eliminar_asistentes_por_sesion(self, s_id): return self.asistentes.eliminar_por_sesion(s_id)
     
     def crear_usuario(self, data): return self.usuarios.crear(data)

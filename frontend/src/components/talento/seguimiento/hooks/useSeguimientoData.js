@@ -14,13 +14,47 @@ export const useSeguimientoData = (esAdministrador, userEmail) => {
     const [error, setError] = useState(null);
     const [verGlobal, setVerGlobal] = useState(esAdministrador);
 
+    // Filtros avanzados
+    const [filtros, setFiltros] = useState({
+        cargo: '',
+        unidad: ''
+    });
+
     // Paginación
     const [currentPage, setCurrentPage] = useState(1);
     const ITEMS_PER_PAGE = 10;
 
+    // Valores únicos para filtros
+    const [unidadesUnicas, setUnidadesUnicas] = useState([]);
+    const [cargosUnicos, setCargosUnicos] = useState([]);
+
     useEffect(() => {
         fetchParticipantes();
     }, [verGlobal, userEmail]);
+
+    // Extraer valores únicos cuando cambian los participantes
+    useEffect(() => {
+        if (participantes.length > 0) {
+            const unidades = [...new Set(participantes.map(p => p.unidad).filter(Boolean))].sort();
+            const cargos = [...new Set(participantes.map(p => p.cargo).filter(Boolean))].sort();
+            setUnidadesUnicas(unidades);
+            setCargosUnicos(cargos);
+        }
+    }, [participantes]);
+
+    const handleFiltroChange = (name, value) => {
+        setFiltros(prev => ({ ...prev, [name]: value }));
+        setCurrentPage(1);
+    };
+
+    const limpiarFiltros = () => {
+        setSearchTerm('');
+        setFiltros({
+            cargo: '',
+            unidad: ''
+        });
+        setCurrentPage(1);
+    };
 
     const fetchParticipantes = async () => {
         setLoading(true);
@@ -58,10 +92,15 @@ export const useSeguimientoData = (esAdministrador, userEmail) => {
         setCurrentPage(1); // Resetear a la primera página al buscar
     };
 
-    const filteredParticipantes = participantes.filter(p =>
-        p.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        p.cedula.includes(searchTerm)
-    );
+    const filteredParticipantes = participantes.filter(p => {
+        const matchesSearch = p.nombre.toLowerCase().includes(searchTerm.toLowerCase()) || 
+                             p.cedula.includes(searchTerm);
+        
+        const matchesCargo = !filtros.cargo || p.cargo === filtros.cargo;
+        const matchesUnidad = !filtros.unidad || p.unidad === filtros.unidad;
+
+        return matchesSearch && matchesCargo && matchesUnidad;
+    });
 
     // Lógica de paginación
     const totalPages = Math.ceil(filteredParticipantes.length / ITEMS_PER_PAGE);
@@ -223,6 +262,11 @@ export const useSeguimientoData = (esAdministrador, userEmail) => {
         handlePageChange,
         handleVerDetalle,
         exportarHistorialIndividual,
-        fetchParticipantes
+        fetchParticipantes,
+        filtros,
+        handleFiltroChange,
+        limpiarFiltros,
+        unidadesUnicas,
+        cargosUnicos
     };
 };

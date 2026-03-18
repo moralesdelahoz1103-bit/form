@@ -32,7 +32,12 @@ const Seguimiento = () => {
         handlePageChange,
         handleVerDetalle,
         exportarHistorialIndividual,
-        fetchParticipantes
+        fetchParticipantes,
+        filtros,
+        handleFiltroChange,
+        limpiarFiltros,
+        unidadesUnicas,
+        cargosUnicos
     } = useSeguimientoData(esAdministrador, userEmail);
 
     if (loading) return <Loading />;
@@ -45,6 +50,11 @@ const Seguimiento = () => {
                 setVerGlobal={setVerGlobal}
                 searchTerm={searchTerm}
                 handleSearchChange={handleSearchChange}
+                filtros={filtros}
+                handleFiltroChange={handleFiltroChange}
+                limpiarFiltros={limpiarFiltros}
+                unidadesUnicas={unidadesUnicas}
+                cargosUnicos={cargosUnicos}
             />
 
             {error && !loading && (

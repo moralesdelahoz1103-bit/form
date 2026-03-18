@@ -13,8 +13,10 @@ class UsuariosRepository(BaseRepository):
     def obtener_por_id(self, usuario_id: str) -> Optional[Dict[str, Any]]:
         try:
             return self.container.read_item(item=usuario_id, partition_key=usuario_id)
-        except exceptions.CosmosResourceNotFoundError:
-            return None
+        except (exceptions.CosmosResourceNotFoundError, exceptions.CosmosHttpResponseError) as e:
+            if getattr(e, 'status_code', 0) == 404 or isinstance(e, exceptions.CosmosResourceNotFoundError):
+                return None
+            raise
     
     def obtener_por_email(self, email: str) -> Optional[Dict[str, Any]]:
         query = "SELECT * FROM c WHERE LOWER(c.email) = LOWER(@email)"
@@ -36,8 +38,10 @@ class ConfiguracionRepository(BaseRepository):
     def obtener_por_id(self, config_id: str) -> Optional[Dict[str, Any]]:
         try:
             return self.container.read_item(item=config_id, partition_key=config_id)
-        except exceptions.CosmosResourceNotFoundError:
-            return None
+        except (exceptions.CosmosResourceNotFoundError, exceptions.CosmosHttpResponseError) as e:
+            if getattr(e, 'status_code', 0) == 404 or isinstance(e, exceptions.CosmosResourceNotFoundError):
+                return None
+            raise
     
     def crear(self, config_id: str, data: Dict[str, Any]) -> Dict[str, Any]:
         data["id"] = config_id

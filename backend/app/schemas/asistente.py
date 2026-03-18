@@ -1,5 +1,5 @@
 from pydantic import BaseModel, Field, validator
-from typing import Optional
+from typing import Optional, List
 import re
 
 class AsistenteInternoCreate(BaseModel):
@@ -41,10 +41,15 @@ class AsistenteExternoCreate(BaseModel):
             return v.strip()
         return v
 
-class AsistenteResponse(BaseModel):
-    id: str
+class AsistenciaRecord(BaseModel):
+    actividad_id: str
     sesion_id: str
-    token: str
+    fecha_registro: str
+
+class AsistenteResponse(BaseModel):
+    id: str  # Cédula
+    actividad_id: str
+    sesion_id: str
     cedula: str
     nombre: str
     cargo: Optional[str] = None
@@ -56,3 +61,24 @@ class AsistenteResponse(BaseModel):
     
     class Config:
         from_attributes = True
+
+class PersonaResponse(BaseModel):
+    id: str  # Cédula
+    nombre: str
+    cargo: Optional[str] = None
+    unidad: Optional[str] = None
+    empresa: Optional[str] = None
+    telefono: Optional[str] = None
+    correo: Optional[str] = None
+    asistencias: List[AsistenciaRecord] = []
+
+    class Config:
+        from_attributes = True
+
+class AsistenteUpdate(BaseModel):
+    nombre: Optional[str] = None
+    cargo: Optional[str] = None
+    unidad: Optional[str] = None
+    empresa: Optional[str] = None
+    telefono: Optional[str] = None
+    correo: Optional[str] = None

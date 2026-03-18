@@ -179,9 +179,9 @@ body.menu-open-lock {
 }
 
 .header-avatar-circle {
-  width: 34px;
-  height: 34px;
-  background: white;
+  width: 32px;
+  height: 32px;
+  background: #ffffff;
   color: #26bc58;
   border-radius: 50%;
   display: flex;
@@ -189,7 +189,8 @@ body.menu-open-lock {
   justify-content: center;
   font-size: 13px;
   font-weight: 700;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+  flex-shrink: 0;
 }
 
 .header-avatar-circle.large {
@@ -197,18 +198,14 @@ body.menu-open-lock {
   height: 56px;
   font-size: 20px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  /* Keep shadow for the large mobile avatar */
-}
-
-.header-user-container.active .header-avatar-circle {
-  background: #26bc58;
-  color: white;
 }
 
 .menu-arrow {
-  font-size: 14px;
-  opacity: 0.8;
+  font-size: 10px;
+  color: #1e293b;
+  opacity: 0.6;
   transition: transform 0.3s ease;
+  margin-top: 2px;
 }
 
 .menu-arrow.up {
@@ -320,7 +317,7 @@ body.menu-open-lock {
 }
 
 /* ── Responsive & Side Drawer ── */
-@media (max-width: 768px) {
+@media (max-width: 1024px) {
   .mobile-only {
     display: block !important;
   }
@@ -412,27 +409,15 @@ body.menu-open-lock {
 
   .mobile-profile-header {
     display: flex;
-    flex-direction: column;
-    gap: 12px;
-  }
-
-  .mobile-user-details {
-    display: flex;
-    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
   }
 
   .mobile-user-name {
-    font-size: 18px;
-    font-weight: 700;
+    font-size: 17px;
     line-height: 1.2;
-  }
-
-  .mobile-user-email {
-    font-size: 13px;
-    opacity: 0.9;
-    line-height: 1.2;
-    word-break: break-all;
-    /* Permitir que correos muy largos rompan línea en el drawer si es necesario */
+    color: white;
   }
 
   .dropdown-section {

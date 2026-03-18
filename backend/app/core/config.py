@@ -1,8 +1,11 @@
-from pydantic_settings import BaseSettings
+from pathlib import Path
 import os
 from dotenv import load_dotenv
+from pydantic_settings import BaseSettings
 
-load_dotenv()
+# Determinar la ruta al archivo .env (3 niveles arriba de este archivo: core -> app -> backend)
+env_path = Path(__file__).parent.parent.parent / ".env"
+load_dotenv(dotenv_path=env_path)
 
 class Settings(BaseSettings):
     # Base

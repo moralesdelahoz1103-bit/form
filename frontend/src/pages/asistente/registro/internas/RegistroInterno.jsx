@@ -20,6 +20,37 @@ const RegistroInterno = ({ sesion, token }) => {
     autorizacion: false
   });
 
+  const [isExistingUser, setIsExistingUser] = useState(false);
+  const [isSearching, setIsSearching] = useState(false);
+  const [hasSearched, setHasSearched] = useState(false);
+
+  const buscarAsistente = async (cedula) => {
+    const cleanCedula = cedula.replace(/\D/g, '');
+    if (cleanCedula.length >= 8) {
+      setIsSearching(true);
+      try {
+        const asistente = await asistentesService.buscarPorCedula(cleanCedula);
+        if (asistente) {
+          setFormData(prev => ({
+            ...prev,
+            nombre: asistente.nombre || '',
+            cargo: asistente.cargo || '',
+            unidad: asistente.unidad || '',
+            correo: asistente.correo || '',
+          }));
+          setIsExistingUser(true);
+        } else {
+          setIsExistingUser(false);
+        }
+      } catch (error) {
+        setIsExistingUser(false);
+      } finally {
+        setIsSearching(false);
+        setHasSearched(true);
+      }
+    }
+  };
+
   const [errors, setErrors] = useState({});
 
   const handleChange = (e) => {
@@ -28,6 +59,20 @@ const RegistroInterno = ({ sesion, token }) => {
 
     if (name === 'cedula') {
       formattedValue = formatters.cedula(value);
+      const cleanValue = formattedValue.replace(/\D/g, '');
+      if (cleanValue.length >= 8) {
+        buscarAsistente(cleanValue);
+      } else {
+        setHasSearched(false);
+        setIsExistingUser(false);
+        setFormData(prev => ({
+          ...prev,
+          nombre: '',
+          cargo: '',
+          unidad: '',
+          correo: ''
+        }));
+      }
     } else if (['nombre', 'cargo', 'unidad'].includes(name)) {
       formattedValue = formatters.nombre(value);
     } else if (name === 'correo') {
@@ -40,6 +85,22 @@ const RegistroInterno = ({ sesion, token }) => {
     if (errors[name]) {
       const error = validations[name](formattedValue);
       setErrors(prev => ({ ...prev, [name]: error }));
+    }
+  };
+
+  const handleBlur = async (e) => {
+    const { name, value } = e.target;
+    
+    // Si la persona existe, actualizamos sus datos al perder el foco
+    if (isExistingUser && ['nombre', 'cargo', 'unidad', 'correo'].includes(name)) {
+      const error = validations[name] ? validations[name](value) : null;
+      if (!error) {
+        try {
+          await asistentesService.actualizarAsistente(formData.cedula, { [name]: value });
+        } catch (error) {
+          console.error(`Error actualizando el campo ${name}:`, error);
+        }
+      }
     }
   };
 
@@ -154,6 +215,7 @@ const RegistroInterno = ({ sesion, token }) => {
                 placeholder="Ej: 1234567890"
                 required
                 maxLength={10}
+                loading={isSearching}
               />
 
               <Input
@@ -161,9 +223,11 @@ const RegistroInterno = ({ sesion, token }) => {
                 name="nombre"
                 value={formData.nombre}
                 onChange={handleChange}
+                onBlur={handleBlur}
                 error={errors.nombre}
-                placeholder="Ej: Juan Pérez"
+                placeholder={!hasSearched ? "Ingresa la cédula primero" : "Ej: Juan Pérez"}
                 required
+                disabled={!hasSearched || isSearching}
               />
 
               <Input
@@ -171,9 +235,11 @@ const RegistroInterno = ({ sesion, token }) => {
                 name="cargo"
                 value={formData.cargo}
                 onChange={handleChange}
+                onBlur={handleBlur}
                 error={errors.cargo}
-                placeholder="Ej: Analista"
+                placeholder={!hasSearched ? "Ingresa la cédula primero" : "Ej: Analista"}
                 required
+                disabled={!hasSearched || isSearching}
               />
 
               <Input
@@ -181,9 +247,11 @@ const RegistroInterno = ({ sesion, token }) => {
                 name="unidad"
                 value={formData.unidad}
                 onChange={handleChange}
+                onBlur={handleBlur}
                 error={errors.unidad}
-                placeholder="Ej: Recursos Humanos"
+                placeholder={!hasSearched ? "Ingresa la cédula primero" : "Ej: Recursos Humanos"}
                 required
+                disabled={!hasSearched || isSearching}
               />
 
               <Input
@@ -191,10 +259,12 @@ const RegistroInterno = ({ sesion, token }) => {
                 name="correo"
                 value={formData.correo}
                 onChange={handleChange}
+                onBlur={handleBlur}
                 error={errors.correo}
-                placeholder="Ej: usuario@empresa.com"
+                placeholder={!hasSearched ? "Ingresa la cédula primero" : "Ej: usuario@empresa.com"}
                 required
                 type="email"
+                disabled={!hasSearched || isSearching}
               />
             </div>
 

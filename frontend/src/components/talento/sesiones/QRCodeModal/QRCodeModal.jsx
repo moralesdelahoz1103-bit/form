@@ -24,23 +24,25 @@ const QRCodeModal = ({ modalQR, setModalQR, copiarQR, descargarQR }) => {
             indexLabel: ''
         }];
     } else {
-        items.push({
-            isOcurrencia: false,
-            data: modalQR,
-            rootId: modalQR.id,
-            indexLabel: 'Sesión 1'
-        });
-        modalQR.ocurrencias.forEach((oc, idx) => {
-            items.push({
+        // Para evitar duplicados, filtramos las ocurrencias que tengan el mismo token que la raíz
+        const ocurrenciasAdicionales = (modalQR.ocurrencias || []).filter(oc => oc.token !== modalQR.token);
+        
+        items = [
+            {
+                isOcurrencia: false,
+                data: modalQR,
+                rootId: modalQR.id,
+                indexLabel: 'Sesión 1'
+            },
+            ...ocurrenciasAdicionales.map((oc) => ({
                 isOcurrencia: true,
                 data: oc,
                 rootId: modalQR.id,
-                indexLabel: `Sesión ${idx + 2}`
-            });
-        });
-    }
+                indexLabel: '' // Se reasignará abajo
+            }))
+        ];
 
-    if (!isSingleView) {
+        // Ordenar por fecha y reasignar etiquetas
         items.sort((a, b) => new Date(a.data.fecha) - new Date(b.data.fecha));
         items.forEach((item, idx) => {
             item.indexLabel = `Sesión ${idx + 1}`;

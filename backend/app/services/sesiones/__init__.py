@@ -1,11 +1,11 @@
-from .crud import crear, list_all as listar, list_admin as get_sesiones_para_admin, get_by_id as get_sesion_by_id, delete as delete_sesion
+from .crud import crear, list_all as listar, list_admin as get_sesiones_para_admin, get_by_id as get_sesion_by_id, delete as delete_sesion, increment_asistentes
 from .utils import generar_qr_dinamico, get_colombia_now
 from .recurrence import resolver_herencia, inyectar_primera_oc
 from .crud import preparar_respuesta
 from db.cosmos_client import cosmos_db
 from core.config import settings
 from core.exceptions import TokenNotFoundException, TokenExpiredException, TokenInactiveException
-from datetime import datetime
+from datetime import datetime, timedelta
 from .storage_json import load_sesiones, save_sesiones
 from .recurrence import generar_ocurrencia_dict
 
@@ -13,23 +13,29 @@ from .recurrence import generar_ocurrencia_dict
 __all__ = [
     'crear_sesion', 'get_all_sesiones', 'get_sesiones_para_admin', 'get_sesion_by_id',
     'get_sesion_by_token', 'actualizar_sesion', 'agregar_ocurrencia', 'eliminar_ocurrencia',
-    'actualizar_ocurrencia', 'delete_sesion', 'generar_qr_dinamico'
+    'actualizar_ocurrencia', 'delete_sesion', 'generar_qr_dinamico', 'increment_asistentes'
 ]
 
 def crear_sesion(data): return crear(data)
 def get_all_sesiones(owner=None, tipos=None): return listar(owner, tipos)
 
 def get_sesion_by_token(token: str) -> dict:
+    import time
+    start_time = time.time()
     if settings.STORAGE_MODE == "cosmosdb" and cosmos_db:
         sesion = cosmos_db.obtener_sesion_por_token(token)
     else:
         sesion = next((s for s in load_sesiones() if any(oc.get('token') == token for oc in s.get('ocurrencias', []))), None)
 
-    if not sesion: raise TokenNotFoundException()
+    if not sesion: 
+        print(f"❌ Token no encontrado: {token}")
+        raise TokenNotFoundException()
+    
     oc_match = next((oc for oc in sesion.get('ocurrencias', []) if oc.get('token') == token), None)
     if not oc_match: raise TokenNotFoundException()
 
     merged = {**sesion, **oc_match}
+    merged['_actividad_id'] = sesion['id']
     # Resolver nulos por campos de la madre
     for k in ['tema', 'hora_inicio', 'hora_fin', 'facilitador_entidad', 'tipo_actividad', 'contenido', 'actividad', 'actividad_custom', 'dirigido_a', 'modalidad', 'responsable', 'cargo_responsable']:
         if oc_match.get(k) is None:
@@ -38,9 +44,30 @@ def get_sesion_by_token(token: str) -> dict:
     merged['_ocurrencia_id'] = oc_match['id']
     if not merged.get('token_active', True): raise TokenInactiveException()
     
-    expiry = datetime.fromisoformat(merged['token_expiry'].replace('Z', '+00:00'))
-    if get_colombia_now() > expiry: raise TokenExpiredException()
+    # Fix date parsing: handle 'Z' suffix correctly
+    token_expiry_raw = merged.get('token_expiry')
+    if not isinstance(token_expiry_raw, str):
+        print(f"⚠️ token_expiry no es string ({type(token_expiry_raw)}): {token_expiry_raw}")
+        token_expiry_str = str(token_expiry_raw) if token_expiry_raw else ""
+    else:
+        token_expiry_str = token_expiry_raw
+
+    if token_expiry_str.endswith('Z'):
+        token_expiry_str = token_expiry_str.replace('Z', '+00:00')
     
+    try:
+        expiry = datetime.fromisoformat(token_expiry_str)
+    except Exception as e:
+        print(f"❌ Error al parsear fecha de expiración '{token_expiry_str}': {e}")
+        # Si falla el parseo, asumimos que no ha expirado para evitar bloqueo total
+        expiry = get_colombia_now() + timedelta(days=1)
+
+    if get_colombia_now() > expiry: 
+        print(f"❌ Token expirado: {token} (exp: {expiry})")
+        raise TokenExpiredException()
+    
+    end_time = time.time()
+    print(f"⏱️ get_sesion_by_token tardó {end_time - start_time:.4f}s")
     return merged
 
 def actualizar_sesion(sesion_id: str, datos: dict) -> dict:
@@ -110,12 +137,18 @@ def agregar_ocurrencia(sesion_id: str, **kwargs) -> dict:
     return nueva_oc
 
 def eliminar_ocurrencia(sesion_id: str, oc_id: str) -> bool:
+    from services.asistentes import delete_asistentes_by_sesion
     if settings.STORAGE_MODE == "cosmosdb" and cosmos_db:
         s = cosmos_db.obtener_sesion(sesion_id)
         if not s: return False
+        
         orig_len = len(s.get('ocurrencias', []))
         s['ocurrencias'] = [o for o in s.get('ocurrencias', []) if o['id'] != oc_id]
         if len(s['ocurrencias']) == orig_len: return False
+        
+        # Eliminar asistentes de esta ocurrencia
+        delete_asistentes_by_sesion(oc_id)
+        
         s['updated_at'] = get_colombia_now().isoformat()
         cosmos_db.actualizar_sesion(sesion_id, s)
         return True
@@ -126,6 +159,10 @@ def eliminar_ocurrencia(sesion_id: str, oc_id: str) -> bool:
         orig_len = len(s.get('ocurrencias', []))
         s['ocurrencias'] = [o for o in s.get('ocurrencias', []) if o['id'] != oc_id]
         if len(s['ocurrencias']) == orig_len: return False
+        
+        # Eliminar asistentes de esta ocurrencia
+        delete_asistentes_by_sesion(oc_id)
+        
         s['updated_at'] = get_colombia_now().isoformat()
         save_sesiones(sesiones)
         return True

@@ -43,15 +43,15 @@ const SeguimientoDrawer = ({
                                             <div style={{ display: 'flex', gap: '4px' }}>
                                                 <span style={{
                                                     fontSize: '11px',
-                                                    background: item.tipo_formacion === 'Externa' ? 'rgba(59, 130, 246, 0.1)' : 'rgba(38, 188, 88, 0.1)',
-                                                    color: item.tipo_formacion === 'Externa' ? '#3b82f6' : '#26bc58',
+                                                    background: 'rgba(38, 188, 88, 0.1)',
+                                                    color: '#26bc58',
                                                     padding: '4px 10px',
                                                     borderRadius: '20px',
                                                     fontWeight: '700',
-                                                    border: `1px solid ${item.tipo_formacion === 'Externa' ? 'rgba(59, 130, 246, 0.2)' : 'rgba(38, 188, 88, 0.2)'}`,
+                                                    border: '1px solid rgba(38, 188, 88, 0.2)',
                                                     whiteSpace: 'nowrap'
                                                 }}>
-                                                    {item.tipo_formacion}
+                                                    {item.tipo_actividad || 'Interno'}
                                                 </span>
                                                 {item.sesion_nro && (
                                                     <span style={{
@@ -70,13 +70,18 @@ const SeguimientoDrawer = ({
                                             </div>
                                         </div>
                                         <div className="timeline-responsable">
-                                            <span style={{ fontWeight: '600', color: '#4b5563' }}>Fecha actividad:</span> {formatters.fechaCorta(item.fecha_formacion)}
-                                        </div>
-                                        <div className="timeline-responsable" style={{ marginTop: '4px' }}>
-                                            <span style={{ fontWeight: '600', color: '#4b5563' }}>Facilitador:</span> {item.facilitador || 'N/A'}
+                                            <span style={{ fontWeight: '600', color: '#4b5563' }}>Fecha actividad:</span> {formatters.fechaCorta(item.fecha_actividad)}
                                         </div>
                                         <div className="timeline-responsable" style={{ marginTop: '2px' }}>
-                                            <span style={{ fontWeight: '600', color: '#4b5563' }}>Modalidad:</span> {item.modalidad || item.tipo_formacion}
+                                            <span style={{ fontWeight: '600', color: '#4b5563' }}>Horario:</span> {item.hora_inicio || 'N/A'} - {item.hora_fin || 'N/A'}
+                                        </div>
+                                        <div className="timeline-responsable" style={{ marginTop: '4px' }}>
+                                            <span style={{ fontWeight: '600', color: '#4b5563' }}>
+                                                {(item.tipo_actividad && item.tipo_actividad.startsWith('Extern')) ? 'Entidad / empresa:' : 'Facilitador:'}
+                                            </span> {item.facilitador_entidad || 'N/A'}
+                                        </div>
+                                        <div className="timeline-responsable" style={{ marginTop: '2px' }}>
+                                            <span style={{ fontWeight: '600', color: '#4b5563' }}>Modalidad:</span> {item.modalidad || 'N/A'}
                                         </div>
                                     </div>
                                 </div>

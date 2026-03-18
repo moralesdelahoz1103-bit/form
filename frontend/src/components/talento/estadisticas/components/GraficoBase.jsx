@@ -52,11 +52,36 @@ const GraficoBase = ({ type, data, dataKey, title, color, visualOptions, xAxisLa
         areaOpacity = 0.2
     } = visualOptions;
 
+    // Lógica para determinar si se requiere rotación de etiquetas en el eje X
+    // Basado en cantidad de datos o longitud de los nombres
+    const maxLabelLength = Math.max(...data.map(d => String(d.name || '').length), 0);
+    
+    // Solo rotar si hay varios elementos o si son extremadamente largos
+    // Para 1 o 2 elementos nunca rotamos para mantener estética
+    const needsRotation = (data.length > 8) || (data.length > 2 && maxLabelLength > 15);
+    
+    // Configuración dinámica del eje X
+    const xAxisConfig = {
+        interval: data.length > 15 ? 'preserveStartEnd' : 0, // Si son demasiados, dejar que Recharts preserve extremos
+        angle: needsRotation ? -35 : 0, // -35 grados se ve más elegante que -45
+        textAnchor: needsRotation ? 'end' : 'middle',
+        height: needsRotation ? 70 : 40,
+        verticalAnchor: 'start'
+    };
+
+    // Calcular ancho mínimo solo si hay muchos datos para permitir scroll
+    const minWidth = data.length > 12 ? (data.length * 50) : '100%';
+
     const isIntegerMetric = dataKey === 'cantidad' || dataKey === 'asistentes' || (yAxisLabel && (yAxisLabel.toLowerCase().includes('sesiones') || yAxisLabel.toLowerCase().includes('asistentes')));
 
     const renderChart = () => {
-        const commonLabelStyle = { fontFamily: 'Arial, sans-serif', fill: '#64748b', fontSize: 11, fontWeight: '600' };
-        const commonTickStyle = { fontFamily: 'Arial, sans-serif', fill: '#64748b', fontSize: 12 };
+        const commonLabelStyle = { fontFamily: 'Arial, sans-serif', fill: '#64748b', fontSize: 11, fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.5px' };
+        const commonTickStyle = { 
+            fontFamily: 'Arial, sans-serif', 
+            fill: '#64748b', 
+            fontSize: needsRotation ? 10 : 11,
+            fontWeight: 500
+        };
         const commonDataLabelStyle = { fontFamily: 'Arial, sans-serif', fill: '#475569', fontSize: '10px', fontWeight: '700' };
 
         switch (type) {
@@ -141,13 +166,13 @@ const GraficoBase = ({ type, data, dataKey, title, color, visualOptions, xAxisLa
                         <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
                         <XAxis
                             dataKey="name"
-                            fontSize={12}
+                            tick={commonTickStyle}
                             tickLine={false}
                             axisLine={false}
-                            tick={commonTickStyle}
-                            dy={10}
+                            {...xAxisConfig}
+                            dy={needsRotation ? 5 : 10}
                         >
-                            <Label value={xAxisLabel} position="insideBottom" offset={-25} style={commonLabelStyle} />
+                            <Label value={xAxisLabel} position="insideBottom" offset={needsRotation ? -15 : -25} style={commonLabelStyle} />
                         </XAxis>
                         <YAxis
                             fontSize={12}
@@ -184,13 +209,13 @@ const GraficoBase = ({ type, data, dataKey, title, color, visualOptions, xAxisLa
                         <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
                         <XAxis
                             dataKey="name"
-                            fontSize={12}
+                            tick={commonTickStyle}
                             tickLine={false}
                             axisLine={false}
-                            tick={commonTickStyle}
-                            dy={10}
+                            {...xAxisConfig}
+                            dy={needsRotation ? 5 : 10}
                         >
-                            <Label value={xAxisLabel} position="insideBottom" offset={-25} style={commonLabelStyle} />
+                            <Label value={xAxisLabel} position="insideBottom" offset={needsRotation ? -15 : -25} style={commonLabelStyle} />
                         </XAxis>
                         <YAxis
                             fontSize={12}
@@ -227,13 +252,13 @@ const GraficoBase = ({ type, data, dataKey, title, color, visualOptions, xAxisLa
                         <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
                         <XAxis
                             dataKey="name"
-                            fontSize={12}
+                            tick={commonTickStyle}
                             tickLine={false}
                             axisLine={false}
-                            tick={commonTickStyle}
-                            dy={10}
+                            {...xAxisConfig}
+                            dy={needsRotation ? 5 : 10}
                         >
-                            <Label value={xAxisLabel} position="insideBottom" offset={-25} style={commonLabelStyle} />
+                            <Label value={xAxisLabel} position="insideBottom" offset={needsRotation ? -15 : -25} style={commonLabelStyle} />
                         </XAxis>
                         <YAxis
                             fontSize={12}
@@ -262,10 +287,19 @@ const GraficoBase = ({ type, data, dataKey, title, color, visualOptions, xAxisLa
     };
 
     return (
-        <div className="hero-chart-surface-inner" style={{ width: '100%', height: '100%', minHeight: '500px' }}>
-            <ResponsiveContainer width="100%" height="100%" minWidth={0}>
-                {renderChart()}
-            </ResponsiveContainer>
+        <div className="hero-chart-surface-inner" style={{ 
+            width: '100%', 
+            height: '100%', 
+            minHeight: '500px',
+            overflowX: data.length > 12 ? 'auto' : 'hidden',
+            overflowY: 'hidden',
+            paddingBottom: needsRotation ? '20px' : '0'
+        }}>
+            <div style={{ width: '100%', height: '100%', minWidth: minWidth, display: 'block' }}>
+                <ResponsiveContainer width="100%" height="100%">
+                    {renderChart()}
+                </ResponsiveContainer>
+            </div>
         </div>
     );
 };

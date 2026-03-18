@@ -9,7 +9,6 @@ export const useSesionesData = (esAdministrador, userEmail, setToast) => {
     const [sesiones, setSesiones] = useState([]);
     const [loading, setLoading] = useState(!hayCacheValida());
     const [verGlobal, setVerGlobal] = useState(false);
-    const [viewMode, setViewMode] = useState('list');
     const [currentPage, setCurrentPage] = useState(1);
     const ITEMS_PER_PAGE = 10;
 
@@ -116,8 +115,6 @@ export const useSesionesData = (esAdministrador, userEmail, setToast) => {
         loading,
         verGlobal,
         setVerGlobal,
-        viewMode,
-        setViewMode,
         currentPage,
         setCurrentPage,
         filtros,

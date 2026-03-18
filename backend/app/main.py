@@ -5,6 +5,7 @@ from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
 import sys
+from datetime import datetime, timedelta
 from pathlib import Path
 import os
 
@@ -36,6 +37,8 @@ app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 # Construir lista de orígenes permitidos dinámicamente
 allowed_origins = [
     "http://localhost:3000",
+    "http://127.0.0.1:3000",
+    "http://localhost:3001",
     "http://localhost:5173",
 ]
 

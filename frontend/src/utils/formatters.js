@@ -8,12 +8,13 @@ export const formatters = {
   },
 
   fecha: (dateString) => {
-    if (!dateString) return '';
+    if (!dateString || dateString === 'N/A') return dateString || '';
     if (/^\d{4}-\d{2}-\d{2}$/.test(dateString)) {
       const [year, month, day] = dateString.split('-');
       return `${day}/${month}/${year}`;
     }
     const date = new Date(dateString);
+    if (isNaN(date.getTime())) return dateString;
     const d = String(date.getDate()).padStart(2, '0');
     const m = String(date.getMonth() + 1).padStart(2, '0');
     const y = date.getFullYear();
@@ -21,6 +22,7 @@ export const formatters = {
   },
 
   fechaCorta: (dateString) => {
+    if (!dateString || dateString === 'N/A') return dateString || '';
     // Si es formato YYYY-MM-DD, convertir directamente sin zona horaria
     if (/^\d{4}-\d{2}-\d{2}$/.test(dateString)) {
       const [year, month, day] = dateString.split('-');
@@ -28,6 +30,7 @@ export const formatters = {
     }
     // Fallback para otros formatos
     const date = new Date(dateString);
+    if (isNaN(date.getTime())) return dateString;
     return date.toLocaleDateString('es-ES');
   },
 

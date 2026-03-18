@@ -9,8 +9,10 @@ class SesionesRepository(BaseRepository):
     def obtener_por_id(self, sesion_id: str) -> Optional[Dict[str, Any]]:
         try:
             return self.container.read_item(item=sesion_id, partition_key=sesion_id)
-        except exceptions.CosmosResourceNotFoundError:
-            return None
+        except (exceptions.CosmosResourceNotFoundError, exceptions.CosmosHttpResponseError) as e:
+            if getattr(e, 'status_code', 0) == 404 or isinstance(e, exceptions.CosmosResourceNotFoundError):
+                return None
+            raise
     
     def listar(self, owner_email: Optional[str] = None, tipos_actividad: Optional[List[str]] = None) -> List[Dict[str, Any]]:
         def _query():

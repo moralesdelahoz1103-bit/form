@@ -110,8 +110,18 @@ def delete(sesion_id: str) -> bool:
     if not sesion: return False
     
     if settings.STORAGE_MODE == "cosmosdb" and COSMOS_AVAILABLE:
+        # Limpiar por actividad_id = sesion_id (registros donde no hay ocurrencia específica)
+        cosmos_db.eliminar_asistentes_por_sesion(sesion_id)
+        # Limpiar también por cada ocurrencia individualmente (sesion_id = oc_id)
+        for oc in sesion.get('ocurrencias', []):
+            oc_id = oc.get('id')
+            if oc_id:
+                cosmos_db.eliminar_asistentes_por_sesion(oc_id)
         cosmos_db.eliminar_sesion(sesion_id)
     else:
+        from services.asistentes import delete_asistentes_by_sesion
+        delete_asistentes_by_sesion(sesion_id)
+        
         sesiones = load_sesiones()
         new_sesiones = [s for s in sesiones if s['id'] != sesion_id]
         if len(new_sesiones) == len(sesiones): return False
@@ -122,3 +132,53 @@ def delete(sesion_id: str) -> bool:
         if hasattr(storage, 'delete_training_folder'):
             storage.delete_training_folder(sesion.get('created_by', ''), sesion.get('tema', ''))
     return True
+
+def increment_asistentes(sesion_id: str, ocurrencia_id: Optional[str] = None):
+    """Incrementa el contador de asistentes de una sesión y/o ocurrencia específica"""
+    if settings.STORAGE_MODE == "cosmosdb" and COSMOS_AVAILABLE:
+        sesion = cosmos_db.obtener_sesion(sesion_id)
+        if not sesion: return
+        
+        # Incrementar total global
+        sesion['total_asistentes'] = sesion.get('total_asistentes', 0) + 1
+        
+        # Si hay ocurrencia_id, buscarla e incrementar
+        encontrado = False
+        if ocurrencia_id:
+            for oc in sesion.get('ocurrencias', []):
+                if oc.get('id') == ocurrencia_id:
+                    oc['total_asistentes'] = oc.get('total_asistentes', 0) + 1
+                    encontrado = True
+                    break
+                    
+        # Si no se pasó ocurrencia_id o no se encontró (es la principal)
+        if not encontrado:
+            sesion['total_asistentes_principal'] = sesion.get('total_asistentes_principal', 0) + 1
+            # También sincronizar la primera ocurrencia si existe (suelen ser lo mismo)
+            if sesion.get('ocurrencias') and len(sesion['ocurrencias']) > 0:
+                oc0 = sesion['ocurrencias'][0]
+                oc0['total_asistentes'] = oc0.get('total_asistentes', 0) + 1
+                    
+        cosmos_db.actualizar_sesion(sesion_id, sesion)
+    else:
+        # Modo JSON
+        sesiones = load_sesiones()
+        for s in sesiones:
+            if s['id'] == sesion_id:
+                s['total_asistentes'] = s.get('total_asistentes', 0) + 1
+                
+                encontrado = False
+                if ocurrencia_id:
+                    for oc in s.get('ocurrencias', []):
+                        if oc.get('id') == ocurrencia_id:
+                            oc['total_asistentes'] = oc.get('total_asistentes', 0) + 1
+                            encontrado = True
+                            break
+                
+                if not encontrado:
+                    s['total_asistentes_principal'] = s.get('total_asistentes_principal', 0) + 1
+                    if s.get('ocurrencias') and len(s['ocurrencias']) > 0:
+                        s['ocurrencias'][0]['total_asistentes'] = s['ocurrencias'][0].get('total_asistentes', 0) + 1
+                        
+                save_sesiones(sesiones)
+                break

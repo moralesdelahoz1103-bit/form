@@ -17,5 +17,17 @@ export const asistentesService = {
   registrarExterno: async (asistenteData) => {
     const response = await api.post('/api/asistencia/externa', asistenteData);
     return response.data;
+  },
+
+  // Buscar asistente por cédula
+  buscarPorCedula: async (cedula) => {
+    const response = await api.get(`/api/asistentes/${cedula}`);
+    return response.data;
+  },
+
+  // Actualizar datos de un asistente
+  actualizarAsistente: async (cedula, asistenteData) => {
+    const response = await api.patch(`/api/asistentes/${cedula}`, asistenteData);
+    return response.data;
   }
 };
