@@ -19,6 +19,10 @@ const TalentoHumano = () => {
     return localStorage.getItem('th_active_view') || 'crear';
   });
 
+  const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}');
+  const userRole = userInfo.rol || 'Usuario';
+  const restrictedViews = ['seguimiento', 'estadisticas'];
+
   // Guardar vista activa en localStorage cada vez que cambie
   useEffect(() => {
     localStorage.setItem('th_active_view', activeView);
@@ -28,6 +32,13 @@ const TalentoHumano = () => {
   useEffect(() => {
     sesionesService.listar().catch(() => { }); // Popula el caché, ignorar errores silenciosamente
   }, []);
+
+  // Validar acceso por rol a la vista actual
+  useEffect(() => {
+    if (userRole !== 'Administrador' && restrictedViews.includes(activeView)) {
+      setActiveView('crear');
+    }
+  }, [activeView, userRole]);
 
   const renderView = () => {
     switch (activeView) {

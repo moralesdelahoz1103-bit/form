@@ -10,6 +10,7 @@ const MenuLateral = ({ activeView, onViewChange, onConfigClick }) => {
   const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}');
   const userName = userInfo.name || 'Usuario';
   const userEmail = userInfo.email || 'usuario@fundacionsantodomingo.org';
+  const userRole = userInfo.rol || 'Usuario';
 
   // Verificar permisos de acceso
   useEffect(() => {
@@ -120,16 +121,18 @@ const MenuLateral = ({ activeView, onViewChange, onConfigClick }) => {
   return (
     <aside className="menu-lateral">
       <nav className="menu-nav">
-        {menuItems.map(item => (
-          <button
-            key={item.id}
-            onClick={() => onViewChange(item.id)}
-            className={`menu-item ${activeView === item.id ? 'menu-item-active' : ''}`}
-          >
-            <span className="menu-icon">{item.icon}</span>
-            <span className="menu-label">{item.label}</span>
-          </button>
-        ))}
+        {menuItems
+          .filter(item => userRole === 'Administrador' || !['seguimiento', 'estadisticas'].includes(item.id))
+          .map(item => (
+            <button
+              key={item.id}
+              onClick={() => onViewChange(item.id)}
+              className={`menu-item ${activeView === item.id ? 'menu-item-active' : ''}`}
+            >
+              <span className="menu-icon">{item.icon}</span>
+              <span className="menu-label">{item.label}</span>
+            </button>
+          ))}
       </nav>
 
       <div className="menu-footer">

@@ -7,6 +7,7 @@ sys.path.append(str(Path(__file__).parent.parent.parent))
 
 from services import seguimiento as seguimiento_service
 from core.security import get_current_user
+from .usuarios import verificar_es_administrador
 
 router = APIRouter(prefix="/api/seguimiento", tags=["seguimiento"])
 
@@ -20,6 +21,7 @@ async def listar_resumen_participantes(
     Requiere autenticación.
     """
     try:
+        verificar_es_administrador(current_user)
         return seguimiento_service.obtener_resumen_participantes(user_email=user_email)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -35,6 +37,7 @@ async def obtener_detalle_participante(
     Requiere autenticación.
     """
     try:
+        verificar_es_administrador(current_user)
         detalle = seguimiento_service.obtener_detalle_participante(cedula, user_email=user_email)
         if not detalle or not detalle.get('historial'):
             raise HTTPException(status_code=404, detail="Participante no encontrado o sin historial en este contexto")
@@ -51,6 +54,7 @@ async def obtener_reporte_completo(current_user: dict = Depends(get_current_user
     Requiere autenticación.
     """
     try:
+        verificar_es_administrador(current_user)
         return seguimiento_service.obtener_reporte_completo()
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

@@ -36,7 +36,7 @@ async def listar_sesiones(current_user: dict = Depends(get_current_user)):
         rol = usuario_service.obtener_rol_usuario(user_oid)
         if rol == "Administrador":
             return sesion_service.get_sesiones_para_admin(user_email)
-        return sesion_service.get_all_sesiones(owner_email=user_email)
+        return sesion_service.get_all_sesiones(owner=user_email)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
